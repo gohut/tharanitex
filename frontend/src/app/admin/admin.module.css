@@ -1,0 +1,74 @@
+.adminLayout {
+  display: flex;
+  height: 100vh;
+  background-color: #1a1a1a;
+  padding: 1rem;
+}
+
+.sidebar {
+  width: 250px;
+  background: #252525;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .adminLayout {
+    flex-direction: column;
+    padding: 0;
+  }
+  .sidebar {
+    display: none;
+  }
+}
+
+.sidebar a {
+  text-decoration: none;
+  color: #ccc;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.sidebar a:hover {
+  background: #333;
+  color: white;
+}
+
+.mainContent {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 1rem;
+  margin-left: 1rem;
+  padding: 2rem;
+  color: black;
+}
+
+@media (max-width: 768px) {
+  .mainContent {
+    margin-left: 0;
+    border-radius: 0;
+    margin-bottom: 70px; /* Space for bottom nav */
+  }
+}
+
+.bottomNav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #252525;
+  padding: 0.5rem;
+  justify-content: space-around;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .bottomNav {
+    display: flex;
+  }
+}
