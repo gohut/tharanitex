@@ -155,23 +155,22 @@ bestSellers: {
     ],
   },
   whyTharani: {
-    title: "WHY THARANI",
+    heading: "Crafted With\nHeritage",
+
+    subtitle: "For those who appreciate\ntimeless craftsmanship",
 
     features: [
       {
         title: "Pure Silk",
-        description:
-          "Finest Quality Silk,\nTimeless, soft and smooth.",
+        description: "Finest Quality Silk,\nTimeless, soft and smooth.",
       },
       {
         title: "Authenticity",
-        description:
-          "Pure Saree Work\nthat reflects Tradition.",
+        description: "Pure Saree Work\nthat reflects Tradition.",
       },
       {
         title: "Handwoven",
-        description:
-          "Meticulously handwoven\nby skilled artisans.",
+        description: "Meticulously handwoven\nby skilled artisans.",
       },
     ],
   },

@@ -4,43 +4,46 @@ export default function WhySection() {
   const { whyTharani } = homeContent;
 
   return (
-    <section className="bg-black py-24">
-      <div className="max-w-[1440px] mx-auto grid grid-cols-2">
+    <section className="bg-[#FBF5EA] py-28">
+
+      <div className="max-w-[1200px] mx-auto grid grid-cols-2 gap-24">
 
         {/* LEFT */}
 
-        <div className="flex flex-col justify-center items-center border-r border-[#D4AF37]">
+        <div className="flex flex-col items-center justify-center text-center">
 
-          <h2 className="text-[#D4AF37] text-[58px] tracking-[14px] font-light uppercase">
-            {whyTharani.title}
-          </h2>
+          <p className="uppercase tracking-[8px] text-[#C79A2B] text-sm mb-8">
+            WHY THARANI
+            </p>
 
-          <div className="w-48 h-[2px] bg-[#D4AF37] mt-10" />
+            <h2 className="text-[64px] leading-[72px] font-light text-[#4D4D4D] whitespace-pre-line">
+            {whyTharani.heading}
+            </h2>
 
-          <div className="flex-1" />
-
-          <div className="w-96 h-[2px] bg-[#D4AF37]" />
+            <p className="mt-8 text-[#666] text-lg leading-7 whitespace-pre-line">
+            {whyTharani.subtitle}
+            </p>
 
         </div>
 
         {/* RIGHT */}
 
-        <div className="px-28">
+        <div className="border-l border-[#D4AF37] pl-14">
 
           {whyTharani.features.map((item, index) => (
 
-            <div key={index} className="py-14">
+            <div key={index} className="pb-10 mb-10">
 
-              <h3 className="text-[#5A5A5A] text-[54px] font-light">
+              <h3 className="text-[34px] font-medium text-[#4F4F4F]">
                 {item.title}
               </h3>
 
-              <p className="mt-5 whitespace-pre-line text-[#6B6B6B] text-[24px] leading-[42px] max-w-lg">
+              <p className="mt-3 whitespace-pre-line text-[#666] leading-8">
                 {item.description}
               </p>
 
               {index !== whyTharani.features.length - 1 && (
-                <div className="border-b border-[#D4AF37] mt-12" />
+                <div className="border-b border-[#D4AF37] mt-8" />
               )}
 
             </div>
@@ -50,6 +53,7 @@ export default function WhySection() {
         </div>
 
       </div>
+
     </section>
   );
 }
