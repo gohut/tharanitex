@@ -38,8 +38,11 @@ module.exports = {
           600: "#162C1C",
         },
       },
-      fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+       fontFamily: {
+        sans: ["var(--font-montserrat)"],
+        klaristha: ["var(--font-klaristha)"],
+        cormorant: ["var(--font-cormorant)"],
+        romance: ["var(--font-modern-romance)"],
       },
       boxShadow: {
         "gold-sm": "0 1px 3px rgba(212,175,55,0.15)",

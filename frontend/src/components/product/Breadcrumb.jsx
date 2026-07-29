@@ -1,6 +1,6 @@
 export default function Breadcrumb({ items }) {
   return (
-    <nav className="text-sm text-[#7A746D] py-6">
+    <nav className="text-sm text-[#7A746D] pb-8">
       <ol className="flex items-center gap-2">
         {items.map((item, index) => (
           <li key={item.label} className="flex items-center gap-2">

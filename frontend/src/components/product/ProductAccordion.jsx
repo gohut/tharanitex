@@ -1,21 +1,30 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import {
+  ChevronDown,
+  Truck,
+  HeartHandshake,
+} from "lucide-react";
+
+import { FaWhatsapp } from "react-icons/fa6";
 import { useState } from "react";
 
 const accordionItems = [
   {
+    icon: <Truck size={18} className="text-[#C48B2A]" />,
     title: "Shipping Information",
     content:
       "Free shipping across India. Orders are usually delivered within 3–7 business days.",
   },
   {
+    icon: <HeartHandshake size={18} className="text-[#C48B2A]" />,
     title: "Care Guide",
     content:
       "Dry clean only. Store folded in a muslin cloth and avoid direct sunlight.",
   },
   {
-    title: "Need Help?",
+    icon: <FaWhatsapp size={18} className="text-[#25D366]" />,
+    title: "WhatsApp Enquiry",
     content:
       "Chat with us on WhatsApp for assistance regarding this saree.",
   },
@@ -25,7 +34,7 @@ export default function ProductAccordion() {
   const [open, setOpen] = useState(0);
 
   return (
-    <div className="mt-6 border-t border-[#E8DCCB]">
+    <div className="mt-5 border-t border-[#E8DCCB]">
 
       {accordionItems.map((item, index) => (
         <div
@@ -41,12 +50,18 @@ export default function ProductAccordion() {
               flex
               justify-between
               items-center
-              py-6
+              py-5
             "
           >
-            <span className="font-medium">
-              {item.title}
-            </span>
+            <div className="flex items-center gap-3">
+
+              {item.icon}
+
+              <span className="font-medium text-[#4F4F4F]">
+                {item.title}
+              </span>
+
+            </div>
 
             <ChevronDown
               className={`transition-transform ${

@@ -17,7 +17,7 @@ export default function ProductPage() {
 
       <main className="bg-[#FBF5EA]">
 
-        <section className="max-w-[1440px] mx-auto px-10 py-10">
+        <section className="max-w-[1420px] mx-auto px-8 pt-8 pb-20">
 
           <Breadcrumb
             items={[
@@ -27,7 +27,7 @@ export default function ProductPage() {
             ]}
           />
 
-          <div className="grid grid-cols-2 gap-24 mt-10">
+          <div className="grid grid-cols-2 gap-14 mt-6">
 
             <ProductGallery
               images={productData.images}

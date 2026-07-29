@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import ProductCard from "./ProductCard";
+import ProductCard from "@/components/common/ProductCard";
 
 export default function ProductSection({
   title,
@@ -10,9 +10,9 @@ export default function ProductSection({
 
     <section className="bg-[#FBF5EA] py-20">
 
-      <div className="max-w-[1440px] mx-auto px-10">
+      <div className="max-w-[1400px] mx-auto px-8">
 
-        <h2 className="text-center text-[54px] font-light text-[#D4A437]">
+        <h2 className="text-center text-[50px] font-light text-[#D4A437]">
           {title}
         </h2>
 
@@ -74,7 +74,7 @@ export default function ProductSection({
 
           {/* Products */}
 
-          <div className="grid grid-cols-4 gap-8">
+          <div className="grid grid-cols-4 gap-x-10 gap-y-12">
 
             {products.map((product) => (
 

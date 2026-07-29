@@ -14,9 +14,8 @@ export default function ReviewSection({ reviews }) {
   );
 
   return (
-    <section className="mt-32 mb-32">
-
-      <div className="mb-16">
+    <section className="mt-20 pb-20">
+      <div className="mb-10">
 
         <p className="uppercase tracking-[3px] text-[#C39A32] text-sm">
           Customer Feedback
@@ -28,13 +27,13 @@ export default function ReviewSection({ reviews }) {
 
       </div>
 
-      <div className="grid gap-20 lg:grid-cols-[350px_1fr]">
+      <div className="grid gap-14 lg:grid-cols-[350px_1fr]">
 
         {/* Left */}
 
         <div>
 
-          <h3 className="text-[70px] font-light text-[#C48B2A] leading-none">
+          <h3 className="text-[64px] font-light text-[#C48B2A] leading-none">
             {average.toFixed(1)}
           </h3>
 

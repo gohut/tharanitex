@@ -7,28 +7,39 @@ export default function ProductGallery({ images }) {
   const [selected, setSelected] = useState(0);
 
   return (
-    <div className="flex flex-col gap-6">
-
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-white">
+    <div className="flex flex-col gap-4">
+      <div className="group relative aspect-[4/5] w-full overflow-hidden bg-white">
 
         <Image
           src={images[selected]}
           alt="Product"
           fill
           priority
-          className="object-cover transition-transform duration-500 hover:scale-[1.02]"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
-      </div>
+        <button
+          aria-label="Add to Wishlist"
+          className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center transition-transform duration-300 hover:scale-105"
+        >
+          <Image
+            src="/assets/wishlist_icon.png"
+            alt="Wishlist"
+            width={26}
+            height={26}
+            className="object-contain"
+          />
+        </button>
 
-      <div className="flex gap-4">
+      </div>
+      <div className="flex gap-3">
 
         {images.map((image, index) => (
 
           <button
             key={index}
             onClick={() => setSelected(index)}
-            className={`relative h-24 w-20 overflow-hidden border-2 transition-all duration-300 hover:scale-105 ${
+            className={`relative h-24 w-20 overflow-hidden border-2 transition-all duration-300 hover:-translate-y-1 ${
               selected === index
                 ? "border-[#C89A35] shadow-md"
                 : "border-[#E5D8C7] hover:border-[#C89A35]"

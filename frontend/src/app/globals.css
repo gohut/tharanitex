@@ -52,6 +52,7 @@
   --brand-neutral-rgb: 156 163 175;
 }
 
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -247,4 +248,37 @@ a {
   transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
+}
+
+.font-montserrat {
+  font-family: var(--font-montserrat);
+}
+
+.font-cormorant {
+  font-family: var(--font-cormorant);
+}
+
+.font-klaristha {
+  font-family: var(--font-klaristha);
+}
+
+.font-modern-romance {
+  font-family: var(--font-modern-romance);
+}
+
+@theme {
+  --font-sans: var(--font-montserrat);
+  --font-klaristha: var(--font-klaristha);
+  --font-cormorant: var(--font-cormorant);
+  --font-romance: var(--font-modern-romance);
+}
+@layer base {
+  h1,
+  h2 {
+    @apply font-klaristha;
+  }
+
+  body {
+    @apply font-sans;
+  }
 }

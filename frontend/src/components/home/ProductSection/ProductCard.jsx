@@ -4,71 +4,52 @@ import { useState } from "react";
 import { ShoppingBag } from "lucide-react";
 
 export default function ProductCard({ product }) {
-  const [wishlisted, setWishlisted] = useState(true);
+  const [wishlisted, setWishlisted] = useState(false);
 
   return (
-    <div className="group transition-all duration-300 hover:-translate-y-1">
+    <div className="group">
 
-      <div className="relative overflow-hidden rounded-sm shadow-sm group-hover:shadow-xl transition-all duration-300">
-
+        <div className="relative overflow-hidden bg-white">
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-[315px] object-cover transition duration-500 group-hover:scale-105"
-        />
+          className="w-full aspect-[3/4] object-cover transition-transform duration-500 group-hover:scale-[1.02]"        />
 
-        {/* Remove from Wishlist */}
+        {/* Wishlist */}
         <button
-          onClick={() => setWishlisted(!wishlisted)}
-          className={`
-            absolute top-3 right-3 z-20
-            w-10 h-10
-            rounded-full
-            flex items-center justify-center
-            shadow-md
-            transition-all duration-300
-            hover:scale-110
-            active:scale-95
-            ${
-              wishlisted
-                ? "bg-[#5B2333]"
-                : "bg-white"
-            }
-          `}
-        >
-          <img
-            src="/assets/wishlist_icon.png"
-            alt="Wishlist"
+            onClick={() => setWishlisted(!wishlisted)}
             className={`
-              w-8 h-8
-              object-contain
+              absolute top-3 right-3 z-20
+              w-10 h-10
+              rounded-full
+              flex items-center justify-center
+              shadow-md
               transition-all duration-300
-              ${
-                wishlisted
-                  ? "brightness-0 invert"
-                  : ""
-              }
+              hover:scale-110
+              active:scale-95
+              ${wishlisted ? "bg-[#5B2333]" : "bg-white"}
             `}
-          />
+          >
+            <img
+              src="/assets/wishlist_icon.png"
+              alt="Wishlist"
+              className={`
+                w-8 h-8 object-contain transition-all duration-300
+                ${wishlisted ? "brightness-0 invert" : ""}
+              `}
+            />
         </button>
 
-        {/* Add to Cart */}
+        {/* Cart */}
         <button
           className="
-            absolute
-            bottom-3
-            right-3
-            z-20
-            w-10
-            h-10
+            absolute bottom-3 right-3 z-20
+            w-10 h-10
             rounded-full
             bg-white
             shadow-md
-            flex
-            items-center
-            justify-center
-            transition-all
-            duration-300
+            flex items-center justify-center
+            transition-all duration-300
             hover:bg-[#5B2333]
             hover:text-white
             hover:scale-110
@@ -80,15 +61,15 @@ export default function ProductCard({ product }) {
 
       </div>
 
-      <h3 className="mt-4 text-[16px] font-medium text-[#4B4B4B] leading-snug">
+      <h3 className="mt-4 text-[15px] font-normal text-[#444] leading-6">
         {product.name}
       </h3>
 
-      <p className="uppercase text-[10px] tracking-[1.6px] text-[#C39A32] mt-1">
+      <p className="mt-1 text-[10px] uppercase tracking-[2px] text-[#B98E2A]">
         {product.category}
       </p>
 
-      <p className="mt-1 text-[30px] text-[#D49E28] font-medium">
+      <p className="mt-2 text-[20px] font-medium text-[#D59B23]">
         {product.price}
       </p>
 

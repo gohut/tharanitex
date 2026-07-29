@@ -1,7 +1,27 @@
 .hero-section{
     width:100%;
-    height:540px;
+    height:620px;
     overflow:hidden;
+    position:relative;
+    background:#FBF5EA;
+}
+
+@media (max-width:1280px){
+    .hero-section{
+        height:560px;
+    }
+}
+
+@media (max-width:1024px){
+    .hero-section{
+        height:500px;
+    }
+}
+
+@media (max-width:768px){
+    .hero-section{
+        height:360px;
+    }
 }
 
 .hero-section .swiper{
@@ -12,38 +32,46 @@
 .hero-section .swiper-slide{
     width:100%;
     height:100%;
+    overflow:hidden;
 }
 
 .hero-image{
     width:100%;
     height:100%;
     object-fit:cover;
-    object-position:center 40%;
+    object-position:center center;
     display:block;
     user-select:none;
     pointer-events:none;
+
+    transform:scale(1);
+    transition:transform 7s ease;
+}
+
+.hero-section .swiper-slide-active .hero-image{
+    transform:scale(1.05);
 }
 
 .hero-section .swiper-pagination{
-    bottom:24px !important;
+    bottom:32px !important;
 }
 
 .hero-section .swiper-pagination-bullet{
 
-    width:7px;
-    height:7px;
+    width:8px;
+    height:8px;
 
     background:#FFFFFF;
 
     opacity:.45;
 
-    transition:.3s ease;
+    transition:all .35s ease;
 }
 
 .hero-section .swiper-pagination-bullet-active{
 
-    width:18px;
-    height:7px;
+    width:24px;
+    height:8px;
 
     border-radius:999px;
 

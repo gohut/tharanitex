@@ -17,15 +17,15 @@ import "swiper/css/navigation";
 
 export default function RelatedProducts({ products }) {
   return (
-    <section className="mt-32 mb-32">
+    <section className="mt-20 mb-20">
 
-      <div className="mb-16 flex items-center justify-between">
+      <div className="mb-10 flex items-center justify-between">
 
         <div className="flex items-center gap-6">
 
           <div className="h-px w-24 bg-[#D9C7A4]" />
 
-          <h2 className="font-serif text-5xl uppercase text-[#C48B2A]">
+          <h2 className="font-serif text-[46px] uppercase text-[#C48B2A]">
             You May Also Like
           </h2>
 
@@ -91,7 +91,7 @@ function RelatedCard({ product }) {
   return (
     <div className="group transition-all duration-300 hover:-translate-y-1 cursor-pointer">
 
-      <div className="relative overflow-hidden rounded-sm bg-[#FBF8F4] shadow-sm transition-all duration-300 group-hover:shadow-xl">
+      <div className="relative overflow-hidden rounded-sm bg-[#FBF8F4] shadow-sm transition-all duration-300 group-hover:shadow-lg">
 
         <div className="relative aspect-[3/4] overflow-hidden">
 
@@ -99,7 +99,7 @@ function RelatedCard({ product }) {
             src={product.image}
             alt={product.name}
             fill
-            className="object-cover transition duration-700 group-hover:scale-110"
+            className="object-cover transition duration-700 group-hover:scale-105"
           />
 
         </div>
@@ -132,21 +132,14 @@ function RelatedCard({ product }) {
           `}
         >
 
-          <img
+          <Image
             src="/assets/wishlist_icon.png"
             alt="Wishlist"
-            className={`
-              w-8
-              h-8
-              object-contain
-              transition-all
-              duration-300
-              ${
-                wishlisted
-                  ? "brightness-0 invert"
-                  : ""
-              }
-            `}
+            width={32}
+            height={32}
+            className={`transition-all duration-300 ${
+              wishlisted ? "brightness-0 invert" : ""
+            }`}
           />
 
         </button>
@@ -196,7 +189,7 @@ function RelatedCard({ product }) {
 
       <div className="mt-3 flex items-center justify-between">
 
-        <p className="text-[30px] font-medium text-[#C48B2A]">
+        <p className="text-[28px] font-medium text-[#C48B2A]">
 
           ₹{product.price}
 
