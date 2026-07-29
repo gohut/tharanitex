@@ -3,7 +3,7 @@ import ProductCard from "./ProductCard";
 
 export default function ProductSection({
   title,
-  products,
+  products = [],
 }) {
 
   return (
