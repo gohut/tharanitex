@@ -1,215 +1,123 @@
 "use client";
 
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import Navbar from "@/components/home/Navbar/Navbar";
+import CartItem from "@/components/Cart/CartItem";
+import OrderSummary from "@/components/Cart/OrderSummary";
+import DeliveryCard from "@/components/Cart/DeliveryCard";
 
 const cartItems = [
   {
     id: 1,
     name: "Kanchipuram Silk Saree",
-    color: "Royal Maroon",
-    price: 5999,
-    quantity: 1,
-    image: "https://placehold.co/180x240",
+    category: "Pure Silk",
+    price: "₹5,999",
+    image: "/assets/sarees/kanchipuram.png",
   },
   {
     id: 2,
-    name: "Soft Silk Saree",
-    color: "Emerald Green",
-    price: 4299,
-    quantity: 2,
-    image: "https://placehold.co/180x240",
+    name: "Banarasi Silk Saree",
+    category: "Banarasi",
+    price: "₹7,499",
+    image: "/assets/sarees/banaras1.png",
+  },
+  {
+    id: 3,
+    name: "Thirubuvanam Silk",
+    category: "Traditional",
+    price: "₹6,299",
+    image: "/assets/sarees/thirubuvanam.png",
   },
 ];
 
 export default function CartPage() {
-  const subtotal = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
-
-  const shipping = 0;
-  const discount = 500;
-  const total = subtotal + shipping - discount;
-
   return (
-    <main className="min-h-screen bg-[#FAF7F2]">
-      {/* Hero */}
-      <section className="bg-gradient-to-r from-[#7A1F3D] to-[#9D2E55] py-14">
-        <div className="max-w-7xl mx-auto px-6 text-white">
-          <h1 className="text-4xl font-bold">Shopping Cart</h1>
-          <p className="mt-2 text-gray-200">
-            Review your selected sarees before checkout.
-          </p>
-        </div>
-      </section>
+    <>
+      <Navbar />
 
-      <section className="max-w-7xl mx-auto px-6 py-12 grid lg:grid-cols-3 gap-8">
-        {/* Cart Items */}
-        <div className="lg:col-span-2 space-y-6">
-          {cartItems.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-2xl shadow-sm p-5 flex flex-col md:flex-row gap-6"
-            >
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-full md:w-40 h-56 object-cover rounded-xl"
-              />
+      <main className="bg-[#F8F2E8] min-h-screen">
 
-              <div className="flex-1">
-                <h2 className="text-xl font-semibold">{item.name}</h2>
+        {/* Header */}
+        <section className="bg-white border-b border-[#E8DCCB]">
+          <div className="max-w-[1440px] mx-auto px-10 py-12">
 
-                <p className="text-gray-500 mt-1">
-                  Color: {item.color}
-                </p>
+            <p className="uppercase tracking-[0.3em] text-[#B58A45] text-sm font-medium">
+              Tharani Textiles
+            </p>
 
-                <p className="text-2xl font-bold text-[#8B1E3F] mt-4">
-                  ₹{item.price}
-                </p>
+            <h1 className="mt-3 text-6xl font-serif text-[#5A1F2F]">
+              My Cart
+            </h1>
 
-                {/* Quantity */}
-                <div className="flex items-center gap-3 mt-6">
-                  <button className="p-2 rounded-lg border hover:bg-gray-100">
-                    <Minus size={18} />
-                  </button>
+            <p className="mt-4 text-gray-600">
+              {cartItems.length} Item{cartItems.length !== 1 && "s"} in your shopping bag.
+            </p>
 
-                  <span className="text-lg font-medium">
-                    {item.quantity}
-                  </span>
+          </div>
+        </section>
 
-                  <button className="p-2 rounded-lg border hover:bg-gray-100">
-                    <Plus size={18} />
-                  </button>
+        {/* Breadcrumb */}
+        <section className="max-w-[1440px] mx-auto px-10 py-6 text-sm text-gray-500">
+          Home
+          <span className="mx-2">/</span>
+          Cart
+        </section>
+
+        {/* Main Layout */}
+        <section className="max-w-[1440px] mx-auto px-10 pb-20">
+
+          <div className="grid lg:grid-cols-[2fr_430px] gap-14">
+
+            {/* Left Side */}
+            <div>
+
+              {/* Column Headers */}
+              <div className="grid grid-cols-[140px_1fr_160px_120px_60px] pb-5 border-b border-[#D8CCB4] text-[#8A8175] uppercase tracking-[0.18em] text-xs">
+
+                <div>Product</div>
+
+                <div></div>
+
+                <div className="text-center">
+                  Qty
                 </div>
+
+                <div className="text-center">
+                  Total
+                </div>
+
+                <div></div>
+
               </div>
 
-              {/* Delete */}
-              <button className="self-start text-red-500 hover:text-red-700">
-                <Trash2 />
-              </button>
-            </div>
-          ))}
-        </div>
+              {cartItems.map((product) => (
+                <CartItem
+                  key={product.id}
+                  product={product}
+                />
+              ))}
 
-        {/* Summary */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 h-fit sticky top-24">
-          <h2 className="text-2xl font-semibold mb-6">
-            Order Summary
-          </h2>
-
-          <div className="space-y-4 text-gray-700">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>₹{subtotal}</span>
             </div>
 
-            <div className="flex justify-between">
-              <span>Shipping</span>
-              <span className="text-green-600">Free</span>
-            </div>
+            {/* Right Side */}
 
-            <div className="flex justify-between">
-              <span>Discount</span>
-              <span>-₹{discount}</span>
-            </div>
+            <div className="sticky top-8 self-start">
 
-            <hr />
-
-            <div className="flex justify-between text-xl font-bold">
-              <span>Total</span>
-              <span className="text-[#8B1E3F]">
-                ₹{total}
-              </span>
-            </div>
-          </div>
-
-          {/* Coupon */}
-          <div className="mt-8">
-            <label className="font-medium">
-              Coupon Code
-            </label>
-
-            <div className="flex mt-3">
-              <input
-                type="text"
-                placeholder="Enter coupon"
-                className="flex-1 border rounded-l-xl px-4 py-3 outline-none"
+              <OrderSummary
+                subtotal="₹19,797"
+                shipping="Free"
+                tax="Included"
+                total="₹19,797"
               />
 
-              <button className="bg-[#8B1E3F] text-white px-5 rounded-r-xl hover:bg-[#6F1731]">
-                Apply
-              </button>
+              <DeliveryCard />
+
             </div>
+
           </div>
 
-          <button className="w-full mt-8 bg-[#8B1E3F] text-white py-4 rounded-xl font-semibold hover:bg-[#6F1731] transition">
-            Proceed to Checkout
-          </button>
+        </section>
 
-          <button className="w-full mt-3 border border-[#8B1E3F] text-[#8B1E3F] py-4 rounded-xl hover:bg-[#8B1E3F] hover:text-white transition">
-            Continue Shopping
-          </button>
-        </div>
-      </section>
-
-      {/* Recommended */}
-      <section className="max-w-7xl mx-auto px-6 pb-16">
-        <h2 className="text-3xl font-bold mb-8">
-          You May Also Like
-        </h2>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((item) => (
-            <div
-              key={item}
-              className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition"
-            >
-              <img
-                src="https://placehold.co/350x450"
-                className="w-full h-72 object-cover"
-                alt=""
-              />
-
-              <div className="p-4">
-                <h3 className="font-semibold">
-                  Premium Silk Saree
-                </h3>
-
-                <p className="text-[#8B1E3F] font-bold mt-2">
-                  ₹4,999
-                </p>
-
-                <button className="w-full mt-4 bg-[#8B1E3F] text-white py-3 rounded-lg hover:bg-[#6F1731]">
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Empty State Example */}
-      {false && (
-        <div className="min-h-[70vh] flex flex-col justify-center items-center text-center px-6">
-          <ShoppingBag
-            size={80}
-            className="text-[#8B1E3F]"
-          />
-
-          <h2 className="text-4xl font-bold mt-6">
-            Your Cart is Empty
-          </h2>
-
-          <p className="text-gray-500 mt-3">
-            Looks like you haven't added any sarees yet.
-          </p>
-
-          <button className="mt-8 bg-[#8B1E3F] text-white px-8 py-4 rounded-xl hover:bg-[#6F1731]">
-            Explore Collection
-          </button>
-        </div>
-      )}
-    </main>
+      </main>
+    </>
   );
 }

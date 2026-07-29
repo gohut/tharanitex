@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Search, Heart, ShoppingBag } from "lucide-react";
+import { Menu, Search, ShoppingBag } from "lucide-react";
 
 export default function Navbar() {
   return (
@@ -43,13 +43,15 @@ export default function Navbar() {
             />
           </button>
 
+          {/* Wishlist */}
           <button
-            className="hover:opacity-70 transition"
+            className="hover:scale-105 transition"
             aria-label="Wishlist"
           >
-            <Heart
-              size={24}
-              strokeWidth={1.8}
+            <img
+              src="/assets/wishlist.png"
+              alt="Wishlist"
+              className="w-9 h-9"
             />
           </button>
 
