@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import ProductCard from "@/components/common/ProductCard";
+import ProductCard from "@/components/home/ProductSection/ProductCard";
 
 export default function ProductSection({
   title,

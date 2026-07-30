@@ -1,9 +1,12 @@
 export default function Breadcrumb({ items }) {
   return (
-    <nav className="text-sm text-[#7A746D] pb-8">
-      <ol className="flex items-center gap-2">
+    <nav className="pb-5 text-xs text-[#7A746D]">
+      <ol className="flex flex-wrap items-center gap-1.5">
         {items.map((item, index) => (
-          <li key={item.label} className="flex items-center gap-2">
+          <li
+            key={item.label}
+            className="flex items-center gap-1.5"
+          >
             {index > 0 && <span>/</span>}
 
             {item.href ? (
@@ -14,9 +17,7 @@ export default function Breadcrumb({ items }) {
                 {item.label}
               </a>
             ) : (
-              <span className="text-[#2F2F2F]">
-                {item.label}
-              </span>
+              <span className="text-[#6C645C]">{item.label}</span>
             )}
           </li>
         ))}

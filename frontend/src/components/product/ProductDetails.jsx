@@ -1,119 +1,68 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Minus,
-  Plus,
-  ShieldCheck,
-  Truck,
-  RotateCcw,
-  BadgeCheck,
-} from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import ProductAccordion from "./ProductAccordion";
 
 export default function ProductDetails({ product }) {
   const [qty, setQty] = useState(1);
 
-  const discount = Math.round(
-    ((product.originalPrice - product.price) / product.originalPrice) * 100
-  );
+  const formatPrice = (value) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(value);
 
   return (
-    <div className="flex flex-col">
-
-      <h1 className="max-w-[520px] font-serif uppercase text-[#C48B2A] text-[48px] leading-[1.05] tracking-tight">
+    <div className="flex flex-col pt-1">
+      <h1 className="max-w-[520px] font-klaristha text-[38px] uppercase leading-[0.95] tracking-[-0.02em] text-[#C79127] md:text-[54px]">
         {product.name}
       </h1>
 
-      <p className="mt-4 uppercase text-[#C48B2A] tracking-[4px] text-sm font-medium">
+      <p className="mt-4 text-[11px] uppercase tracking-[0.18em] text-[#D3A358]">
         {product.category}
       </p>
 
-      <div className="mt-8 pb-8 border-b border-[#E8DED2]">
-
-        <div className="flex items-end gap-4">
-
-          <h2 className="text-[42px] font-semibold text-[#1F1F1F]">
-            ₹{product.price}
-          </h2>
-
-          {product.originalPrice && (
-            <>
-              <span className="text-xl text-gray-400 line-through">
-                ₹{product.originalPrice}
-              </span>
-
-              <span className="rounded-full bg-[#F8E6BE] px-3 py-1 text-sm font-semibold text-[#9B6B00]">
-                {discount}% OFF
-              </span>
-            </>
-          )}
-
-        </div>
-
+      <div className="mt-5 border-b border-[#E4D9C6] pb-5">
+        <p className="text-[34px] font-medium text-[#2E241B] md:text-[38px]">
+          {formatPrice(product.price)}
+        </p>
       </div>
 
-      <div className="mt-8 flex gap-4">
-
-        <div className="flex h-14 border border-[#D6B36A]">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <div className="flex h-[50px] w-full border border-[#F2A100] sm:w-auto">
           <button
             onClick={() => qty > 1 && setQty(qty - 1)}
-            className="flex w-14 items-center justify-center transition hover:bg-[#F7F1E8]"
+            className="flex w-[50px] items-center justify-center bg-[#F2A100] text-[#3F2C12] transition hover:bg-[#DF9600]"
           >
             <Minus size={18} />
           </button>
 
-          <div className="flex w-14 items-center justify-center text-lg font-medium">
+          <div className="flex w-[50px] items-center justify-center bg-[#F7E8C5] text-base font-medium text-[#3F2C12]">
             {qty}
           </div>
 
           <button
             onClick={() => setQty(qty + 1)}
-            className="flex w-14 items-center justify-center transition hover:bg-[#F7F1E8]"
+            className="flex w-[50px] items-center justify-center bg-[#F2A100] text-[#3F2C12] transition hover:bg-[#DF9600]"
           >
             <Plus size={18} />
           </button>
-
         </div>
 
-        <button className="h-14 flex-1  border-2 border-[#D6B36A] font-semibold tracking-[2px] transition-all duration-300 hover:bg-[#D6B36A] hover:text-white">
+        <button className="h-[50px] flex-1 border-2 border-[#F2A100] bg-transparent px-6 text-sm font-semibold tracking-[0.06em] text-[#3C3128] transition hover:bg-[#F9E2AC]">
           ADD TO CART
         </button>
-
       </div>
 
-      <button className="mt-4 h-14 bg-[#F3A900] font-semibold tracking-[2px] text-white transition-all duration-300 hover:bg-[#DE9800]">
+      <button className="mt-3 h-[50px] w-full bg-[#F2A100] text-sm font-semibold tracking-[0.06em] text-[#2F2417] transition hover:bg-[#DF9600]">
         BUY NOW
       </button>
 
-      <div className="mt-8 grid grid-cols-2 gap-4 text-sm text-[#555]">
-
-        <div className="flex items-center gap-2">
-          <Truck size={18} className="text-[#C48B2A]" />
-          <span>Free Shipping</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <RotateCcw size={18} className="text-[#C48B2A]" />
-          <span>Easy Returns</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <ShieldCheck size={18} className="text-[#C48B2A]" />
-          <span>Secure Payment</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <BadgeCheck size={18} className="text-[#C48B2A]" />
-          <span>Authentic Silk</span>
-        </div>
-
+      <div className="mt-5">
+        <ProductAccordion />
       </div>
-
-     <div className="mt-12">
-      <ProductAccordion />
-     </div>
-
     </div>
   );
 }

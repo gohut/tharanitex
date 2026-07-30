@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  ChevronDown,
-  Truck,
-  HeartHandshake,
-} from "lucide-react";
-
+import { ChevronDown, Truck, HeartHandshake } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa6";
 import { useState } from "react";
 
@@ -14,7 +9,7 @@ const accordionItems = [
     icon: <Truck size={18} className="text-[#C48B2A]" />,
     title: "Shipping Information",
     content:
-      "Free shipping across India. Orders are usually delivered within 3–7 business days.",
+      "Free shipping across India. Orders are usually delivered within 3-7 business days.",
   },
   {
     icon: <HeartHandshake size={18} className="text-[#C48B2A]" />,
@@ -31,53 +26,47 @@ const accordionItems = [
 ];
 
 export default function ProductAccordion() {
-  const [open, setOpen] = useState(0);
+  const [open, setOpen] = useState(-1);
 
   return (
-    <div className="mt-5 border-t border-[#E8DCCB]">
-
+    <div className="border-t border-[#E8DCCB]">
       {accordionItems.map((item, index) => (
         <div
           key={index}
           className="border-b border-[#E8DCCB]"
         >
           <button
-            onClick={() =>
-              setOpen(open === index ? -1 : index)
-            }
-            className="
-              w-full
-              flex
-              justify-between
-              items-center
-              py-5
-            "
+            onClick={() => setOpen(open === index ? -1 : index)}
+            className="flex w-full items-center justify-between py-4"
           >
             <div className="flex items-center gap-3">
-
               {item.icon}
-
-              <span className="font-medium text-[#4F4F4F]">
+              <span
+                className={`text-[15px] ${
+                  item.title === "WhatsApp Enquiry"
+                    ? "text-[#4FA93D]"
+                    : "text-[#4F4F4F]"
+                }`}
+              >
                 {item.title}
               </span>
-
             </div>
 
             <ChevronDown
-              className={`transition-transform ${
+              size={18}
+              className={`text-[#2F2B27] transition-transform ${
                 open === index ? "rotate-180" : ""
               }`}
             />
           </button>
 
           {open === index && (
-            <p className="pb-6 text-[#6A6A6A] leading-7">
+            <p className="pb-5 pl-8 text-sm leading-6 text-[#6A6A6A]">
               {item.content}
             </p>
           )}
         </div>
       ))}
-
     </div>
   );
 }
