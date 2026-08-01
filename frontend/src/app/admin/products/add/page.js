@@ -1,4 +1,5 @@
 "use client";
+import { Suspense } from "react";
 import { useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Plus, Trash2, Upload, ImageIcon } from "lucide-react";
@@ -7,7 +8,7 @@ import FormInput from "../../../../components/ui/FormInput";
 import Toggle from "../../../../components/ui/Toggle";
 import { categories as initialCategories, products as initialProducts } from "../../../../data/products";
 
-export default function AddProductPage() {
+function AddProductContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("id");
@@ -402,5 +403,13 @@ export default function AddProductPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AddProductPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-white">Loading...</div>}>
+      <AddProductContent />
+    </Suspense>
   );
 }

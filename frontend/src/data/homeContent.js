@@ -25,31 +25,31 @@ const homeContent = {
       id: 1,
       title: "THIRUBUVANAM",
       subtitle: "SILKS",
-      image: "/assets/sarees/Thirubuvanam.png",
+      image: "/assets/sarees/thirubuvanam.png",
     },
     {
       id: 2,
       title: "KANCHIPURAM",
       subtitle: "SILKS",
-      image: "/assets/sarees/Kanchipuram.png",
+      image: "/assets/sarees/kanchipuram.png",
     },
     {
       id: 3,
       title: "BANARAS",
       subtitle: "SILKS",
-      image: "/assets/sarees/Banaras1.png",
+      image: "/assets/sarees/banaras1.png",
     },
     {
       id: 4,
       title: "BANARAS",
       subtitle: "SILKS",
-      image: "/assets/sarees/Banaras2.png",
+      image: "/assets/sarees/banaras2.png",
       },
     ],
   },
 
   promoBanner1: {
-    image: "/assets/banners/Banner1.png",
+    image: "/assets/banners/banner1.png",
     enabled: true,
   },
 
@@ -81,99 +81,7 @@ const homeContent = {
           "Meticulously handwoven by skilled artisans.",
       },
     ],
-  },
-  newArrivals: {
-    title: "New Arrivals",
-
-    items: [
-      {
-        id: 1,
-        name: "Kanchipuram Silk Saree",
-        category: "WEDDING COLLECTIONS",
-        price: "₹15,990",
-        image: "/assets/sarees/Banaras1.png",
-        favourite: true,
-      },
-      {
-        id: 2,
-        name: "Kanchipuram Silk Saree",
-        category: "WEDDING COLLECTIONS",
-        price: "₹15,990",
-        image: "/assets/sarees/Thirubuvanam.png",
-        favourite: true,
-      },
-      {
-        id: 3,
-        name: "Kanchipuram Silk Saree",
-        category: "WEDDING COLLECTIONS",
-        price: "₹15,990",
-        image: "/assets/sarees/banaras1.png", 
-        favourite: true,
-      },
-      {
-        id: 4,
-        name: "Kanchipuram Silk Saree",
-        category: "WEDDING COLLECTIONS",
-        price: "₹15,990",
-        image: "/assets/sarees/Banaras2.png",
-        favourite: true,
-      },
-    ],
-  },
-bestSellers: {
-    title: "Best Sellers",
-
-    items: [
-      {
-        id: 1,
-        name: "Kanchipuram Silk Saree",
-        category: "WEDDING COLLECTIONS",
-        price: "₹15,990",
-        image: "/assets/sarees/Banaras1.png",
-      },
-      {
-        id: 2,
-        name: "Kanchipuram Silk Saree",
-        category: "WEDDING COLLECTIONS",
-        price: "₹15,990",
-        image: "/assets/sarees/Thirubuvanam.png",
-      },
-      {
-        id: 3,
-        name: "Kanchipuram Silk Saree",
-        category: "WEDDING COLLECTIONS",
-        price: "₹15,990",
-        image: "/assets/sarees/Banaras2.png",
-      },
-      {
-        id: 4,
-        name: "Kanchipuram Silk Saree",
-        category: "WEDDING COLLECTIONS",
-        price: "₹15,990",
-        image: "/assets/sarees/Kanchipuram.png",
-      },
-    ],
-  },
-  whyTharani: {
-    heading: "Crafted With\nHeritage",
-
-    subtitle: "For those who appreciate\ntimeless craftsmanship",
-
-    features: [
-      {
-        title: "Pure Silk",
-        description: "Finest Quality Silk,\nTimeless, soft and smooth.",
-      },
-      {
-        title: "Authenticity",
-        description: "Pure Saree Work\nthat reflects Tradition.",
-      },
-      {
-        title: "Handwoven",
-        description: "Meticulously handwoven\nby skilled artisans.",
-      },
-    ],
-  },
+  }
 };
 
 export default homeContent;

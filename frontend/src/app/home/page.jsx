@@ -3,26 +3,42 @@ import Hero from "@/components/home/Hero/Hero";
 import Categories from "@/components/home/Categories/Categories";
 import PromoBanner from "@/components/home/PromoBanner/PromoBanner";
 import ProductSection from "@/components/home/ProductSection/ProductSection";
-import homeContent from "@/data/homeContent";
 import WhySection from "@/components/home/WhySection/WhySection";
+import homeContent from "@/data/homeContent";
 
-export default function HomePage() {
+async function getHomeData() {
+  const res = await fetch("http://127.0.0.1:8787/api/home", {
+    cache: "no-store",
+  });
+
+  return res.json();
+}
+
+export default async function HomePage() {
+  const data = await getHomeData();
+
   return (
     <main className="bg-[#FBF5EA]">
       <Navbar />
 
       <Hero />
+
       <Categories />
+
       <PromoBanner banner={homeContent.promoBanner1} />
+
       <ProductSection
-        title={homeContent.newArrivals.title}
-        products={homeContent.newArrivals.items}
+        title="New Arrivals"
+        products={data.newArrivals}
       />
+
       <PromoBanner banner={homeContent.promoBanner2} />
+
       <ProductSection
-        title={homeContent.bestSellers.title}
-        products={homeContent.bestSellers.items}
+        title="Best Sellers"
+        products={data.bestSellers}
       />
+
       <WhySection />
     </main>
   );
