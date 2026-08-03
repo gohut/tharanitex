@@ -1,6 +1,8 @@
-// Cloudflare KV Database and Worker Environment Bindings
+// Cloudflare KV Database, D1 Database, and Worker Environment Bindings
 export interface CloudflareEnv {
   KV: KVNamespace;
+  DB?: D1Database;
+  IMAGES?: R2Bucket;
   SMS_PROVIDER?: 'twilio' | 'msg91' | 'textlocal' | 'mock';
   TWILIO_ACCOUNT_SID?: string;
   TWILIO_AUTH_TOKEN?: string;
@@ -10,9 +12,81 @@ export interface CloudflareEnv {
   TEXTLOCAL_API_KEY?: string;
   TEXTLOCAL_SENDER?: string;
   COOKIE_SECRET?: string;
+  ADMIN_EMAIL?: string;
+  ADMIN_PASSWORD?: string;
 }
 
-// User Record in Cloudflare KV
+// ==================== D1 Database Entities ====================
+
+export interface Role {
+  id: number;
+  name: string; // 'Super Admin' | 'Manager' | 'Support Staff'
+  created_at?: string;
+}
+
+export interface StaffUser {
+  id: number;
+  name: string;
+  email: string;
+  password_hash?: string;
+  role_id: number;
+  role_name?: string;
+  status: 'Active' | 'Inactive';
+  last_login?: string | null;
+  created_at?: string;
+}
+
+export interface RolePermission {
+  id: number;
+  role_id: number;
+  module: ModuleName;
+  can_view: number;   // 0 or 1
+  can_create: number; // 0 or 1
+  can_edit: number;   // 0 or 1
+  can_delete: number; // 0 or 1
+}
+
+export interface D1SessionRecord {
+  id: string;          // uuid
+  user_id: number;
+  user_type: 'admin' | 'customer';
+  token_hash: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  is_revoked: number;  // 0 or 1
+  created_at: string;
+  expires_at: string;
+}
+
+export interface NotificationRecord {
+  id: number;
+  recipient_role: string | null; // null = all roles
+  title: string;
+  message: string;
+  type: 'order' | 'system' | 'security' | 'user' | 'review';
+  is_read: number;               // 0 or 1
+  created_at: string;
+}
+
+export type ModuleName =
+  | 'Products'
+  | 'Orders'
+  | 'Customers'
+  | 'Shipping'
+  | 'Reviews'
+  | 'CMS'
+  | 'Users & Roles'
+  | 'Settings';
+
+export interface ModulePermissionInput {
+  module: ModuleName;
+  can_view: boolean | number;
+  can_create: boolean | number;
+  can_edit: boolean | number;
+  can_delete: boolean | number;
+}
+
+// User Record in Cloudflare KV (Legacy / Customer)
 export interface UserRecord {
   id: string;
   customerId: string; // e.g. TXN000001
@@ -25,19 +99,18 @@ export interface UserRecord {
   updatedAt: string;
 }
 
-// OTP Verification Record in Cloudflare KV
-// NOTE: Plain-text OTP stored for dev/testing. For production security, hash the OTP (e.g., using SHA-256) before storing.
+// OTP Verification Record
 export interface OtpVerificationRecord {
   id: string;
-  phoneNumber: string; // 10-digit mobile number
-  otpCode: string; // Plain text OTP for dev/testing
+  phoneNumber: string;
+  otpCode: string;
   expiresAt: string;
   isUsed: boolean;
   attempts: number;
   createdAt: string;
 }
 
-// User Session Record in Cloudflare KV
+// User Session Record
 export interface UserSessionRecord {
   id: string;
   userId: string;
@@ -61,6 +134,27 @@ export interface VerifyOtpRequest {
   otp: string;
 }
 
+export interface AdminLoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface CreateStaffRequest {
+  name: string;
+  email: string;
+  password: string;
+  role_id: number;
+  status?: 'Active' | 'Inactive';
+}
+
+export interface UpdateStaffRequest {
+  name?: string;
+  email?: string;
+  password?: string;
+  role_id?: number;
+  status?: 'Active' | 'Inactive';
+}
+
 export interface ApiResponse<T = any> {
   success: boolean;
   message: string;
@@ -69,12 +163,19 @@ export interface ApiResponse<T = any> {
 }
 
 export interface SessionUserData {
-  id: string;
-  customerId: string;
-  fullName: string;
-  phoneNumber: string;
+  id: number | string;
+  userId: number | string;
+  userType: 'admin' | 'customer';
+  name?: string;
+  email?: string;
+  fullName?: string;
+  phoneNumber?: string;
+  customerId?: string;
+  roleId?: number;
   role: string;
-  phoneVerified: boolean;
+  roleName?: string;
+  status?: string;
+  phoneVerified?: boolean;
 }
 
 export const SESSION_COOKIE_NAME = 'tharanitex_session';

@@ -88,6 +88,27 @@ export async function getKV(requestEnv?: CloudflareEnv): Promise<KVNamespace> {
   return (globalThis as any)[globalMockKvSymbol] as unknown as KVNamespace;
 }
 
+/**
+ * Retrieve Cloudflare D1 Database binding (env.DB)
+ */
+export async function getDB(requestEnv?: CloudflareEnv): Promise<D1Database | null> {
+  if (requestEnv && requestEnv.DB) {
+    return requestEnv.DB;
+  }
+
+  try {
+    const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+    const ctx = await getCloudflareContext();
+    if (ctx && ctx.env && (ctx.env as CloudflareEnv).DB) {
+      return (ctx.env as CloudflareEnv).DB || null;
+    }
+  } catch (e) {
+    // OpenNext context unavailable
+  }
+
+  return null;
+}
+
 // ==================== Ecommerce Customer Counter ====================
 
 /**
