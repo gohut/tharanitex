@@ -2,11 +2,9 @@
 import { Suspense } from "react";
 import { useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Plus, Trash2, Upload, ImageIcon } from "lucide-react";
+import { ArrowLeft, Trash2, Upload, ImageIcon } from "lucide-react";
 import Button from "../../../../components/ui/Button";
 import FormInput from "../../../../components/ui/FormInput";
-import Toggle from "../../../../components/ui/Toggle";
-import { categories as initialCategories, products as initialProducts } from "../../../../data/products";
 
 function AddProductContent() {
   const router = useRouter();
@@ -14,12 +12,12 @@ function AddProductContent() {
   const editId = searchParams.get("id");
   const isEditing = !!editId;
 
-  const [categories] = useState(initialCategories);
+  const [categories, setCategories] = useState([]);
 
   // Main Product State
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState(categories[0]?.name || "");
+  const [category, setCategory] = useState("");
   const [status, setStatus] = useState("Active");
   const [stock, setStock] = useState("");
   const [rating, setRating] = useState("0");
@@ -27,10 +25,11 @@ function AddProductContent() {
   const [actualPrice, setActualPrice] = useState("");
   const [sellingPrice, setSellingPrice] = useState("");
   const [images, setImages] = useState([]);
-
-  // Variants State
-  const [hasVariants, setHasVariants] = useState(false);
-  const [variants, setVariants] = useState([]);
+  const [imageFiles, setImageFiles] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [slug, setSlug] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);  
 
   // Calculated Discount for Main Product
   const discount = useMemo(() => {
@@ -45,101 +44,256 @@ function AddProductContent() {
   }, [actualPrice, sellingPrice]);
 
   useEffect(() => {
-    if (editId) {
-      const product = initialProducts.find((p) => p.id === editId);
-      if (product) {
-        setName(product.name || "");
-        setDescription(product.description || "");
-        setCategory(product.category || (categories[0]?.name || ""));
-        setStatus(product.status || "Active");
-        setStock(product.stock !== undefined ? String(product.stock) : "");
-        setRating(product.rating !== undefined ? String(product.rating) : "0");
-        
-        setSellingPrice(product.price ? String(product.price) : "");
-        setActualPrice(product.price ? String(product.price) : "");
-        
-        if (product.image) {
-          setImages([product.image]);
+    async function loadCategories() {
+      try {
+        const res = await fetch("/api/admin/categories", {
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to load categories");
         }
-        
-        if (product.variants && product.variants.length > 0) {
-          setHasVariants(true);
-          setVariants(product.variants.map((v, i) => ({
-            id: i,
-            name: v.color || v.size || `Variant ${i+1}`,
-            actualPrice: product.price ? String(product.price) : "",
-            sellingPrice: product.price ? String(product.price) : "",
-            stock: "",
-            images: [],
-          })));
+
+        const data = await res.json();
+
+        setCategories(data);
+
+        if (data.length > 0) {
+          setCategory(data[0].name);
         }
+      } catch (error) {
+        console.error("Category load error:", error);
       }
     }
-  }, [editId, categories]);
 
-  const handleAddImage = () => {
-    // Simulating adding an image
-    setImages([...images, `https://placehold.co/150x150/145C3E/D4AF37?text=Img+${images.length + 1}`]);
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    if (!editId) return;
+
+    async function loadProduct() {
+      try {
+        const res = await fetch(`/api/admin/products/${editId}`, {
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to load product");
+        }
+
+        const product = await res.json();
+
+        setName(product.name || "");
+        setSlug(product.slug || "");
+        setDescription(product.description || "");
+        setCategory(product.category || "");
+        setSellingPrice(String(product.price ?? ""));
+        setActualPrice(String(product.price ?? ""));
+        setStock(String(product.stock ?? ""));
+        setStatus(product.isActive ? "Active" : "Out of Stock");
+
+        // PUT IT HERE ↓
+        const existingUrls = Array.isArray(product.images)
+          ? product.images.map((img) => img.imageUrl)
+          : [];
+
+        setExistingImages(existingUrls);
+        setImages(existingUrls);
+        setImageFiles([]);
+
+      } catch (error) {
+        console.error("Product load error:", error);
+        alert("Failed to load product.");
+      }
+    }
+
+    loadProduct();
+  }, [editId]);
+
+  const handleImageChange = (event) => {
+    const files = Array.from(event.target.files || []);
+
+    if (!files.length) return;
+
+    const validFiles = files.filter((file) =>
+      file.type.startsWith("image/")
+    );
+
+    const previews = validFiles.map((file) =>
+      URL.createObjectURL(file)
+    );
+
+    setImageFiles((prev) => [...prev, ...validFiles]);
+    setImages((prev) => [...prev, ...previews]);
+
+    event.target.value = "";
   };
 
   const handleRemoveImage = (index) => {
-    setImages(images.filter((_, i) => i !== index));
-  };
+    const imageToRemove = images[index];
 
-  const handleAddVariant = () => {
-    setVariants([
-      ...variants,
-      { id: Date.now(), name: "", actualPrice: "", sellingPrice: "", stock: "", images: [] },
-    ]);
-  };
+    if (imageToRemove?.startsWith("blob:")) {
+      URL.revokeObjectURL(imageToRemove);
 
-  const handleRemoveVariant = (id) => {
-    setVariants(variants.filter((v) => v.id !== id));
-  };
+      const newImageIndex = images
+        .slice(0, index)
+        .filter((img) => img.startsWith("blob:"))
+        .length;
 
-  const handleVariantChange = (id, field, value) => {
-    setVariants(
-      variants.map((v) => (v.id === id ? { ...v, [field]: value } : v))
+      setImageFiles((prev) =>
+        prev.filter((_, i) => i !== newImageIndex)
+      );
+    } else {
+      setExistingImages((prev) =>
+        prev.filter((url) => url !== imageToRemove)
+      );
+    }
+
+    setImages((prev) =>
+      prev.filter((_, i) => i !== index)
     );
   };
 
-  const handleVariantAddImage = (id) => {
-    setVariants(
-      variants.map((v) => {
-        if (v.id === id) {
-          return {
-            ...v,
-            images: [...v.images, `https://placehold.co/150x150/1A4B35/D4AF37?text=Var+Img+${v.images.length + 1}`],
-          };
-        }
-        return v;
-      })
-    );
-  };
+  const handleDelete = async () => {
+  if (!editId) return;
 
-  const handleVariantRemoveImage = (variantId, imageIndex) => {
-    setVariants(
-      variants.map((v) => {
-        if (v.id === variantId) {
-          return {
-            ...v,
-            images: v.images.filter((_, i) => i !== imageIndex),
-          };
-        }
-        return v;
-      })
-    );
-  };
+  try {
+    setIsDeleting(true);
 
-  const handleSave = () => {
-    // Here we'd normally dispatch to a global store or make an API call.
-    // For now, simulate saving and return to list.
-    console.log("Saving product:", {
-      name, description, category, status, stock, rating, actualPrice, sellingPrice, images, hasVariants, variants
-    });
+    const res = await fetch(
+      `/api/admin/products/${editId}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        data.error || "Failed to delete product"
+      );
+    }
+
+    setShowDeleteModal(false);
+
     router.push("/admin/products");
+    router.refresh();
+  } catch (error) {
+    console.error("Delete product error:", error);
+
+    alert(
+      error.message || "Failed to delete product"
+    );
+  } finally {
+    setIsDeleting(false);
+  }
+};
+
+
+
+const handleSave = async () => {
+    try {
+      if (!name.trim()) {
+        alert("Product name is required.");
+        return;
+      }
+
+      if (!sellingPrice || Number(sellingPrice) <= 0) {
+        alert("Valid selling price is required.");
+        return;
+      }
+
+      const selectedCategory = categories.find(
+        (c) => c.name === category
+      );
+
+      if (!selectedCategory) {
+        alert("Please select a category.");
+        return;
+      }
+
+      // -----------------------------
+      // Upload images to R2
+      // -----------------------------
+
+      const uploadedImages = [];
+
+      for (const file of imageFiles) {
+        const formData = new FormData();
+
+        formData.append("file", file);
+
+        const uploadRes = await fetch("/api/admin/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const uploadData = await uploadRes.json();
+
+        if (!uploadRes.ok) {
+          throw new Error(
+            uploadData.error || "Image upload failed"
+          );
+        }
+
+        uploadedImages.push(uploadData.url);
+      }
+
+      // -----------------------------
+      // Create product
+      // -----------------------------
+
+const finalImages = [
+  ...existingImages,
+  ...uploadedImages,
+];
+
+const payload = {
+    name: name.trim(),
+    slug: isEditing ? slug : undefined,
+    description: description.trim(),
+    price: Number(sellingPrice),
+    stock: Number(stock || 0),
+    categoryId: selectedCategory.id,
+    isActive: status !== "Out of Stock",
+    images: finalImages,
   };
 
+  const endpoint = isEditing
+    ? `/api/admin/products/${editId}`
+    : "/api/admin/products";
+
+  const res = await fetch(endpoint, {
+    method: isEditing ? "PATCH" : "POST",
+
+    headers: {
+      "Content-Type": "application/json",
+    },
+
+    body: JSON.stringify(payload),
+  });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(
+          data.error || "Failed to create product"
+        );
+      }
+
+      router.push("/admin/products");
+      router.refresh();
+
+    } catch (error) {
+      console.error("Save product error:", error);
+
+      alert(
+        error.message ||
+        "Failed to save product"
+      );
+    }
+  };
   return (
     <div className="space-y-6 animate-fade-in max-w-5xl mx-auto pb-10">
       <div className="flex items-center gap-4">
@@ -192,7 +346,19 @@ function AddProductContent() {
                 id="rating"
                 type="number"
                 value={rating}
-                onChange={(e) => setRating(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  if (
+                    value === "" ||
+                    (Number(value) >= 0 && Number(value) <= 5)
+                  ) {
+                    setRating(value);
+                  }
+                }}
+                min="0"
+                max="5"
+                step="0.1"
                 placeholder="0.0"
               />
             </div>
@@ -248,109 +414,6 @@ function AddProductContent() {
               />
             </div>
           </div>
-
-          {/* Variants Section */}
-          <div className="bg-green-900 border border-green-800 rounded-2xl p-6 shadow-card space-y-4">
-            <div className="flex items-center justify-between border-b border-green-800 pb-2 mb-4">
-              <h2 className="text-lg font-semibold text-white">Product Variants</h2>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-green-300">Enable Variants</span>
-                <Toggle checked={hasVariants} onChange={() => setHasVariants(!hasVariants)} />
-              </div>
-            </div>
-            
-            {hasVariants && (
-              <div className="space-y-6">
-                {variants.length === 0 ? (
-                  <div className="text-center py-6 border-2 border-dashed border-green-800 rounded-xl">
-                    <p className="text-green-500 text-sm mb-3">No variants added yet</p>
-                    <Button variant="secondary" onClick={handleAddVariant}>
-                      <Plus size={14} className="mr-1" /> Add First Variant
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {variants.map((variant, index) => (
-                      <div key={variant.id} className="bg-green-950/50 border border-green-800 rounded-xl p-4 space-y-4 relative">
-                        <div className="absolute right-4 top-4">
-                          <button
-                            onClick={() => handleRemoveVariant(variant.id)}
-                            className="p-1.5 bg-red-900/30 hover:bg-red-900/60 text-red-400 hover:text-red-300 rounded-lg transition-colors"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                        <h3 className="text-gold-500 font-medium text-sm">Variant {index + 1}</h3>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <FormInput
-                            label="Variant Name"
-                            id={`var-name-${variant.id}`}
-                            value={variant.name}
-                            onChange={(e) => handleVariantChange(variant.id, "name", e.target.value)}
-                            placeholder="e.g. Red / Size M"
-                          />
-                          <FormInput
-                            label="Availability (Stock)"
-                            id={`var-stock-${variant.id}`}
-                            type="number"
-                            value={variant.stock}
-                            onChange={(e) => handleVariantChange(variant.id, "stock", e.target.value)}
-                            placeholder="0"
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <FormInput
-                            label="Actual Price (₹)"
-                            id={`var-actual-${variant.id}`}
-                            type="number"
-                            value={variant.actualPrice}
-                            onChange={(e) => handleVariantChange(variant.id, "actualPrice", e.target.value)}
-                            placeholder="0"
-                          />
-                          <FormInput
-                            label="Selling Price (₹)"
-                            id={`var-sell-${variant.id}`}
-                            type="number"
-                            value={variant.sellingPrice}
-                            onChange={(e) => handleVariantChange(variant.id, "sellingPrice", e.target.value)}
-                            placeholder="0"
-                          />
-                        </div>
-
-                        {/* Variant Images */}
-                        <div>
-                          <label className="block text-sm font-medium text-green-300 mb-1.5">Variant Images</label>
-                          <div className="flex flex-wrap gap-3">
-                            {variant.images.map((img, i) => (
-                              <div key={i} className="relative group w-16 h-16 rounded-lg overflow-hidden border border-green-700">
-                                <img src={img} alt={`Variant image ${i}`} className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button onClick={() => handleVariantRemoveImage(variant.id, i)} className="p-1 bg-red-500 text-white rounded hover:bg-red-600">
-                                    <Trash2 size={12} />
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                            <button
-                              onClick={() => handleVariantAddImage(variant.id)}
-                              className="w-16 h-16 rounded-lg border-2 border-dashed border-green-700 hover:border-gold-500 hover:bg-green-800/50 flex flex-col items-center justify-center text-green-500 hover:text-gold-500 transition-colors"
-                            >
-                              <Plus size={16} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    <Button variant="secondary" onClick={handleAddVariant} className="w-full justify-center border-dashed border-2">
-                      <Plus size={14} className="mr-1" /> Add Another Variant
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Right Column: Images & Actions */}
@@ -371,13 +434,31 @@ function AddProductContent() {
                   </div>
                 </div>
               ))}
-              <button
-                onClick={handleAddImage}
-                className="aspect-square rounded-xl border-2 border-dashed border-green-700 hover:border-gold-500 hover:bg-green-800/50 flex flex-col items-center justify-center text-green-500 hover:text-gold-500 transition-colors"
+                <label
+                className="
+                  aspect-square rounded-xl
+                  border-2 border-dashed border-green-700
+                  hover:border-gold-500
+                  hover:bg-green-800/50
+                  flex flex-col items-center justify-center
+                  text-green-500 hover:text-gold-500
+                  transition-colors cursor-pointer
+                "
               >
                 <Upload size={24} className="mb-2" />
-                <span className="text-xs font-medium">Upload Image</span>
-              </button>
+
+                <span className="text-xs font-medium">
+                  Upload Image
+                </span>
+
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  multiple
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </label>
             </div>
             {images.length === 0 && (
               <div className="flex items-start gap-2 p-3 bg-green-950/50 border border-green-800 rounded-xl text-green-400 text-xs">
@@ -395,13 +476,75 @@ function AddProductContent() {
               Cancel
             </Button>
             {isEditing && (
-              <Button variant="danger" onClick={() => router.push("/admin/products")} className="w-full justify-center text-base py-3 mt-4">
+              <Button variant="danger" onClick={() => setShowDeleteModal(true)} className="w-full justify-center text-base py-3 mt-4">
                 Delete Product
               </Button>
             )}
           </div>
         </div>
       </div>
+      {showDeleteModal && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4">
+
+    <div className="w-full max-w-md rounded-2xl border border-green-800 bg-green-950 p-6 shadow-2xl">
+
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10 text-red-400">
+        <Trash2 size={22} />
+      </div>
+
+      <h2 className="mt-5 text-xl font-semibold text-white">
+        Delete Product?
+      </h2>
+
+      <p className="mt-3 text-sm leading-6 text-green-300">
+        Are you sure you want to delete{" "}
+        <span className="font-semibold text-white">
+          {name}
+        </span>
+        ? This action cannot be undone.
+      </p>
+
+      <div className="mt-7 flex justify-end gap-3">
+
+        <button
+          type="button"
+          disabled={isDeleting}
+          onClick={() => setShowDeleteModal(false)}
+          className="
+            rounded-lg
+            border border-green-700
+            px-5 py-2.5
+            text-sm font-medium text-green-200
+            transition
+            hover:bg-green-900
+            disabled:opacity-50
+          "
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          disabled={isDeleting}
+          onClick={handleDelete}
+          className="
+            rounded-lg
+            bg-red-600
+            px-5 py-2.5
+            text-sm font-semibold text-white
+            transition
+            hover:bg-red-700
+            disabled:cursor-not-allowed
+            disabled:opacity-60
+          "
+        >
+          {isDeleting ? "Deleting..." : "Delete Product"}
+        </button>
+
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

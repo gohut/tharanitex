@@ -20,6 +20,7 @@ export default function ProductGallery({ images }) {
           alt="Product"
           fill
           priority
+          unoptimized
           className="object-cover"
         />
 
@@ -73,6 +74,7 @@ export default function ProductGallery({ images }) {
               src={image}
               alt={`Thumbnail ${index + 1}`}
               fill
+              unoptimized
               className="object-cover"
             />
           </button>

@@ -1,50 +1,24 @@
-"use client";
-
-import { useState } from "react";
 import Navbar from "@/components/home/Navbar/Navbar";
 import ProductCard from "@/components/home/ProductSection/ProductCard";
+import Link from "next/link";
 
-const initialWishlist = [
-  {
-    id: 1,
-    name: "Kanchipuram Silk Saree",
-    category: "Pure Silk",
-    price: "₹5,999",
-    image: "/assets/sarees/kanchipuram.png",
-  },
-  {
-    id: 2,
-    name: "Banarasi Silk Saree",
-    category: "Banarasi",
-    price: "₹7,499",
-    image: "/assets/sarees/banaras1.png",
-  },
-  {
-    id: 3,
-    name: "Banaras Bridal Saree",
-    category: "Wedding",
-    price: "₹8,999",
-    image: "/assets/sarees/banaras2.png",
-  },
-  {
-    id: 4,
-    name: "Thirubuvanam Silk",
-    category: "Traditional",
-    price: "₹6,299",
-    image: "/assets/sarees/thirubuvanam.png",
-  },
-];
+async function getWishlist() {
+  const res = await fetch(
+    "http://127.0.0.1:8787/api/wishlist?userId=guest",
+    {
+      cache: "no-store",
+    }
+  );
 
-export default function WishlistPage() {
-  const [wishlistItems, setWishlistItems] = useState(initialWishlist);
+  if (!res.ok) {
+    throw new Error("Failed to load wishlist");
+  }
 
-  const removeFromWishlist = (id) => {
-    setWishlistItems((prev) => prev.filter((item) => item.id !== id));
-  };
+  return res.json();
+}
 
-  const addToCart = (product) => {
-    alert(`${product.name} added to bag.`);
-  };
+export default async function WishlistPage() {
+  const wishlistItems = await getWishlist();
 
   return (
     <>
@@ -69,7 +43,8 @@ export default function WishlistPage() {
             </p>
 
             <p className="mt-6 text-[#8A8175] text-lg">
-              {wishlistItems.length} Saved Item{wishlistItems.length !== 1 && "s"}
+              {wishlistItems.length} Saved Item
+              {wishlistItems.length !== 1 && "s"}
             </p>
 
           </div>
@@ -77,8 +52,12 @@ export default function WishlistPage() {
 
         {/* Breadcrumb */}
         <section className="max-w-7xl mx-auto px-6 py-5 text-sm text-gray-500">
-          Home
+          <Link href="/" className="hover:text-[#5A1F2F]">
+            Home
+          </Link>
+
           <span className="mx-2">/</span>
+
           Wishlist
         </section>
 
@@ -100,9 +79,12 @@ export default function WishlistPage() {
               Discover our premium silk collections and save your favourites.
             </p>
 
-            <button className="mt-8 px-8 py-3 rounded-full bg-[#5A1F2F] text-white hover:bg-[#471825] transition">
+            <Link
+              href="/"
+              className="inline-block mt-8 px-8 py-3 rounded-full bg-[#5A1F2F] text-white hover:bg-[#471825] transition"
+            >
               Continue Shopping
-            </button>
+            </Link>
 
           </section>
         ) : (
@@ -112,11 +94,12 @@ export default function WishlistPage() {
 
               {wishlistItems.map((product) => (
                 <ProductCard
-                  key={product.id}
-                  product={product}
-                  wishlist
-                  onRemove={() => removeFromWishlist(product.id)}
-                  onAddToCart={() => addToCart(product)}
+                  key={product.product_id}
+                  product={{
+                    ...product,
+                    id: product.product_id,
+                  }}
+                  initiallyWishlisted={true}
                 />
               ))}
 

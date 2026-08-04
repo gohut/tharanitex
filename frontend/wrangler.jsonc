@@ -1,27 +1,31 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tharanitex",
-  "main": ".open-next/worker.js",
-
-  "assets": {
-    "directory": ".open-next/assets"
-  },
-
-  "compatibility_date": "2026-07-31",
-  "compatibility_flags": ["nodejs_compat"],
-
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "tharani-db",
-      "database_id": "38c47ffc-5360-43be-bf79-9077ea235948"
-    }
-  ],
-
-  "kv_namespaces": [
-    {
-      "binding": "KV",
-      "id": "8b5dc392d21c4d7b88546d434e6cc9bb"
-    }
-  ]
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "tharanitex",
+	"main": ".open-next/worker.js",
+	"assets": {
+		"directory": ".open-next/assets"
+	},
+	"compatibility_date": "2026-07-31",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "tharani-db",
+			"database_id": "38c47ffc-5360-43be-bf79-9077ea235948"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "KV",
+			"id": "8b5dc392d21c4d7b88546d434e6cc9bb"
+		}
+	],
+	"r2_buckets": [
+		{
+			"bucket_name": "tharani-product-images",
+			"binding": "tharani_product_images"
+		}
+	]
 }

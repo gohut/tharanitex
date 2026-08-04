@@ -1,35 +1,38 @@
-"use client";
-
 import Navbar from "@/components/home/Navbar/Navbar";
 import CartItem from "@/components/Cart/CartItem";
 import OrderSummary from "@/components/Cart/OrderSummary";
 import DeliveryCard from "@/components/Cart/DeliveryCard";
 
-const cartItems = [
-  {
-    id: 1,
-    name: "Kanchipuram Silk Saree",
-    category: "Pure Silk",
-    price: "₹5,999",
-    image: "/assets/sarees/kanchipuram.png",
-  },
-  {
-    id: 2,
-    name: "Banarasi Silk Saree",
-    category: "Banarasi",
-    price: "₹7,499",
-    image: "/assets/sarees/banaras1.png",
-  },
-  {
-    id: 3,
-    name: "Thirubuvanam Silk",
-    category: "Traditional",
-    price: "₹6,299",
-    image: "/assets/sarees/thirubuvanam.png",
-  },
-];
+async function getCart() {
+  const res = await fetch(
+    "http://127.0.0.1:8787/api/cart?userId=guest",
+    {
+      cache: "no-store",
+    }
+  );
 
-export default function CartPage() {
+  if (!res.ok) {
+    throw new Error("Failed to load cart");
+  }
+
+  return res.json();
+}
+
+export default async function CartPage() {
+  const cartItems = await getCart();
+
+  const subtotal = cartItems.reduce(
+  (sum, item) => sum + item.price * item.quantity,
+  0
+);
+
+const formatPrice = (value) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(value);
+
   return (
     <>
       <Navbar />
@@ -103,10 +106,10 @@ export default function CartPage() {
             <div className="sticky top-8 self-start">
 
               <OrderSummary
-                subtotal="₹19,797"
-                shipping="Free"
-                tax="Included"
-                total="₹19,797"
+                  subtotal={formatPrice(subtotal)}
+                  shipping="Free"
+                  tax="Included"
+                  total={formatPrice(subtotal)}
               />
 
               <DeliveryCard />

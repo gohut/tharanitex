@@ -3658,8 +3658,53 @@
       "imports": [],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/app/api/admin/products/[id]/route_client-reference-manifest.js": {
+      "bytes": 328,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/admin/categories/route_client-reference-manifest.js": {
+      "bytes": 325,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/products/[slug]/route_client-reference-manifest.js": {
+      "bytes": 324,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/images/[...key]/route_client-reference-manifest.js": {
+      "bytes": 324,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/admin/products/route_client-reference-manifest.js": {
+      "bytes": 323,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/admin/upload/route_client-reference-manifest.js": {
+      "bytes": 321,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/orders/[id]/route_client-reference-manifest.js": {
+      "bytes": 320,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/wishlist/route_client-reference-manifest.js": {
+      "bytes": 317,
+      "imports": [],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/.next/server/app/api/products/route_client-reference-manifest.js": {
       "bytes": 317,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/orders/route_client-reference-manifest.js": {
+      "bytes": 315,
       "imports": [],
       "format": "cjs"
     },
@@ -3668,8 +3713,13 @@
       "imports": [],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/app/api/cart/route_client-reference-manifest.js": {
+      "bytes": 313,
+      "imports": [],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/node_modules/next/dist/server/load-manifest.external.js": {
-      "bytes": 203903,
+      "bytes": 220183,
       "imports": [
         {
           "path": "path",
@@ -3692,14 +3742,64 @@
           "original": "../shared/lib/deep-freeze"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/app/api/admin/products/[id]/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\admin\\products\\[id]\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/admin/categories/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\admin\\categories\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/products/[slug]/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\products\\[slug]\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/images/[...key]/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\images\\[...key]\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/admin/products/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\admin\\products\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/admin/upload/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\admin\\upload\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/orders/[id]/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\orders\\[id]\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/wishlist/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\wishlist\\route_client-reference-manifest.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/app/api/products/route_client-reference-manifest.js",
           "kind": "require-call",
           "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\products\\route_client-reference-manifest.js"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/app/api/orders/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\orders\\route_client-reference-manifest.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/app/api/home/route_client-reference-manifest.js",
           "kind": "require-call",
           "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\home\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/cart/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\cart\\route_client-reference-manifest.js"
         }
       ],
       "format": "cjs"
@@ -3716,17 +3816,6 @@
           "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
           "kind": "require-call",
           "original": "next/dist/shared/lib/no-fallback-error.external.js"
-        }
-      ],
-      "format": "cjs"
-    },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0kl59ms._.js": {
-      "bytes": 220400,
-      "imports": [
-        {
-          "path": "util",
-          "kind": "require-call",
-          "external": true
         }
       ],
       "format": "cjs"
@@ -4171,6 +4260,53 @@
       ],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__05sq6jr._.js": {
+      "bytes": 22010,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/next-server/app-page-turbo.runtime.prod.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-unit-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/action-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/action-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/after-task-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/after-task-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/dynamic-access-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/dynamic-access-async-storage.external.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0kl59ms._.js": {
+      "bytes": 220400,
+      "imports": [
+        {
+          "path": "util",
+          "kind": "require-call",
+          "external": true
+        }
+      ],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__10ldt1g._.js": {
       "bytes": 4779,
       "imports": [
@@ -4217,40 +4353,9 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1flp_7k._.js": {
-      "bytes": 10394,
-      "imports": [
-        {
-          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js",
-          "kind": "require-call",
-          "original": "next/dist/compiled/next-server/app-page-turbo.runtime.prod.js"
-        },
-        {
-          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-async-storage.external.js",
-          "kind": "require-call",
-          "original": "next/dist/server/app-render/work-async-storage.external.js"
-        },
-        {
-          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js",
-          "kind": "require-call",
-          "original": "next/dist/server/app-render/work-unit-async-storage.external.js"
-        },
-        {
-          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/action-async-storage.external.js",
-          "kind": "require-call",
-          "original": "next/dist/server/app-render/action-async-storage.external.js"
-        },
-        {
-          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/after-task-async-storage.external.js",
-          "kind": "require-call",
-          "original": "next/dist/server/app-render/after-task-async-storage.external.js"
-        },
-        {
-          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/dynamic-access-async-storage.external.js",
-          "kind": "require-call",
-          "original": "next/dist/server/app-render/dynamic-access-async-storage.external.js"
-        }
-      ],
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_09qsgu6._.js": {
+      "bytes": 12613,
+      "imports": [],
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app__not-found_page_actions_0pt47yr.js": {
@@ -4301,11 +4406,6 @@
     },
     ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_react-icons_fa6_index_mjs_0sifhzu._.js": {
       "bytes": 5650,
-      "imports": [],
-      "format": "cjs"
-    },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/src_1riqh5_._.js": {
-      "bytes": 3673,
       "imports": [],
       "format": "cjs"
     },
@@ -4473,8 +4573,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_094z_dd._.js": {
-      "bytes": 13741,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_16-sivs._.js": {
+      "bytes": 13142,
       "imports": [],
       "format": "cjs"
     },
@@ -4510,13 +4610,13 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_04jveyp._.js": {
-      "bytes": 375206,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_01w8h_3._.js": {
+      "bytes": 10665,
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_0874ofq._.js": {
-      "bytes": 11264,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_04jveyp._.js": {
+      "bytes": 375206,
       "imports": [],
       "format": "cjs"
     },
@@ -4547,8 +4647,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_1hnujkk._.js": {
-      "bytes": 18781,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_0wdzire._.js": {
+      "bytes": 12913,
       "imports": [],
       "format": "cjs"
     },
@@ -4579,8 +4679,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_1k7vqkw._.js": {
-      "bytes": 11904,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_148zyss._.js": {
+      "bytes": 7528,
       "imports": [],
       "format": "cjs"
     },
@@ -4601,7 +4701,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/chunks/ssr/src_app_admin_products_page_07kvzxw.js": {
-      "bytes": 14297,
+      "bytes": 14797,
       "imports": [],
       "format": "cjs"
     },
@@ -4680,7 +4780,7 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_0vv4f-4._.js": {
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_1ri-d1f._.js": {
       "bytes": 19384,
       "imports": [],
       "format": "cjs"
@@ -4712,7 +4812,7 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_0m-rpw7._.js": {
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_17d7hpa._.js": {
       "bytes": 13934,
       "imports": [],
       "format": "cjs"
@@ -4733,8 +4833,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__12cy180._.js": {
-      "bytes": 9655,
+    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0d4p227._.js": {
+      "bytes": 8815,
       "imports": [
         {
           "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
@@ -4896,13 +4996,301 @@
       ],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_categories_route_actions_1lz0ocd.js": {
+      "bytes": 133,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1mbz37h._.js": {
+      "bytes": 13578,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
+          "kind": "require-call",
+          "original": "next/dist/shared/lib/no-fallback-error.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/next-server/app-page-turbo.runtime.prod.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-unit-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/@opentelemetry/api/index.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/@opentelemetry/api"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_products_route_actions_1qlniei.js": {
+      "bytes": 131,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0gj8oto._.js": {
+      "bytes": 14225,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
+          "kind": "require-call",
+          "original": "next/dist/shared/lib/no-fallback-error.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/next-server/app-page-turbo.runtime.prod.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-unit-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/@opentelemetry/api/index.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/@opentelemetry/api"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_products_[id]_route_actions_0uysxy7.js": {
+      "bytes": 140,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0qjgi9s._.js": {
+      "bytes": 9134,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
+          "kind": "require-call",
+          "original": "next/dist/shared/lib/no-fallback-error.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/next-server/app-page-turbo.runtime.prod.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-unit-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/@opentelemetry/api/index.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/@opentelemetry/api"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_upload_route_actions_0gtguvx.js": {
+      "bytes": 129,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1fx67u9._.js": {
+      "bytes": 10348,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
+          "kind": "require-call",
+          "original": "next/dist/shared/lib/no-fallback-error.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/next-server/app-page-turbo.runtime.prod.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-unit-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/@opentelemetry/api/index.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/@opentelemetry/api"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_cart_route_actions_0uh3we9.js": {
+      "bytes": 121,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0617o-c._.js": {
+      "bytes": 12597,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
+          "kind": "require-call",
+          "original": "next/dist/shared/lib/no-fallback-error.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/next-server/app-page-turbo.runtime.prod.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-unit-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/@opentelemetry/api/index.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/@opentelemetry/api"
+        }
+      ],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_home_route_actions_1po3-6k.js": {
       "bytes": 121,
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1_kau6s._.js": {
-      "bytes": 9640,
+    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0grush-._.js": {
+      "bytes": 8972,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
+          "kind": "require-call",
+          "original": "next/dist/shared/lib/no-fallback-error.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/next-server/app-page-turbo.runtime.prod.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-unit-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/@opentelemetry/api/index.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/@opentelemetry/api"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_images_[___key]_route_actions_12-uw08.js": {
+      "bytes": 136,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1fc8mpw._.js": {
+      "bytes": 12137,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
+          "kind": "require-call",
+          "original": "next/dist/shared/lib/no-fallback-error.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/next-server/app-page-turbo.runtime.prod.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-unit-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/@opentelemetry/api/index.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/@opentelemetry/api"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_orders_route_actions_18oip2y.js": {
+      "bytes": 123,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1-dd-x9._.js": {
+      "bytes": 11910,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
+          "kind": "require-call",
+          "original": "next/dist/shared/lib/no-fallback-error.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/next-server/app-page-turbo.runtime.prod.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-unit-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/@opentelemetry/api/index.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/@opentelemetry/api"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_orders_[id]_route_actions_170f1_8.js": {
+      "bytes": 132,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0y5cmv8._.js": {
+      "bytes": 12582,
       "imports": [
         {
           "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
@@ -4937,40 +5325,8 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__12h8vml._.js": {
-      "bytes": 2022,
-      "imports": [
-        {
-          "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
-          "kind": "require-call",
-          "original": "next/dist/shared/lib/no-fallback-error.external.js"
-        }
-      ],
-      "format": "cjs"
-    },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_19e9mbg._.js": {
-      "bytes": 12482,
-      "imports": [],
-      "format": "cjs"
-    },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_cart_page_actions_14bzeos.js": {
-      "bytes": 116,
-      "imports": [],
-      "format": "cjs"
-    },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0sjjbzy.js": {
-      "bytes": 23256,
-      "imports": [
-        {
-          "path": "path",
-          "kind": "require-call",
-          "external": true
-        }
-      ],
-      "format": "cjs"
-    },
-    ".open-next/server-functions/default/.next/server/chunks/[externals]_next_dist_0iuj5m_._.js": {
-      "bytes": 1054,
+    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1vlb4gq._.js": {
+      "bytes": 12808,
       "imports": [
         {
           "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
@@ -4993,9 +5349,113 @@
           "original": "next/dist/server/app-render/work-unit-async-storage.external.js"
         },
         {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/@opentelemetry/api/index.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/@opentelemetry/api"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_products_[slug]_route_actions_15yw21j.js": {
+      "bytes": 136,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1nwzg5f._.js": {
+      "bytes": 9847,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
+          "kind": "require-call",
+          "original": "next/dist/shared/lib/no-fallback-error.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/next-server/app-page-turbo.runtime.prod.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-unit-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/@opentelemetry/api/index.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/@opentelemetry/api"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_wishlist_route_actions_10mbl16.js": {
+      "bytes": 125,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__04bqew6._.js": {
+      "bytes": 7093,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
+          "kind": "require-call",
+          "original": "next/dist/shared/lib/no-fallback-error.external.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_1paqbng._.js": {
+      "bytes": 11104,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_cart_page_actions_14bzeos.js": {
+      "bytes": 116,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0sjjbzy.js": {
+      "bytes": 23256,
+      "imports": [
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/[externals]_next_dist_1gp-qi5._.js": {
+      "bytes": 1054,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js",
+          "kind": "require-call",
+          "original": "next/dist/compiled/next-server/app-page-turbo.runtime.prod.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/work-unit-async-storage.external.js",
+          "kind": "require-call",
+          "original": "next/dist/server/app-render/work-unit-async-storage.external.js"
+        },
+        {
           "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/after-task-async-storage.external.js",
           "kind": "require-call",
           "original": "next/dist/server/app-render/after-task-async-storage.external.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
+          "kind": "require-call",
+          "original": "next/dist/shared/lib/no-fallback-error.external.js"
         },
         {
           "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/@opentelemetry/api/index.js",
@@ -5015,8 +5475,8 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__05bexx4._.js": {
-      "bytes": 12356,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1tgf788._.js": {
+      "bytes": 9280,
       "imports": [
         {
           "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
@@ -5026,8 +5486,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_0_1t395._.js": {
-      "bytes": 6903,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_1i4x7ab._.js": {
+      "bytes": 8434,
       "imports": [],
       "format": "cjs"
     },
@@ -5047,8 +5507,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/src_components_home_Hero_Hero_jsx_0o6_3w3._.js": {
-      "bytes": 90852,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/src_components_home_217n5s0._.js": {
+      "bytes": 92961,
       "imports": [],
       "format": "cjs"
     },
@@ -5061,6 +5521,11 @@
           "original": "next/dist/shared/lib/no-fallback-error.external.js"
         }
       ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_0hqodph._.js": {
+      "bytes": 5414,
+      "imports": [],
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_login_page_actions_04fnjo0.js": {
@@ -5084,11 +5549,6 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/src_0ky2oby._.js": {
-      "bytes": 5338,
-      "imports": [],
-      "format": "cjs"
-    },
     ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1goe8yu._.js": {
       "bytes": 2032,
       "imports": [
@@ -5100,8 +5560,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_1u9pby-._.js": {
-      "bytes": 13917,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_1p04-e3._.js": {
+      "bytes": 11055,
       "imports": [],
       "format": "cjs"
     },
@@ -5121,8 +5581,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0rgggun._.js": {
-      "bytes": 16542,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1jykyq5._.js": {
+      "bytes": 16418,
       "imports": [
         {
           "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
@@ -5180,8 +5640,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0nqgtyd._.js": {
-      "bytes": 2036,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0z0560w._.js": {
+      "bytes": 12892,
       "imports": [
         {
           "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
@@ -5191,23 +5651,23 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_0eo311e._.js": {
-      "bytes": 7533,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_1fyxcq8._.js": {
+      "bytes": 6978,
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_0ji6plb._.js": {
-      "bytes": 33254,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_1q5swu6._.js": {
+      "bytes": 26658,
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_product_page_actions_02bk2_8.js": {
-      "bytes": 118,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_product_[slug]_page_actions_1-s-0w9.js": {
+      "bytes": 130,
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_052854z.js": {
-      "bytes": 23275,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_1kqg-s4.js": {
+      "bytes": 23342,
       "imports": [
         {
           "path": "path",
@@ -5255,8 +5715,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_0s8-ou5._.js": {
-      "bytes": 13890,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_1t2xpy7._.js": {
+      "bytes": 11595,
       "imports": [],
       "format": "cjs"
     },
@@ -5276,8 +5736,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0dxtqp8._.js": {
-      "bytes": 2040,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1o_irgn._.js": {
+      "bytes": 6870,
       "imports": [
         {
           "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/no-fallback-error.external.js",
@@ -5287,8 +5747,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_1ub0o57._.js": {
-      "bytes": 9318,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_0_1t395._.js": {
+      "bytes": 8077,
       "imports": [],
       "format": "cjs"
     },
@@ -5371,8 +5831,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js": {
-      "bytes": 65803,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js": {
+      "bytes": 70967,
       "imports": [
         {
           "path": "worker_threads",
@@ -5410,6 +5870,11 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__049xgqk._.js"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__05sq6jr._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__05sq6jr._.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0kl59ms._.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0kl59ms._.js"
@@ -5420,14 +5885,14 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__10ldt1g._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1flp_7k._.js",
-          "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1flp_7k._.js"
-        },
-        {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_09qsgu6._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_09qsgu6._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app__not-found_page_actions_0pt47yr.js",
@@ -5473,11 +5938,6 @@
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_react-icons_fa6_index_mjs_0sifhzu._.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_react-icons_fa6_index_mjs_0sifhzu._.js"
-        },
-        {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/src_1riqh5_._.js",
-          "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/src_1riqh5_._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__051049e._.js",
@@ -5590,9 +6050,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0jcim5c._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_094z_dd._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_16-sivs._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_094z_dd._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_16-sivs._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_orders_[id]_page_actions_0dmqar8.js",
@@ -5615,14 +6075,14 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0nb4r6p._.js"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_01w8h_3._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_01w8h_3._.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_04jveyp._.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_04jveyp._.js"
-        },
-        {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0874ofq._.js",
-          "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0874ofq._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_page_actions_1mcickz.js",
@@ -5640,9 +6100,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0ulkjv_._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1hnujkk._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0wdzire._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1hnujkk._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0wdzire._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_products_add_page_actions_1duua6a.js",
@@ -5660,9 +6120,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1i1s_ky._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1k7vqkw._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_148zyss._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1k7vqkw._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_148zyss._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_products_page_actions_0kiwnp5.js",
@@ -5725,9 +6185,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__03shy18._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0vv4f-4._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1ri-d1f._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0vv4f-4._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1ri-d1f._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_shipping_page_actions_1v12wo-.js",
@@ -5745,9 +6205,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__00encxp._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0m-rpw7._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_17d7hpa._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0m-rpw7._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_17d7hpa._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_users_page_actions_1j4t7lq.js",
@@ -5760,9 +6220,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0z2oe_a.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__12cy180._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0d4p227._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__12cy180._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0d4p227._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__15bjnu5._.js",
@@ -5775,14 +6235,94 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_categories_route_actions_1lz0ocd.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_categories_route_actions_1lz0ocd.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1mbz37h._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1mbz37h._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_products_route_actions_1qlniei.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_products_route_actions_1qlniei.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0gj8oto._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0gj8oto._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_products_[id]_route_actions_0uysxy7.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_products_[id]_route_actions_0uysxy7.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0qjgi9s._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0qjgi9s._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_upload_route_actions_0gtguvx.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_upload_route_actions_0gtguvx.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1fx67u9._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1fx67u9._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_cart_route_actions_0uh3we9.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_cart_route_actions_0uh3we9.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0617o-c._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0617o-c._.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_home_route_actions_1po3-6k.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_home_route_actions_1po3-6k.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1_kau6s._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0grush-._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1_kau6s._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0grush-._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_images_[___key]_route_actions_12-uw08.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_images_[___key]_route_actions_12-uw08.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1fc8mpw._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1fc8mpw._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_orders_route_actions_18oip2y.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_orders_route_actions_18oip2y.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1-dd-x9._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1-dd-x9._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_orders_[id]_route_actions_170f1_8.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_orders_[id]_route_actions_170f1_8.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0y5cmv8._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0y5cmv8._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_products_route_actions_18pcx8b.js",
@@ -5790,14 +6330,34 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_products_route_actions_18pcx8b.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__12h8vml._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1vlb4gq._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__12h8vml._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1vlb4gq._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_19e9mbg._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_products_[slug]_route_actions_15yw21j.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_19e9mbg._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_products_[slug]_route_actions_15yw21j.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1nwzg5f._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1nwzg5f._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_wishlist_route_actions_10mbl16.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_wishlist_route_actions_10mbl16.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__04bqew6._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__04bqew6._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1paqbng._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1paqbng._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_cart_page_actions_14bzeos.js",
@@ -5810,9 +6370,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0sjjbzy.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/[externals]_next_dist_0iuj5m_._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/[externals]_next_dist_1gp-qi5._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[externals]_next_dist_0iuj5m_._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[externals]_next_dist_1gp-qi5._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_favicon_ico_route_actions_0g2jjls.js",
@@ -5825,14 +6385,14 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/node_modules_next_1kis888._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__05bexx4._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1tgf788._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__05bexx4._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1tgf788._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0_1t395._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1i4x7ab._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0_1t395._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1i4x7ab._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_home_page_actions_0g3grz2.js",
@@ -5845,14 +6405,19 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_04axi__.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/src_components_home_Hero_Hero_jsx_0o6_3w3._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/src_components_home_217n5s0._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/src_components_home_Hero_Hero_jsx_0o6_3w3._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/src_components_home_217n5s0._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__103n55i._.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__103n55i._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0hqodph._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0hqodph._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_login_page_actions_04fnjo0.js",
@@ -5870,19 +6435,14 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_19lsvul.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/src_0ky2oby._.js",
-          "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/src_0ky2oby._.js"
-        },
-        {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1goe8yu._.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1goe8yu._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1u9pby-._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1p04-e3._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1u9pby-._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1p04-e3._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_orders_page_actions_1jwg0_k.js",
@@ -5895,9 +6455,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0zkhea0.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0rgggun._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1jykyq5._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0rgggun._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1jykyq5._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1ouzhto._.js",
@@ -5930,29 +6490,29 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_08a3a8u.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0nqgtyd._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0z0560w._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0nqgtyd._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0z0560w._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0eo311e._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1fyxcq8._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0eo311e._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1fyxcq8._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0ji6plb._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1q5swu6._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0ji6plb._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1q5swu6._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_product_page_actions_02bk2_8.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_product_[slug]_page_actions_1-s-0w9.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_product_page_actions_02bk2_8.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_product_[slug]_page_actions_1-s-0w9.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_052854z.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_1kqg-s4.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_052854z.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_1kqg-s4.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1ikohn9._.js",
@@ -5975,9 +6535,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0423fik._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0s8-ou5._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1t2xpy7._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0s8-ou5._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1t2xpy7._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_search_page_actions_0_8-8no.js",
@@ -5990,14 +6550,14 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_1ywa_yt.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0dxtqp8._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1o_irgn._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0dxtqp8._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1o_irgn._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1ub0o57._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0_1t395._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1ub0o57._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0_1t395._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_wishlist_page_actions_1ie7ol4.js",
@@ -6037,8 +6597,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js": {
-      "bytes": 65813,
+    ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js": {
+      "bytes": 70957,
       "imports": [
         {
           "path": "worker_threads",
@@ -6076,6 +6636,11 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__049xgqk._.js"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__05sq6jr._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__05sq6jr._.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0kl59ms._.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0kl59ms._.js"
@@ -6086,14 +6651,14 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__10ldt1g._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1flp_7k._.js",
-          "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1flp_7k._.js"
-        },
-        {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_09qsgu6._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_09qsgu6._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app__not-found_page_actions_0pt47yr.js",
@@ -6139,11 +6704,6 @@
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_react-icons_fa6_index_mjs_0sifhzu._.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_react-icons_fa6_index_mjs_0sifhzu._.js"
-        },
-        {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/src_1riqh5_._.js",
-          "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/src_1riqh5_._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__051049e._.js",
@@ -6256,9 +6816,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0jcim5c._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_094z_dd._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_16-sivs._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_094z_dd._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_16-sivs._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_orders_[id]_page_actions_0dmqar8.js",
@@ -6281,14 +6841,14 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0nb4r6p._.js"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_01w8h_3._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_01w8h_3._.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_04jveyp._.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_04jveyp._.js"
-        },
-        {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0874ofq._.js",
-          "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0874ofq._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_page_actions_1mcickz.js",
@@ -6306,9 +6866,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0ulkjv_._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1hnujkk._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0wdzire._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1hnujkk._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0wdzire._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_products_add_page_actions_1duua6a.js",
@@ -6326,9 +6886,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1i1s_ky._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1k7vqkw._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_148zyss._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1k7vqkw._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_148zyss._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_products_page_actions_0kiwnp5.js",
@@ -6391,9 +6951,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__03shy18._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0vv4f-4._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1ri-d1f._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0vv4f-4._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1ri-d1f._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_shipping_page_actions_1v12wo-.js",
@@ -6411,9 +6971,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__00encxp._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0m-rpw7._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_17d7hpa._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0m-rpw7._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_17d7hpa._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_users_page_actions_1j4t7lq.js",
@@ -6426,9 +6986,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0z2oe_a.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__12cy180._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0d4p227._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__12cy180._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0d4p227._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__15bjnu5._.js",
@@ -6441,14 +7001,94 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_categories_route_actions_1lz0ocd.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_categories_route_actions_1lz0ocd.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1mbz37h._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1mbz37h._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_products_route_actions_1qlniei.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_products_route_actions_1qlniei.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0gj8oto._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0gj8oto._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_products_[id]_route_actions_0uysxy7.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_products_[id]_route_actions_0uysxy7.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0qjgi9s._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0qjgi9s._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_upload_route_actions_0gtguvx.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_upload_route_actions_0gtguvx.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1fx67u9._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1fx67u9._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_cart_route_actions_0uh3we9.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_cart_route_actions_0uh3we9.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0617o-c._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0617o-c._.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_home_route_actions_1po3-6k.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_home_route_actions_1po3-6k.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1_kau6s._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0grush-._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1_kau6s._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0grush-._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_images_[___key]_route_actions_12-uw08.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_images_[___key]_route_actions_12-uw08.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1fc8mpw._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1fc8mpw._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_orders_route_actions_18oip2y.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_orders_route_actions_18oip2y.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1-dd-x9._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1-dd-x9._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_orders_[id]_route_actions_170f1_8.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_orders_[id]_route_actions_170f1_8.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0y5cmv8._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0y5cmv8._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_products_route_actions_18pcx8b.js",
@@ -6456,14 +7096,34 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_products_route_actions_18pcx8b.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__12h8vml._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1vlb4gq._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__12h8vml._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1vlb4gq._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_19e9mbg._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_products_[slug]_route_actions_15yw21j.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_19e9mbg._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_products_[slug]_route_actions_15yw21j.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1nwzg5f._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1nwzg5f._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_wishlist_route_actions_10mbl16.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_wishlist_route_actions_10mbl16.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__04bqew6._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__04bqew6._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1paqbng._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1paqbng._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_cart_page_actions_14bzeos.js",
@@ -6476,9 +7136,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0sjjbzy.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/[externals]_next_dist_0iuj5m_._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/[externals]_next_dist_1gp-qi5._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[externals]_next_dist_0iuj5m_._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/[externals]_next_dist_1gp-qi5._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_favicon_ico_route_actions_0g2jjls.js",
@@ -6491,14 +7151,14 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/node_modules_next_1kis888._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__05bexx4._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1tgf788._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__05bexx4._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1tgf788._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0_1t395._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1i4x7ab._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0_1t395._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1i4x7ab._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_home_page_actions_0g3grz2.js",
@@ -6511,14 +7171,19 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_04axi__.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/src_components_home_Hero_Hero_jsx_0o6_3w3._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/src_components_home_217n5s0._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/src_components_home_Hero_Hero_jsx_0o6_3w3._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/src_components_home_217n5s0._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__103n55i._.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__103n55i._.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0hqodph._.js",
+          "kind": "require-call",
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0hqodph._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_login_page_actions_04fnjo0.js",
@@ -6536,19 +7201,14 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_19lsvul.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/src_0ky2oby._.js",
-          "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/src_0ky2oby._.js"
-        },
-        {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1goe8yu._.js",
           "kind": "require-call",
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1goe8yu._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1u9pby-._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1p04-e3._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1u9pby-._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1p04-e3._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_orders_page_actions_1jwg0_k.js",
@@ -6561,9 +7221,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0zkhea0.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0rgggun._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1jykyq5._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0rgggun._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1jykyq5._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1ouzhto._.js",
@@ -6596,29 +7256,29 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_08a3a8u.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0nqgtyd._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0z0560w._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0nqgtyd._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0z0560w._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0eo311e._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1fyxcq8._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0eo311e._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1fyxcq8._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0ji6plb._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1q5swu6._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0ji6plb._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1q5swu6._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_product_page_actions_02bk2_8.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_product_[slug]_page_actions_1-s-0w9.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_product_page_actions_02bk2_8.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_product_[slug]_page_actions_1-s-0w9.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_052854z.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_1kqg-s4.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_052854z.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_1kqg-s4.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1ikohn9._.js",
@@ -6641,9 +7301,9 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0423fik._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0s8-ou5._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1t2xpy7._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0s8-ou5._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1t2xpy7._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_search_page_actions_0_8-8no.js",
@@ -6656,14 +7316,14 @@
           "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_1ywa_yt.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0dxtqp8._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1o_irgn._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0dxtqp8._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1o_irgn._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_1ub0o57._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0_1t395._.js",
           "kind": "require-call",
-          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_1ub0o57._.js"
+          "original": "D:/Project Files/Tharani Tex/app/tharanitex/frontend/.open-next/server-functions/default/.next/server/chunks/ssr/_0_1t395._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_wishlist_page_actions_1ie7ol4.js",
@@ -6699,12 +7359,23 @@
           "path": "<runtime>",
           "kind": "import-statement",
           "external": true
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/admin/products/[id]/route.js": {
+      "bytes": 362,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../../../chunks/[turbopack]_runtime.js"
         }
       ],
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/admin/customerSection/page.js": {
-      "bytes": 1042,
+      "bytes": 1039,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6714,8 +7385,52 @@
       ],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/app/api/admin/categories/route.js": {
+      "bytes": 353,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/images/[...key]/route.js": {
+      "bytes": 351,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/products/[slug]/route.js": {
+      "bytes": 351,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/admin/products/route.js": {
+      "bytes": 349,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/.next/server/app/admin/products/add/page.js": {
-      "bytes": 1041,
+      "bytes": 1038,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6726,7 +7441,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/admin/orders/[id]/page.js": {
-      "bytes": 1039,
+      "bytes": 1036,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6736,8 +7451,30 @@
       ],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/app/api/admin/upload/route.js": {
+      "bytes": 345,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/orders/[id]/route.js": {
+      "bytes": 343,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/.next/server/app/admin/customers/page.js": {
-      "bytes": 1032,
+      "bytes": 1029,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6748,7 +7485,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/admin/products/page.js": {
-      "bytes": 1030,
+      "bytes": 1027,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6759,7 +7496,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/admin/settings/page.js": {
-      "bytes": 1030,
+      "bytes": 1027,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6770,7 +7507,18 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/admin/shipping/page.js": {
-      "bytes": 1030,
+      "bytes": 1027,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../chunks/ssr/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/product/[slug]/page.js": {
+      "bytes": 970,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6792,7 +7540,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/admin/content/page.js": {
-      "bytes": 1028,
+      "bytes": 1025,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6803,7 +7551,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/admin/reviews/page.js": {
-      "bytes": 1028,
+      "bytes": 1025,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6824,8 +7572,19 @@
       ],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/app/api/wishlist/route.js": {
+      "bytes": 334,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/.next/server/app/admin/orders/page.js": {
-      "bytes": 1026,
+      "bytes": 1023,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6847,7 +7606,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/admin/users/page.js": {
-      "bytes": 1024,
+      "bytes": 1021,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6857,8 +7616,19 @@
       ],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/app/api/orders/route.js": {
+      "bytes": 330,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/.next/server/app/orders/[id]/page.js": {
-      "bytes": 967,
+      "bytes": 964,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6869,12 +7639,23 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/_not-found/page.js": {
-      "bytes": 864,
+      "bytes": 861,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
           "kind": "require-call",
           "original": "../../chunks/ssr/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/cart/route.js": {
+      "bytes": 324,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../chunks/[turbopack]_runtime.js"
         }
       ],
       "format": "cjs"
@@ -6891,18 +7672,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/wishlist/page.js": {
-      "bytes": 958,
-      "imports": [
-        {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
-          "kind": "require-call",
-          "original": "../../chunks/ssr/[turbopack]_runtime.js"
-        }
-      ],
-      "format": "cjs"
-    },
-    ".open-next/server-functions/default/.next/server/app/product/page.js": {
-      "bytes": 956,
+      "bytes": 955,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6913,7 +7683,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/profile/page.js": {
-      "bytes": 956,
+      "bytes": 953,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6924,7 +7694,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/orders/page.js": {
-      "bytes": 950,
+      "bytes": 947,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6935,7 +7705,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/search/page.js": {
-      "bytes": 954,
+      "bytes": 951,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6946,7 +7716,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/admin/page.js": {
-      "bytes": 1009,
+      "bytes": 1006,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6957,7 +7727,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/login/page.js": {
-      "bytes": 952,
+      "bytes": 949,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6968,7 +7738,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/cart/page.js": {
-      "bytes": 950,
+      "bytes": 947,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6979,7 +7749,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/home/page.js": {
-      "bytes": 950,
+      "bytes": 947,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6990,7 +7760,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/page.js": {
-      "bytes": 937,
+      "bytes": 934,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -7001,7 +7771,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/node_modules/next/dist/server/require.js": {
-      "bytes": 10878,
+      "bytes": 13521,
       "imports": [
         {
           "path": "path",
@@ -7049,9 +7819,34 @@
           "external": true
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/app/api/admin/products/[id]/route.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\admin\\products\\[id]\\route.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/app/admin/customerSection/page.js",
           "kind": "require-call",
           "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\admin\\customerSection\\page.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/admin/categories/route.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\admin\\categories\\route.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/images/[...key]/route.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\images\\[...key]\\route.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/products/[slug]/route.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\products\\[slug]\\route.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/admin/products/route.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\admin\\products\\route.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/app/admin/products/add/page.js",
@@ -7062,6 +7857,16 @@
           "path": ".open-next/server-functions/default/.next/server/app/admin/orders/[id]/page.js",
           "kind": "require-call",
           "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\admin\\orders\\[id]\\page.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/admin/upload/route.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\admin\\upload\\route.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/orders/[id]/route.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\orders\\[id]\\route.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/app/admin/customers/page.js",
@@ -7084,6 +7889,11 @@
           "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\admin\\shipping\\page.js"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/app/product/[slug]/page.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\product\\[slug]\\page.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/app/_global-error/page.js",
           "kind": "require-call",
           "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\_global-error\\page.js"
@@ -7104,6 +7914,11 @@
           "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\products\\route.js"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/app/api/wishlist/route.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\wishlist\\route.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/app/admin/orders/page.js",
           "kind": "require-call",
           "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\admin\\orders\\page.js"
@@ -7119,6 +7934,11 @@
           "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\admin\\users\\page.js"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/app/api/orders/route.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\orders\\route.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/app/orders/[id]/page.js",
           "kind": "require-call",
           "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\orders\\[id]\\page.js"
@@ -7129,6 +7949,11 @@
           "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\_not-found\\page.js"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/app/api/cart/route.js",
+          "kind": "require-call",
+          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\cart\\route.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/app/api/home/route.js",
           "kind": "require-call",
           "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\home\\route.js"
@@ -7137,11 +7962,6 @@
           "path": ".open-next/server-functions/default/.next/server/app/wishlist/page.js",
           "kind": "require-call",
           "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\wishlist\\page.js"
-        },
-        {
-          "path": ".open-next/server-functions/default/.next/server/app/product/page.js",
-          "kind": "require-call",
-          "original": "D:\\Project Files\\Tharani Tex\\app\\tharanitex\\frontend\\.open-next\\server-functions\\default\\.next\\server\\app\\product\\page.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/app/profile/page.js",
@@ -8361,7 +9181,7 @@
       "format": "esm"
     },
     ".open-next/server-functions/default/index.mjs": {
-      "bytes": 95275,
+      "bytes": 96020,
       "imports": [
         {
           "path": "node:module",
@@ -8551,11 +9371,6 @@
           "external": true
         },
         {
-          "path": "util",
-          "kind": "require-call",
-          "external": true
-        },
-        {
           "path": "node:path",
           "kind": "require-call",
           "external": true
@@ -8642,6 +9457,11 @@
         },
         {
           "path": "stream",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "util",
           "kind": "require-call",
           "external": true
         },
@@ -9701,23 +10521,50 @@
         ".open-next/server-functions/default/node_modules/next/dist/shared/lib/deep-freeze.js": {
           "bytesInOutput": 586
         },
+        ".open-next/server-functions/default/.next/server/app/api/admin/products/[id]/route_client-reference-manifest.js": {
+          "bytesInOutput": 474
+        },
+        ".open-next/server-functions/default/.next/server/app/api/admin/categories/route_client-reference-manifest.js": {
+          "bytesInOutput": 469
+        },
+        ".open-next/server-functions/default/.next/server/app/api/products/[slug]/route_client-reference-manifest.js": {
+          "bytesInOutput": 467
+        },
+        ".open-next/server-functions/default/.next/server/app/api/images/[...key]/route_client-reference-manifest.js": {
+          "bytesInOutput": 467
+        },
+        ".open-next/server-functions/default/.next/server/app/api/admin/products/route_client-reference-manifest.js": {
+          "bytesInOutput": 465
+        },
+        ".open-next/server-functions/default/.next/server/app/api/admin/upload/route_client-reference-manifest.js": {
+          "bytesInOutput": 461
+        },
+        ".open-next/server-functions/default/.next/server/app/api/orders/[id]/route_client-reference-manifest.js": {
+          "bytesInOutput": 459
+        },
+        ".open-next/server-functions/default/.next/server/app/api/wishlist/route_client-reference-manifest.js": {
+          "bytesInOutput": 453
+        },
         ".open-next/server-functions/default/.next/server/app/api/products/route_client-reference-manifest.js": {
-          "bytesInOutput": 452
+          "bytesInOutput": 453
+        },
+        ".open-next/server-functions/default/.next/server/app/api/orders/route_client-reference-manifest.js": {
+          "bytesInOutput": 450
         },
         ".open-next/server-functions/default/.next/server/app/api/home/route_client-reference-manifest.js": {
-          "bytesInOutput": 445
+          "bytesInOutput": 446
+        },
+        ".open-next/server-functions/default/.next/server/app/api/cart/route_client-reference-manifest.js": {
+          "bytesInOutput": 446
         },
         ".open-next/server-functions/default/node_modules/next/dist/server/load-manifest.external.js": {
-          "bytesInOutput": 172803
+          "bytesInOutput": 185848
         },
         ".open-next/cloudflare-templates/shims/throw.js": {
           "bytesInOutput": 202
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__049xgqk._.js": {
           "bytesInOutput": 1558
-        },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0kl59ms._.js": {
-          "bytesInOutput": 233090
         },
         ".open-next/server-functions/default/node_modules/next/dist/server/app-render/action-async-storage-instance.js": {
           "bytesInOutput": 501
@@ -9785,11 +10632,17 @@
         ".open-next/server-functions/default/node_modules/next/dist/server/app-render/dynamic-access-async-storage.external.js": {
           "bytesInOutput": 516
         },
+        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__05sq6jr._.js": {
+          "bytesInOutput": 22590
+        },
+        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0kl59ms._.js": {
+          "bytesInOutput": 233090
+        },
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__10ldt1g._.js": {
           "bytesInOutput": 4786
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1flp_7k._.js": {
-          "bytesInOutput": 10359
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_09qsgu6._.js": {
+          "bytesInOutput": 12700
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app__not-found_page_actions_0pt47yr.js": {
           "bytesInOutput": 257
@@ -9817,9 +10670,6 @@
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_react-icons_fa6_index_mjs_0sifhzu._.js": {
           "bytesInOutput": 5951
-        },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/src_1riqh5_._.js": {
-          "bytesInOutput": 3765
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__051049e._.js": {
           "bytesInOutput": 2160
@@ -9887,8 +10737,8 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0jcim5c._.js": {
           "bytesInOutput": 2182
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_094z_dd._.js": {
-          "bytesInOutput": 13837
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_16-sivs._.js": {
+          "bytesInOutput": 13238
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_orders_[id]_page_actions_0dmqar8.js": {
           "bytesInOutput": 270
@@ -9902,11 +10752,11 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0nb4r6p._.js": {
           "bytesInOutput": 2134
         },
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_01w8h_3._.js": {
+          "bytesInOutput": 10753
+        },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_04jveyp._.js": {
           "bytesInOutput": 437698
-        },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_0874ofq._.js": {
-          "bytesInOutput": 11350
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_page_actions_1mcickz.js": {
           "bytesInOutput": 248
@@ -9917,8 +10767,8 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0ulkjv_._.js": {
           "bytesInOutput": 2183
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_1hnujkk._.js": {
-          "bytesInOutput": 19036
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_0wdzire._.js": {
+          "bytesInOutput": 13184
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_products_add_page_actions_1duua6a.js": {
           "bytesInOutput": 274
@@ -9929,8 +10779,8 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1i1s_ky._.js": {
           "bytesInOutput": 2168
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_1k7vqkw._.js": {
-          "bytesInOutput": 12026
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_148zyss._.js": {
+          "bytesInOutput": 7648
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_products_page_actions_0kiwnp5.js": {
           "bytesInOutput": 266
@@ -9939,7 +10789,7 @@
           "bytesInOutput": 23636
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/src_app_admin_products_page_07kvzxw.js": {
-          "bytesInOutput": 14558
+          "bytesInOutput": 15078
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0v-uz2u._.js": {
           "bytesInOutput": 2164
@@ -9968,7 +10818,7 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__03shy18._.js": {
           "bytesInOutput": 2170
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_0vv4f-4._.js": {
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_1ri-d1f._.js": {
           "bytesInOutput": 19613
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_shipping_page_actions_1v12wo-.js": {
@@ -9980,8 +10830,8 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__00encxp._.js": {
           "bytesInOutput": 2154
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_0m-rpw7._.js": {
-          "bytesInOutput": 14109
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_17d7hpa._.js": {
+          "bytesInOutput": 14108
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_users_page_actions_1j4t7lq.js": {
           "bytesInOutput": 260
@@ -9989,8 +10839,8 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0z2oe_a.js": {
           "bytesInOutput": 23623
         },
-        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__12cy180._.js": {
-          "bytesInOutput": 9746
+        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0d4p227._.js": {
+          "bytesInOutput": 8896
         },
         ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.prod.js": {
           "bytesInOutput": 182011
@@ -9998,20 +10848,80 @@
         ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__15bjnu5._.js": {
           "bytesInOutput": 83223
         },
+        ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_categories_route_actions_1lz0ocd.js": {
+          "bytesInOutput": 276
+        },
+        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1mbz37h._.js": {
+          "bytesInOutput": 13796
+        },
+        ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_products_route_actions_1qlniei.js": {
+          "bytesInOutput": 272
+        },
+        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0gj8oto._.js": {
+          "bytesInOutput": 14466
+        },
+        ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_products_[id]_route_actions_0uysxy7.js": {
+          "bytesInOutput": 280
+        },
+        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0qjgi9s._.js": {
+          "bytesInOutput": 9228
+        },
+        ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_admin_upload_route_actions_0gtguvx.js": {
+          "bytesInOutput": 268
+        },
+        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1fx67u9._.js": {
+          "bytesInOutput": 10521
+        },
+        ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_cart_route_actions_0uh3we9.js": {
+          "bytesInOutput": 252
+        },
+        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0617o-c._.js": {
+          "bytesInOutput": 12772
+        },
         ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_home_route_actions_1po3-6k.js": {
           "bytesInOutput": 252
         },
-        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1_kau6s._.js": {
-          "bytesInOutput": 9730
+        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0grush-._.js": {
+          "bytesInOutput": 9069
+        },
+        ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_images_[___key]_route_actions_12-uw08.js": {
+          "bytesInOutput": 269
+        },
+        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1fc8mpw._.js": {
+          "bytesInOutput": 12297
+        },
+        ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_orders_route_actions_18oip2y.js": {
+          "bytesInOutput": 256
+        },
+        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1-dd-x9._.js": {
+          "bytesInOutput": 12041
+        },
+        ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_orders_[id]_route_actions_170f1_8.js": {
+          "bytesInOutput": 264
+        },
+        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__0y5cmv8._.js": {
+          "bytesInOutput": 12756
         },
         ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_products_route_actions_18pcx8b.js": {
           "bytesInOutput": 260
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__12h8vml._.js": {
-          "bytesInOutput": 2132
+        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1vlb4gq._.js": {
+          "bytesInOutput": 12981
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_19e9mbg._.js": {
-          "bytesInOutput": 12648
+        ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_products_[slug]_route_actions_15yw21j.js": {
+          "bytesInOutput": 272
+        },
+        ".open-next/server-functions/default/.next/server/chunks/[root-of-the-server]__1nwzg5f._.js": {
+          "bytesInOutput": 9990
+        },
+        ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_api_wishlist_route_actions_10mbl16.js": {
+          "bytesInOutput": 260
+        },
+        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__04bqew6._.js": {
+          "bytesInOutput": 7224
+        },
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_1paqbng._.js": {
+          "bytesInOutput": 11248
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_cart_page_actions_14bzeos.js": {
           "bytesInOutput": 246
@@ -10019,8 +10929,8 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0sjjbzy.js": {
           "bytesInOutput": 23493
         },
-        ".open-next/server-functions/default/.next/server/chunks/[externals]_next_dist_0iuj5m_._.js": {
-          "bytesInOutput": 961
+        ".open-next/server-functions/default/.next/server/chunks/[externals]_next_dist_1gp-qi5._.js": {
+          "bytesInOutput": 962
         },
         ".open-next/server-functions/default/.next/server/chunks/_next-internal_server_app_favicon_ico_route_actions_0g2jjls.js": {
           "bytesInOutput": 258
@@ -10028,11 +10938,11 @@
         ".open-next/server-functions/default/.next/server/chunks/node_modules_next_1kis888._.js": {
           "bytesInOutput": 121134
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__05bexx4._.js": {
-          "bytesInOutput": 12526
+        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1tgf788._.js": {
+          "bytesInOutput": 9416
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_0_1t395._.js": {
-          "bytesInOutput": 7010
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_1i4x7ab._.js": {
+          "bytesInOutput": 8547
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_home_page_actions_0g3grz2.js": {
           "bytesInOutput": 246
@@ -10040,11 +10950,14 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_04axi__.js": {
           "bytesInOutput": 23495
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/src_components_home_Hero_Hero_jsx_0o6_3w3._.js": {
-          "bytesInOutput": 97321
+        ".open-next/server-functions/default/.next/server/chunks/ssr/src_components_home_217n5s0._.js": {
+          "bytesInOutput": 99425
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__103n55i._.js": {
           "bytesInOutput": 2134
+        },
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_0hqodph._.js": {
+          "bytesInOutput": 5517
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_login_page_actions_04fnjo0.js": {
           "bytesInOutput": 248
@@ -10055,14 +10968,11 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_19lsvul.js": {
           "bytesInOutput": 23499
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/src_0ky2oby._.js": {
-          "bytesInOutput": 5448
-        },
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1goe8yu._.js": {
           "bytesInOutput": 2142
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_1u9pby-._.js": {
-          "bytesInOutput": 14078
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_1p04-e3._.js": {
+          "bytesInOutput": 11254
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_orders_page_actions_1jwg0_k.js": {
           "bytesInOutput": 250
@@ -10070,8 +10980,8 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0zkhea0.js": {
           "bytesInOutput": 23503
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0rgggun._.js": {
-          "bytesInOutput": 16754
+        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1jykyq5._.js": {
+          "bytesInOutput": 16639
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_1ouzhto._.js": {
           "bytesInOutput": 5385
@@ -10091,20 +11001,20 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_08a3a8u.js": {
           "bytesInOutput": 23440
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0nqgtyd._.js": {
-          "bytesInOutput": 2146
+        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0z0560w._.js": {
+          "bytesInOutput": 13025
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_0eo311e._.js": {
-          "bytesInOutput": 7641
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_1fyxcq8._.js": {
+          "bytesInOutput": 7086
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_0ji6plb._.js": {
-          "bytesInOutput": 34022
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_1q5swu6._.js": {
+          "bytesInOutput": 27397
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_product_page_actions_02bk2_8.js": {
-          "bytesInOutput": 251
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_product_[slug]_page_actions_1-s-0w9.js": {
+          "bytesInOutput": 264
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_052854z.js": {
-          "bytesInOutput": 23512
+        ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_1kqg-s4.js": {
+          "bytesInOutput": 23579
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1ikohn9._.js": {
           "bytesInOutput": 4913
@@ -10118,8 +11028,8 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0423fik._.js": {
           "bytesInOutput": 2142
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_0s8-ou5._.js": {
-          "bytesInOutput": 14020
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_1t2xpy7._.js": {
+          "bytesInOutput": 11723
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_search_page_actions_0_8-8no.js": {
           "bytesInOutput": 250
@@ -10127,11 +11037,11 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_1ywa_yt.js": {
           "bytesInOutput": 23507
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0dxtqp8._.js": {
-          "bytesInOutput": 2150
+        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__1o_irgn._.js": {
+          "bytesInOutput": 7006
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_1ub0o57._.js": {
-          "bytesInOutput": 9456
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_0_1t395._.js": {
+          "bytesInOutput": 8188
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_wishlist_page_actions_1ie7ol4.js": {
           "bytesInOutput": 254
@@ -10151,95 +11061,125 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_06zp_1r.js": {
           "bytesInOutput": 23162
         },
-        ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js": {
-          "bytesInOutput": 31832
-        },
         ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js": {
-          "bytesInOutput": 31847
+          "bytesInOutput": 34484
+        },
+        ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js": {
+          "bytesInOutput": 34471
+        },
+        ".open-next/server-functions/default/.next/server/app/api/admin/products/[id]/route.js": {
+          "bytesInOutput": 472
         },
         ".open-next/server-functions/default/.next/server/app/admin/customerSection/page.js": {
-          "bytesInOutput": 1150
+          "bytesInOutput": 1146
+        },
+        ".open-next/server-functions/default/.next/server/app/api/admin/categories/route.js": {
+          "bytesInOutput": 464
+        },
+        ".open-next/server-functions/default/.next/server/app/api/images/[...key]/route.js": {
+          "bytesInOutput": 461
+        },
+        ".open-next/server-functions/default/.next/server/app/api/products/[slug]/route.js": {
+          "bytesInOutput": 461
+        },
+        ".open-next/server-functions/default/.next/server/app/api/admin/products/route.js": {
+          "bytesInOutput": 458
         },
         ".open-next/server-functions/default/.next/server/app/admin/products/add/page.js": {
-          "bytesInOutput": 1144
+          "bytesInOutput": 1140
         },
         ".open-next/server-functions/default/.next/server/app/admin/orders/[id]/page.js": {
-          "bytesInOutput": 1141
+          "bytesInOutput": 1137
+        },
+        ".open-next/server-functions/default/.next/server/app/api/admin/upload/route.js": {
+          "bytesInOutput": 452
+        },
+        ".open-next/server-functions/default/.next/server/app/api/orders/[id]/route.js": {
+          "bytesInOutput": 449
         },
         ".open-next/server-functions/default/.next/server/app/admin/customers/page.js": {
-          "bytesInOutput": 1135
+          "bytesInOutput": 1131
         },
         ".open-next/server-functions/default/.next/server/app/admin/products/page.js": {
-          "bytesInOutput": 1132
+          "bytesInOutput": 1128
         },
         ".open-next/server-functions/default/.next/server/app/admin/settings/page.js": {
-          "bytesInOutput": 1132
+          "bytesInOutput": 1128
         },
         ".open-next/server-functions/default/.next/server/app/admin/shipping/page.js": {
-          "bytesInOutput": 1132
+          "bytesInOutput": 1128
+        },
+        ".open-next/server-functions/default/.next/server/app/product/[slug]/page.js": {
+          "bytesInOutput": 1071
         },
         ".open-next/server-functions/default/.next/server/app/_global-error/page.js": {
-          "bytesInOutput": 758
+          "bytesInOutput": 757
         },
         ".open-next/server-functions/default/.next/server/app/admin/content/page.js": {
-          "bytesInOutput": 1129
+          "bytesInOutput": 1126
         },
         ".open-next/server-functions/default/.next/server/app/admin/reviews/page.js": {
-          "bytesInOutput": 1130
+          "bytesInOutput": 1126
         },
         ".open-next/server-functions/default/.next/server/app/api/products/route.js": {
-          "bytesInOutput": 438
+          "bytesInOutput": 440
+        },
+        ".open-next/server-functions/default/.next/server/app/api/wishlist/route.js": {
+          "bytesInOutput": 440
         },
         ".open-next/server-functions/default/.next/server/app/admin/orders/page.js": {
-          "bytesInOutput": 1127
+          "bytesInOutput": 1123
         },
         ".open-next/server-functions/default/.next/server/app/favicon.ico/route.js": {
-          "bytesInOutput": 488
+          "bytesInOutput": 490
         },
         ".open-next/server-functions/default/.next/server/app/admin/users/page.js": {
-          "bytesInOutput": 1124
+          "bytesInOutput": 1120
+        },
+        ".open-next/server-functions/default/.next/server/app/api/orders/route.js": {
+          "bytesInOutput": 435
         },
         ".open-next/server-functions/default/.next/server/app/orders/[id]/page.js": {
-          "bytesInOutput": 1067
+          "bytesInOutput": 1063
         },
         ".open-next/server-functions/default/.next/server/app/_not-found/page.js": {
-          "bytesInOutput": 966
+          "bytesInOutput": 962
         },
-        ".open-next/server-functions/default/.next/server/app/api/home/route.js": {
+        ".open-next/server-functions/default/.next/server/app/api/cart/route.js": {
           "bytesInOutput": 427
         },
-        ".open-next/server-functions/default/.next/server/app/wishlist/page.js": {
-          "bytesInOutput": 1058
+        ".open-next/server-functions/default/.next/server/app/api/home/route.js": {
+          "bytesInOutput": 429
         },
-        ".open-next/server-functions/default/.next/server/app/product/page.js": {
-          "bytesInOutput": 1055
+        ".open-next/server-functions/default/.next/server/app/wishlist/page.js": {
+          "bytesInOutput": 1054
         },
         ".open-next/server-functions/default/.next/server/app/profile/page.js": {
-          "bytesInOutput": 1055
+          "bytesInOutput": 1051
         },
         ".open-next/server-functions/default/.next/server/app/orders/page.js": {
-          "bytesInOutput": 1048
+          "bytesInOutput": 1044
         },
         ".open-next/server-functions/default/.next/server/app/search/page.js": {
-          "bytesInOutput": 1052
+          "bytesInOutput": 1048
         },
         ".open-next/server-functions/default/.next/server/app/admin/page.js": {
-          "bytesInOutput": 1106
+          "bytesInOutput": 1102
         },
         ".open-next/server-functions/default/.next/server/app/login/page.js": {
-          "bytesInOutput": 1049
+          "bytesInOutput": 1045
         },
         ".open-next/server-functions/default/.next/server/app/cart/page.js": {
-          "bytesInOutput": 1046
+          "bytesInOutput": 1042
         },
         ".open-next/server-functions/default/.next/server/app/home/page.js": {
-          "bytesInOutput": 1046
+          "bytesInOutput": 1042
         },
         ".open-next/server-functions/default/.next/server/app/page.js": {
-          "bytesInOutput": 1031
+          "bytesInOutput": 1027
         },
         ".open-next/server-functions/default/node_modules/next/dist/server/require.js": {
-          "bytesInOutput": 5269
+          "bytesInOutput": 6270
         },
         ".open-next/server-functions/default/node_modules/next/dist/lib/wait.js": {
           "bytesInOutput": 341
@@ -10389,10 +11329,10 @@
           "bytesInOutput": 5059
         },
         ".open-next/server-functions/default/index.mjs": {
-          "bytesInOutput": 67643
+          "bytesInOutput": 68326
         }
       },
-      "bytes": 4756382
+      "bytes": 4924142
     }
   }
 }

@@ -2,6 +2,7 @@ import ThemeProvider from "../components/ThemeProvider";
 import "./globals.css";
 import Footer from "@/components/Footer/Footer";
 import localFont from "next/font/local";
+import { Toaster } from "react-hot-toast";
 
 const montserrat = localFont({
   src: [
@@ -57,6 +58,29 @@ export default function RootLayout({ children }) {
       <body className="font-montserrat">
         <ThemeProvider />
         {children}
+         <Toaster
+          position="bottom-right"
+          toastOptions={{
+            duration: 2500,
+            style: {
+              background: "#5A1F2F",
+              color: "#fff",
+              border: "1px solid #D4A437",
+            },
+            success: {
+              iconTheme: {
+                primary: "#D4A437",
+                secondary: "#fff",
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: "#ef4444",
+                secondary: "#fff",
+              },
+            },
+          }}
+        />
         <Footer />
       </body>
     </html>

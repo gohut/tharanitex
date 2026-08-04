@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Search, Filter, Edit2, Trash2, Star, ChevronDown, Package } from "lucide-react";
 import StatusBadge from "../../../components/ui/StatusBadge";
@@ -8,7 +8,6 @@ import Button from "../../../components/ui/Button";
 import FormInput from "../../../components/ui/FormInput";
 import Toggle from "../../../components/ui/Toggle";
 import Pagination from "../../../components/ui/Pagination";
-import { products as initialProducts, categories as initialCategories } from "../../../data/products";
 
 const PAGE_SIZE = 6;
 
@@ -57,7 +56,7 @@ function CategoryBlock({ category, products, openEditCat, openDeleteCat }) {
           paginated.map((p) => (
             <div key={p.id} className="bg-green-950/50 border border-green-800 rounded-xl overflow-hidden hover:border-gold-500/50 transition-colors group">
               <div className="aspect-square bg-green-900 relative">
-                <img src="/assets/saree.png" alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={(e) => { e.target.src = "https://placehold.co/400x400/145C3E/D4AF37?text=Img" }} />
+                <img src={p.image || "/assets/saree.png"} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={(e) => { e.target.src = "https://placehold.co/400x400/145C3E/D4AF37?text=Img" }} />
                 <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded flex items-center gap-1">
                   <Star size={10} className="text-gold-500 fill-gold-500" />
                   <span className="text-white text-[10px] font-medium">{p.rating}</span>
@@ -98,8 +97,9 @@ function CategoryBlock({ category, products, openEditCat, openDeleteCat }) {
 
 export default function ProductsPage() {
   const router = useRouter();
-  const [products, setProducts] = useState(initialProducts);
-  const [categories, setCategories] = useState(initialCategories);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("products");
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [search, setSearch] = useState("");
@@ -110,6 +110,64 @@ export default function ProductsPage() {
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState({});
   const [catForm, setCatForm] = useState({});
+
+    useEffect(() => {
+    async function loadProducts() {
+      try {
+        setLoading(true);
+
+        const res = await fetch("/api/admin/products", {
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to load products");
+        }
+
+        const data = await res.json();
+
+        const formattedProducts = data.map((product) => ({
+          ...product,
+
+          price: Number(product.price),
+          stock: Number(product.stock),
+
+          status:
+            Number(product.stock) === 0
+              ? "Out of Stock"
+              : Number(product.stock) <= 5
+                ? "Low Stock"
+                : "Active",
+
+          rating: 0,
+          reviews: 0,
+        }));
+
+        setProducts(formattedProducts);
+
+        const uniqueCategories = [
+          ...new Set(
+            formattedProducts
+              .map((product) => product.category)
+              .filter(Boolean)
+          ),
+        ];
+
+        setCategories(
+          uniqueCategories.map((name, index) => ({
+            id: index + 1,
+            name,
+          }))
+        );
+      } catch (error) {
+        console.error("Admin products load error:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProducts();
+  }, []);
 
   // ── Filtered Products ──
   const filtered = products.filter((p) => {
@@ -251,7 +309,7 @@ export default function ProductsPage() {
                     <tr key={p.id} onClick={() => router.push(`/admin/products/add?id=${p.id}`)} className="border-b border-green-800/50 hover:bg-green-800/30 transition-colors cursor-pointer">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
-                          <img src="/assets/saree.png" alt={p.name} className="w-16 h-16 sm:w-9 sm:h-9 rounded-lg object-cover shrink-0" onError={(e) => { e.target.src = p.image; }} />
+                          <img src={p.image || "/assets/saree.png"} alt={p.name} className="w-16 h-16 sm:w-9 sm:h-9 rounded-lg object-cover shrink-0" onError={(e) => { e.target.src = p.image; }} />
                           <div className="min-w-0">
                             <p className="text-white text-xs sm:text-sm font-medium truncate">{p.name}</p>
                             <p className="text-green-500 text-[10px] sm:text-xs truncate">{p.id}</p>
@@ -335,10 +393,14 @@ export default function ProductsPage() {
       {/* Reviews Modal */}
       <Modal open={modal === "reviews"} onClose={() => setModal(null)} title={`Reviews — ${selected?.name}`} size="lg">
         <div className="space-y-3">
-          {selected && initialProducts.find((p) => p.id === selected.id)?.reviews > 0 ? (
-            <p className="text-green-400 text-sm">{selected.reviews} reviews · Avg {selected.rating}★</p>
+          {selected?.reviews > 0 ? (
+            <p className="text-green-400 text-sm">
+              {selected.reviews} reviews · Avg {selected.rating}★
+            </p>
           ) : (
-            <p className="text-green-500 text-sm">No reviews yet for this product.</p>
+            <p className="text-green-500 text-sm">
+              No reviews yet for this product.
+            </p>
           )}
           <div className="flex items-center gap-2 py-4">
             {[1,2,3,4,5].map((s) => <Star key={s} size={20} className={s <= Math.round(selected?.rating || 0) ? "text-gold-500 fill-gold-500" : "text-green-700"} />)}

@@ -1,11 +1,40 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Minus, Plus } from "lucide-react";
 import ProductAccordion from "./ProductAccordion";
+import toast from "react-hot-toast";
 
 export default function ProductDetails({ product }) {
   const [qty, setQty] = useState(1);
+  const router = useRouter();
+
+  async function addToCart() {
+    try {
+      const res = await fetch("/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: "guest",
+          productId: product.id,
+          quantity: qty,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Request failed");
+      }
+
+      toast.success(`${product.name} added to cart`);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      toast.error("Unable to add product to cart.");
+    }
+  }
 
   const formatPrice = (value) =>
     new Intl.NumberFormat("en-IN", {
@@ -51,7 +80,10 @@ export default function ProductDetails({ product }) {
           </button>
         </div>
 
-        <button className="h-[50px] flex-1 border-2 border-[#F2A100] bg-transparent px-6 text-sm font-semibold tracking-[0.06em] text-[#3C3128] transition hover:bg-[#F9E2AC]">
+        <button
+          onClick={addToCart}
+          className="h-[50px] flex-1 border-2 border-[#F2A100] bg-transparent px-6 text-sm font-semibold tracking-[0.06em] text-[#3C3128] transition hover:bg-[#F9E2AC]"
+        >
           ADD TO CART
         </button>
       </div>

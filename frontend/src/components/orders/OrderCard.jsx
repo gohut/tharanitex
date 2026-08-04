@@ -3,6 +3,35 @@ import { ShoppingBag } from "lucide-react";
 import OrderStatusPill from "./OrderStatusPill";
 
 export default function OrderCard({ order }) {
+  const firstItem = order.items?.[0];
+
+  const formatPrice = (value) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(Number(value || 0));
+
+  const formatDate = (value) => {
+    if (!value) return "";
+
+    return new Date(value).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const status =
+    order.order_status?.charAt(0).toUpperCase() +
+    order.order_status?.slice(1);
+
+  const totalQuantity =
+    order.items?.reduce(
+      (total, item) => total + Number(item.quantity),
+      0
+    ) || 0;
+
   return (
     <Link
       href={`/orders/${order.id}`}
@@ -13,43 +42,65 @@ export default function OrderCard({ order }) {
           <p className="text-xs uppercase tracking-[0.16em] text-[#B5986B]">
             Order ID
           </p>
+
           <p className="mt-1 text-sm font-semibold text-[#25211C]">
-            {order.id}
+            #{order.id}
           </p>
+
           <p className="mt-2 text-sm text-[#8A8175]">
-            Ordered on {order.orderDate}
+            Ordered on {formatDate(order.created_at)}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <OrderStatusPill status={order.status} />
-          <span className="text-sm text-[#8A8175]">
-            {order.status === "Cancelled"
-              ? order.cancellationLabel
-              : order.statusLabel}
+          <OrderStatusPill status={status} />
+
+          <span className="text-sm capitalize text-[#8A8175]">
+            {order.order_status}
           </span>
         </div>
       </div>
 
       <div className="mt-6 grid gap-5 border-t border-[#E7DAC8] pt-5 lg:grid-cols-[120px_1fr_auto] lg:items-center">
-        <img
-          src={order.image}
-          alt={order.productName}
-          className="h-[140px] w-[120px] object-cover"
-        />
+
+        {firstItem?.image ? (
+          <img
+            src={firstItem.image}
+            alt={firstItem.name}
+            className="h-[140px] w-[120px] object-cover"
+          />
+        ) : (
+          <div className="flex h-[140px] w-[120px] items-center justify-center bg-[#F1E7D8] text-xs text-[#9A8B78]">
+            No Image
+          </div>
+        )}
 
         <div>
           <h3 className="text-[26px] font-semibold leading-tight text-[#25211C]">
-            {order.productName}
+            {firstItem?.name || "Order"}
           </h3>
-          <p className="mt-2 text-[18px] font-semibold text-[#6C6258]">
-            {order.variant}
-          </p>
+
+          {order.items?.length > 1 && (
+            <p className="mt-2 text-sm text-[#8A8175]">
+              + {order.items.length - 1} more item
+              {order.items.length - 1 !== 1 ? "s" : ""}
+            </p>
+          )}
 
           <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium text-[#8A8175]">
-            <span>Qty : {order.quantity}</span>
-            <span>{order.itemPrice}</span>
-            <span>Total : {order.totalAmount}</span>
+            <span>
+              Qty : {totalQuantity}
+            </span>
+
+            {firstItem && (
+              <span>
+                {formatPrice(firstItem.price)}
+              </span>
+            )}
+
+            <span>
+              Total : {formatPrice(order.total_amount)}
+            </span>
           </div>
         </div>
 
@@ -59,6 +110,7 @@ export default function OrderCard({ order }) {
             <span>Buy Again</span>
           </div>
         </div>
+
       </div>
     </Link>
   );

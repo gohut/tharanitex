@@ -1,10 +1,98 @@
 "use client";
-
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { ShoppingBag } from "lucide-react";
 
-export default function ProductCard({ product }) {
-  const [wishlisted, setWishlisted] = useState(false);
+export default function ProductCard({
+  product,
+  initiallyWishlisted = false,
+}) {
+  const [wishlisted, setWishlisted] = useState(initiallyWishlisted);
+
+  async function toggleWishlist() {
+    try {
+      if (!wishlisted) {
+        const res = await fetch("/api/wishlist", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: "guest",
+            productId: product.id,
+          }),
+        });
+
+        if (!res.ok) throw new Error();
+
+        setWishlisted(true);
+        toast.success("Added to wishlist", {
+          style: {
+            background: "#D4A437",
+            color: "#FFFFFF",
+            border: "1px solid #C29128",
+          },
+          iconTheme: {
+            primary: "#FFFFFF",
+            secondary: "#D4A437",
+          },
+        });
+      } else {
+          const res = await fetch("/api/wishlist", {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: "guest",
+              productId: product.id,
+            }),
+          });
+
+          if (!res.ok) throw new Error();
+
+          setWishlisted(false);
+          toast.success("Removed from wishlist", {
+            style: {
+              background: "#D4A437",
+              color: "#FFFFFF",
+              border: "1px solid #C29128",
+            },
+            iconTheme: {
+              primary: "#FFFFFF",
+              secondary: "#D4A437",
+            },
+          });
+        }
+    } catch (err) {
+      toast.error("Something went wrong.");
+    }
+  }
+
+  async function addToCart() {
+    try {
+      const res = await fetch("/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: "guest",
+          productId: product.id,
+          quantity: 1,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to add to cart");
+      }
+
+      toast.success(`${product.name} added to cart`);
+    } catch (error) {
+      console.error(error);
+      toast.error("Unable to add product to cart");
+    }
+  }
 
   return (
     <div className="group">
@@ -17,7 +105,7 @@ export default function ProductCard({ product }) {
 
         {/* Wishlist */}
         <button
-            onClick={() => setWishlisted(!wishlisted)}
+            onClick={toggleWishlist}
             className={`
               absolute top-3 right-3 z-20
               w-10 h-10
@@ -27,7 +115,7 @@ export default function ProductCard({ product }) {
               transition-all duration-300
               hover:scale-110
               active:scale-95
-              ${wishlisted ? "bg-[#5B2333]" : "bg-white"}
+              ${wishlisted ? "bg-[#D4A437]" : "bg-white"}
             `}
           >
             <img
@@ -42,6 +130,8 @@ export default function ProductCard({ product }) {
 
         {/* Cart */}
         <button
+          onClick={addToCart}
+          aria-label={`Add ${product.name} to cart`}
           className="
             absolute bottom-3 right-3 z-20
             w-10 h-10
@@ -50,7 +140,7 @@ export default function ProductCard({ product }) {
             shadow-md
             flex items-center justify-center
             transition-all duration-300
-            hover:bg-[#5B2333]
+            hover:bg-[#D4A437]
             hover:text-white
             hover:scale-110
             active:scale-95

@@ -2,30 +2,44 @@
 
 import { Minus, Plus } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function QuantitySelector({
-  initialQuantity = 1,
-  onChange,
+  cartId,
+  quantity: initialQuantity = 1,
 }) {
   const [quantity, setQuantity] = useState(initialQuantity);
+  const router = useRouter();
+
+  async function updateQuantity(value) {
+    setQuantity(value);
+
+    await fetch("/api/cart", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        cartId,
+        quantity: value,
+      }),
+    });
+
+    router.refresh();
+  }
 
   const decrease = () => {
     if (quantity <= 1) return;
 
-    const value = quantity - 1;
-    setQuantity(value);
-    onChange?.(value);
+    updateQuantity(quantity - 1);
   };
 
   const increase = () => {
-    const value = quantity + 1;
-    setQuantity(value);
-    onChange?.(value);
+    updateQuantity(quantity + 1);
   };
 
   return (
     <div className="flex items-center bg-[#F8E6B9] rounded-sm overflow-hidden">
-
       <button
         onClick={decrease}
         className="
@@ -53,7 +67,6 @@ export default function QuantitySelector({
       >
         <Plus size={18} />
       </button>
-
     </div>
   );
 }

@@ -1,9 +1,25 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import QuantitySelector from "./QuantitySelector";
 
 export default function CartItem({ product }) {
+
+  const formatPrice = (value) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(value);
+
+  const router = useRouter();
+  async function removeItem() {
+    await fetch(`/api/cart?cartId=${product.id}`, {
+      method: "DELETE",
+    });
+
+    router.refresh();
+  }
   return (
     <div className="grid grid-cols-[140px_1fr_160px_120px_60px] items-center gap-8 py-8 border-b border-[#E8DCCB]">
 
@@ -27,25 +43,29 @@ export default function CartItem({ product }) {
         </p>
 
         <p className="mt-5 text-[28px] font-medium text-[#D49E28]">
-          {product.price}
+          {formatPrice(product.price)}
         </p>
       </div>
 
       {/* Quantity */}
       <div className="flex justify-center">
-        <QuantitySelector />
+        <QuantitySelector
+          cartId={product.id}
+          quantity={product.quantity}
+        />
       </div>
 
       {/* Total */}
       <div className="text-center">
         <p className="text-[22px] text-[#3E3A39] font-medium">
-          {product.price}
+          {formatPrice(product.price * product.quantity)}
         </p>
       </div>
 
       {/* Remove */}
       <div className="flex justify-center">
         <button
+          onClick={removeItem}
           className="
             w-10 h-10
             rounded-full
