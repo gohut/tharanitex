@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Filter, Edit2, Trash2, Star, ChevronDown, Package } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Star, Package, Upload } from "lucide-react";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import Modal from "../../../components/ui/Modal";
 import Button from "../../../components/ui/Button";
@@ -110,21 +110,30 @@ export default function ProductsPage() {
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState({});
   const [catForm, setCatForm] = useState({});
+  const [catError, setCatError] = useState("");
+  const [catUploading, setCatUploading] = useState(false);
 
-    useEffect(() => {
-    async function loadProducts() {
+  const loadData = async () => {
       try {
         setLoading(true);
 
-        const res = await fetch("/api/admin/products", {
-          cache: "no-store",
-        });
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch("/api/admin/products", { cache: "no-store" }),
+          fetch("/api/admin/categories", { cache: "no-store" }),
+        ]);
 
-        if (!res.ok) {
+        if (!productsRes.ok) {
           throw new Error("Failed to load products");
         }
 
-        const data = await res.json();
+        if (!categoriesRes.ok) {
+          throw new Error("Failed to load categories");
+        }
+
+        const [data, categoryData] = await Promise.all([
+          productsRes.json(),
+          categoriesRes.json(),
+        ]);
 
         const formattedProducts = data.map((product) => ({
           ...product,
@@ -133,7 +142,9 @@ export default function ProductsPage() {
           stock: Number(product.stock),
 
           status:
-            Number(product.stock) === 0
+            product.isActive === 0 || product.isActive === false
+              ? "Inactive"
+              : Number(product.stock) === 0
               ? "Out of Stock"
               : Number(product.stock) <= 5
                 ? "Low Stock"
@@ -144,29 +155,16 @@ export default function ProductsPage() {
         }));
 
         setProducts(formattedProducts);
-
-        const uniqueCategories = [
-          ...new Set(
-            formattedProducts
-              .map((product) => product.category)
-              .filter(Boolean)
-          ),
-        ];
-
-        setCategories(
-          uniqueCategories.map((name, index) => ({
-            id: index + 1,
-            name,
-          }))
-        );
+        setCategories(categoryData);
       } catch (error) {
         console.error("Admin products load error:", error);
       } finally {
         setLoading(false);
       }
-    }
+  };
 
-    loadProducts();
+  useEffect(() => {
+    loadData();
   }, []);
 
   // ── Filtered Products ──
@@ -208,24 +206,106 @@ export default function ProductsPage() {
   };
 
   // ── Category CRUD ──
-  const openAddCat = () => { setCatForm({ name: "" }); setModal("addCat"); };
-  const openEditCat = (c) => { setCatForm({ name: c.name }); setSelected(c); setModal("editCat"); };
-  const openDeleteCat = (c) => { setSelected(c); setModal("deleteCat"); };
+  const openAddCat = () => {
+    setCatError("");
+    setCatForm({ name: "", slug: "", description: "", image: "", isActive: true });
+    setModal("addCat");
+  };
+  const openEditCat = (c) => {
+    setCatError("");
+    setCatForm({
+      name: c.name || "",
+      slug: c.slug || "",
+      description: c.description || "",
+      image: c.image || "",
+      isActive: c.isActive !== false && c.isActive !== 0,
+    });
+    setSelected(c);
+    setModal("editCat");
+  };
+  const openDeleteCat = (c) => {
+    setCatError("");
+    setSelected(c);
+    setModal("deleteCat");
+  };
 
-  const saveCat = () => {
-    if (modal === "addCat") {
-      setCategories([...categories, { id: `C${Date.now()}`, name: catForm.name, count: 0 }]);
-    } else {
-      setCategories(categories.map((c) => (c.id === selected.id ? { ...c, name: catForm.name } : c)));
+  const handleCategoryImage = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setCatUploading(true);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "categories");
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Image upload failed");
+      }
+
+      setCatForm((prev) => ({ ...prev, image: data.url }));
+    } catch (error) {
+      setCatError(error.message || "Image upload failed");
+    } finally {
+      setCatUploading(false);
+      event.target.value = "";
     }
-    setModal(null);
-  };
-  const deleteCat = () => {
-    setCategories(categories.filter((c) => c.id !== selected.id));
-    setModal(null);
   };
 
-  const uniqueCategories = ["All", ...new Set(products.map((p) => p.category))];
+  const saveCat = async () => {
+    try {
+      setCatError("");
+
+      const endpoint =
+        modal === "editCat"
+          ? `/api/admin/categories/${selected.id}`
+          : "/api/admin/categories";
+
+      const res = await fetch(endpoint, {
+        method: modal === "editCat" ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(catForm),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to save category");
+      }
+
+      await loadData();
+      setModal(null);
+    } catch (error) {
+      setCatError(error.message || "Failed to save category");
+    }
+  };
+
+  const deleteCat = async () => {
+    try {
+      setCatError("");
+
+      const res = await fetch(`/api/admin/categories/${selected.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete category");
+      }
+
+      await loadData();
+      setModal(null);
+    } catch (error) {
+      setCatError(error.message || "Failed to delete category");
+    }
+  };
+
+  const uniqueCategories = ["All", ...categories.map((category) => category.name)];
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -269,7 +349,7 @@ export default function ProductsPage() {
               onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
               className="bg-green-900 border border-green-700 text-green-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-gold-500"
             >
-              {["All", "Active", "Low Stock", "Out of Stock"].map((s) => <option key={s}>{s}</option>)}
+              {["All", "Active", "Low Stock", "Out of Stock", "Inactive"].map((s) => <option key={s}>{s}</option>)}
             </select>
             <select
               value={filterCategory}
@@ -410,9 +490,26 @@ export default function ProductsPage() {
       </Modal>
 
       {/* Add/Edit Category */}
-      <Modal open={modal === "addCat" || modal === "editCat"} onClose={() => setModal(null)} title={modal === "addCat" ? "Add Category" : "Edit Category"} size="sm">
+      <Modal open={modal === "addCat" || modal === "editCat"} onClose={() => setModal(null)} title={modal === "addCat" ? "Add Category" : "Edit Category"} size="md">
         <div className="space-y-4">
           <FormInput label="Category Name" id="catname" value={catForm.name || ""} onChange={(e) => setCatForm({ ...catForm, name: e.target.value })} placeholder="e.g. Sarees" required />
+          <FormInput label="Slug" id="catslug" value={catForm.slug || ""} onChange={(e) => setCatForm({ ...catForm, slug: e.target.value })} placeholder="Generated from name if blank" />
+          <FormInput label="Description" id="catdesc" type="textarea" value={catForm.description || ""} onChange={(e) => setCatForm({ ...catForm, description: e.target.value })} rows={3} placeholder="Category description..." />
+          <div>
+            <label className="text-green-300 text-xs font-medium">Category Image</label>
+            <div className="mt-2 flex items-center gap-3">
+              {catForm.image && (
+                <img src={catForm.image} alt={catForm.name || "Category"} className="h-20 w-20 rounded-lg object-cover border border-green-700" />
+              )}
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-green-700 bg-green-800 px-3 py-2 text-sm text-white hover:bg-green-700">
+                <Upload size={14} />
+                {catUploading ? "Uploading..." : "Upload Image"}
+                <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleCategoryImage} className="hidden" disabled={catUploading} />
+              </label>
+            </div>
+          </div>
+          <Toggle checked={!!catForm.isActive} onChange={(value) => setCatForm({ ...catForm, isActive: value })} label="Active" />
+          {catError && <p className="text-sm text-red-400">{catError}</p>}
         </div>
         <div className="flex justify-end gap-3 mt-5">
           <Button variant="secondary" onClick={() => setModal(null)}>Cancel</Button>
@@ -423,6 +520,8 @@ export default function ProductsPage() {
       {/* Delete Category */}
       <Modal open={modal === "deleteCat"} onClose={() => setModal(null)} title="Delete Category" size="sm">
         <p className="text-green-300 text-sm mb-2">Delete category <span className="text-white font-semibold">{selected?.name}</span>?</p>
+        <p className="text-green-500 text-xs">Categories with assigned products cannot be deleted.</p>
+        {catError && <p className="mt-3 text-sm text-red-400">{catError}</p>}
         <div className="flex justify-end gap-3 mt-5">
           <Button variant="secondary" onClick={() => setModal(null)}>Cancel</Button>
           <Button variant="danger" onClick={deleteCat}>Delete</Button>

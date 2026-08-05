@@ -2,9 +2,10 @@
 import { Suspense } from "react";
 import { useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Trash2, Upload, ImageIcon } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, Trash2, Upload, ImageIcon } from "lucide-react";
 import Button from "../../../../components/ui/Button";
 import FormInput from "../../../../components/ui/FormInput";
+import Toggle from "../../../../components/ui/Toggle";
 
 function AddProductContent() {
   const router = useRouter();
@@ -21,6 +22,9 @@ function AddProductContent() {
   const [status, setStatus] = useState("Active");
   const [stock, setStock] = useState("");
   const [rating, setRating] = useState("0");
+  const [featured, setFeatured] = useState(false);
+  const [isNewArrival, setIsNewArrival] = useState(false);
+  const [isBestSeller, setIsBestSeller] = useState(false);
 
   const [actualPrice, setActualPrice] = useState("");
   const [sellingPrice, setSellingPrice] = useState("");
@@ -92,6 +96,9 @@ function AddProductContent() {
         setActualPrice(String(product.price ?? ""));
         setStock(String(product.stock ?? ""));
         setStatus(product.isActive ? "Active" : "Out of Stock");
+        setFeatured(!!product.featured);
+        setIsNewArrival(!!product.isNewArrival);
+        setIsBestSeller(!!product.isBestSeller);
 
         // PUT IT HERE ↓
         const existingUrls = Array.isArray(product.images)
@@ -124,7 +131,13 @@ function AddProductContent() {
       URL.createObjectURL(file)
     );
 
-    setImageFiles((prev) => [...prev, ...validFiles]);
+    setImageFiles((prev) => [
+      ...prev,
+      ...validFiles.map((file, index) => ({
+        file,
+        preview: previews[index],
+      })),
+    ]);
     setImages((prev) => [...prev, ...previews]);
 
     event.target.value = "";
@@ -136,13 +149,8 @@ function AddProductContent() {
     if (imageToRemove?.startsWith("blob:")) {
       URL.revokeObjectURL(imageToRemove);
 
-      const newImageIndex = images
-        .slice(0, index)
-        .filter((img) => img.startsWith("blob:"))
-        .length;
-
       setImageFiles((prev) =>
-        prev.filter((_, i) => i !== newImageIndex)
+        prev.filter((item) => item.preview !== imageToRemove)
       );
     } else {
       setExistingImages((prev) =>
@@ -153,6 +161,29 @@ function AddProductContent() {
     setImages((prev) =>
       prev.filter((_, i) => i !== index)
     );
+  };
+
+  const moveImage = (index, direction) => {
+    const nextIndex = index + direction;
+
+    if (nextIndex < 0 || nextIndex >= images.length) return;
+
+    setImages((prev) => {
+      const next = [...prev];
+      [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+      return next;
+    });
+  };
+
+  const makePrimary = (index) => {
+    if (index === 0) return;
+
+    setImages((prev) => {
+      const next = [...prev];
+      const [selectedImage] = next.splice(index, 1);
+      next.unshift(selectedImage);
+      return next;
+    });
   };
 
   const handleDelete = async () => {
@@ -218,12 +249,12 @@ const handleSave = async () => {
       // Upload images to R2
       // -----------------------------
 
-      const uploadedImages = [];
+      const uploadedByPreview = new Map();
 
-      for (const file of imageFiles) {
+      for (const item of imageFiles) {
         const formData = new FormData();
 
-        formData.append("file", file);
+        formData.append("file", item.file);
 
         const uploadRes = await fetch("/api/admin/upload", {
           method: "POST",
@@ -238,17 +269,16 @@ const handleSave = async () => {
           );
         }
 
-        uploadedImages.push(uploadData.url);
+        uploadedByPreview.set(item.preview, uploadData.url);
       }
 
       // -----------------------------
       // Create product
       // -----------------------------
 
-const finalImages = [
-  ...existingImages,
-  ...uploadedImages,
-];
+const finalImages = images
+  .map((image) => uploadedByPreview.get(image) || image)
+  .filter((image) => !image.startsWith("blob:"));
 
 const payload = {
     name: name.trim(),
@@ -257,6 +287,9 @@ const payload = {
     price: Number(sellingPrice),
     stock: Number(stock || 0),
     categoryId: selectedCategory.id,
+    featured,
+    isNewArrival,
+    isBestSeller,
     isActive: status !== "Out of Stock",
     images: finalImages,
   };
@@ -364,6 +397,15 @@ const payload = {
             </div>
           </div>
 
+          <div className="bg-green-900 border border-green-800 rounded-2xl p-6 shadow-card space-y-4">
+            <h2 className="text-lg font-semibold text-white border-b border-green-800 pb-2 mb-4">Homepage Placement</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Toggle checked={featured} onChange={setFeatured} label="Featured" />
+              <Toggle checked={isNewArrival} onChange={setIsNewArrival} label="New Arrival" />
+              <Toggle checked={isBestSeller} onChange={setIsBestSeller} label="Best Seller" />
+            </div>
+          </div>
+
           {/* Pricing & Inventory */}
           <div className="bg-green-900 border border-green-800 rounded-2xl p-6 shadow-card space-y-4">
             <h2 className="text-lg font-semibold text-white border-b border-green-800 pb-2 mb-4">Pricing & Inventory</h2>
@@ -424,7 +466,38 @@ const payload = {
               {images.map((img, idx) => (
                 <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden border border-green-700 bg-green-950">
                   <img src={img} alt={`Product ${idx}`} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  {idx === 0 && (
+                    <span className="absolute left-2 top-2 rounded bg-gold-600 px-2 py-0.5 text-[10px] font-semibold text-green-950">
+                      Primary
+                    </span>
+                  )}
+                  <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {idx !== 0 && (
+                      <button
+                        onClick={() => makePrimary(idx)}
+                        className="rounded-lg bg-gold-600 px-2 py-1 text-xs font-semibold text-green-950 hover:bg-gold-500 transition-colors"
+                      >
+                        Make Primary
+                      </button>
+                    )}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => moveImage(idx, -1)}
+                        disabled={idx === 0}
+                        className="p-2 bg-green-800 text-white rounded-lg hover:bg-green-700 disabled:opacity-40 transition-colors shadow-lg"
+                        aria-label="Move image up"
+                      >
+                        <ArrowUp size={16} />
+                      </button>
+                      <button
+                        onClick={() => moveImage(idx, 1)}
+                        disabled={idx === images.length - 1}
+                        className="p-2 bg-green-800 text-white rounded-lg hover:bg-green-700 disabled:opacity-40 transition-colors shadow-lg"
+                        aria-label="Move image down"
+                      >
+                        <ArrowDown size={16} />
+                      </button>
+                    </div>
                     <button
                       onClick={() => handleRemoveImage(idx)}
                       className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-lg"

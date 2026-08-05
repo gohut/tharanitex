@@ -10,7 +10,7 @@ export async function GET() {
   try {
     const { env } = getCloudflareContext();
 
-    const products = await getAllProducts(env.DB);
+    const products = await getAllProducts(env.DB, { activeOnly: false });
 
     return Response.json(products);
   } catch (error) {
@@ -55,6 +55,8 @@ export async function POST(request) {
       stock: body.stock || 0,
       categoryId: body.categoryId,
       featured: body.featured || false,
+      isNewArrival: body.isNewArrival || false,
+      isBestSeller: body.isBestSeller || false,
       isActive: body.isActive !== false,
     });
 

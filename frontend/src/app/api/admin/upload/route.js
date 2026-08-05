@@ -24,7 +24,14 @@ export async function POST(request) {
     const extension =
       file.name?.split(".").pop()?.toLowerCase() || "jpg";
 
-    const key = `products/${crypto.randomUUID()}.${extension}`;
+    const requestedFolder = formData.get("folder");
+    const folder =
+      typeof requestedFolder === "string" &&
+      ["products", "categories", "homepage"].includes(requestedFolder)
+        ? requestedFolder
+        : "products";
+
+    const key = `${folder}/${crypto.randomUUID()}.${extension}`;
 
     await env.tharani_product_images.put(
       key,

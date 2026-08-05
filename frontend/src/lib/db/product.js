@@ -25,7 +25,42 @@ export async function getFeaturedProducts(db) {
   return results;
 }
 
-export async function getAllProducts(db) {
+async function getPlacedProducts(db, column) {
+  const { results } = await db
+    .prepare(`
+      SELECT
+        p.id,
+        p.name,
+        p.slug,
+        p.price,
+        c.name AS category,
+        (
+          SELECT image_url
+          FROM product_images pi
+          WHERE pi.product_id = p.id
+          ORDER BY sort_order ASC, id ASC
+          LIMIT 1
+        ) AS image
+      FROM products p
+      JOIN categories c ON c.id = p.category_id
+      WHERE p.${column} = 1
+      AND p.is_active = 1
+      ORDER BY p.id DESC;
+    `)
+    .all();
+
+  return results;
+}
+
+export async function getNewArrivalProducts(db) {
+  return getPlacedProducts(db, "is_new_arrival");
+}
+
+export async function getBestSellerProducts(db) {
+  return getPlacedProducts(db, "is_best_seller");
+}
+
+export async function getAllProducts(db, { activeOnly = true } = {}) {
   const { results } = await db.prepare(`
     SELECT
       p.id,
@@ -34,6 +69,10 @@ export async function getAllProducts(db) {
       p.price,
       p.description,
       p.stock,
+      p.featured,
+      p.is_new_arrival AS isNewArrival,
+      p.is_best_seller AS isBestSeller,
+      p.is_active AS isActive,
       c.name AS category,
       (
         SELECT image_url
@@ -45,7 +84,7 @@ export async function getAllProducts(db) {
     FROM products p
     JOIN categories c
       ON c.id = p.category_id
-    WHERE p.is_active = 1
+    ${activeOnly ? "WHERE p.is_active = 1" : ""}
     ORDER BY p.id DESC;
   `).all();
 
@@ -101,6 +140,8 @@ export async function getProductById(db, id) {
         p.stock,
         p.category_id AS categoryId,
         p.featured,
+        p.is_new_arrival AS isNewArrival,
+        p.is_best_seller AS isBestSeller,
         p.is_active AS isActive,
         c.name AS category
       FROM products p
@@ -143,6 +184,8 @@ export async function createProduct(db, data) {
     stock,
     categoryId,
     featured = 0,
+    isNewArrival = 0,
+    isBestSeller = 0,
     isActive = 1,
   } = data;
 
@@ -156,9 +199,11 @@ export async function createProduct(db, data) {
         stock,
         category_id,
         featured,
+        is_new_arrival,
+        is_best_seller,
         is_active
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
     .bind(
       name,
@@ -168,6 +213,8 @@ export async function createProduct(db, data) {
       Number(stock),
       Number(categoryId),
       featured ? 1 : 0,
+      isNewArrival ? 1 : 0,
+      isBestSeller ? 1 : 0,
       isActive ? 1 : 0
     )
     .run();
@@ -188,6 +235,8 @@ export async function updateProduct(db, id, data) {
     stock,
     categoryId,
     featured = 0,
+    isNewArrival = 0,
+    isBestSeller = 0,
     isActive = 1,
   } = data;
 
@@ -203,6 +252,8 @@ export async function updateProduct(db, id, data) {
         stock = ?,
         category_id = ?,
         featured = ?,
+        is_new_arrival = ?,
+        is_best_seller = ?,
         is_active = ?
 
       WHERE id = ?
@@ -215,6 +266,8 @@ export async function updateProduct(db, id, data) {
       Number(stock),
       Number(categoryId),
       featured ? 1 : 0,
+      isNewArrival ? 1 : 0,
+      isBestSeller ? 1 : 0,
       isActive ? 1 : 0,
       Number(id)
     )

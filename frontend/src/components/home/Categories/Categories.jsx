@@ -1,56 +1,68 @@
-import homeContent from "@/data/homeContent";
+import Link from "next/link";
 
-export default function Categories() {
-  const { categories } = homeContent;
+export default function Categories({ categories }) {
+  if (!categories) {
+    return null;
+  }
+
+  const items = categories.items || [];
+
+  if (!items.length) {
+    return null;
+  }
 
   return (
     <section className="bg-[#FBF5EA] py-24 lg:py-28">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-12">
+      <div className="mx-auto max-w-[1440px] px-6 md:px-10 lg:px-12">
 
-        {/* Heading */}
-        <div className="text-center max-w-3xl mx-auto">
-          <h2 className="text-[42px] md:text-[48px] lg:text-[52px] font-light text-[#D4A437] leading-tight">
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="text-[42px] font-light leading-tight text-[#D4A437] md:text-[48px] lg:text-[52px]">
             {categories.title}
           </h2>
 
-          <p className="mt-4 text-[15px] md:text-base leading-7 text-[#72675A]">
-            {categories.subtitle}
-          </p>
+          {categories.subtitle && (
+            <p className="mt-4 text-[15px] leading-7 text-[#72675A] md:text-base">
+              {categories.subtitle}
+            </p>
+          )}
         </div>
 
-        {/* Categories */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 mt-16">
+        <div className="mt-16 grid grid-cols-2 gap-8 lg:grid-cols-4 lg:gap-10">
 
-          {categories.items.map((item) => (
-            <div
+          {items.map((item) => (
+            <Link
               key={item.id}
+              href={`/search?category=${encodeURIComponent(
+                item.slug
+              )}`}
               className="group cursor-pointer"
             >
               <div className="overflow-hidden transition-all duration-500">
                 <img
                   src={item.image}
-                  alt={item.title}
-                  className="w-full h-[300px] md:h-[360px] lg:h-[400px] object-cover transition-transform duration-700 group-hover:scale-105"
+                  alt={item.name}
+                  className="h-[300px] w-full object-cover transition-transform duration-700 group-hover:scale-105 md:h-[360px] lg:h-[400px]"
                 />
               </div>
 
               <h3 className="mt-6 text-center text-[19px] font-medium tracking-wide text-[#4A433C] transition-colors duration-300 group-hover:text-[#B88718]">
-                {item.title}
+                {item.name}
               </h3>
 
-              <p className="mt-2 text-center text-[13px] tracking-[3px] uppercase text-[#C79C32]">
-                {item.subtitle}
-              </p>
-            </div>
+              {item.description && (
+                <p className="mt-2 text-center text-[13px] tracking-[2px] text-[#8A8175]">
+                  {item.description}
+                </p>
+              )}
+            </Link>
           ))}
 
         </div>
 
-        {/* Divider */}
-        <div className="flex items-center mt-20">
+        <div className="mt-20 flex items-center">
           <div className="flex-1 border-t border-[#DCCFB8]" />
 
-          <span className="mx-8 text-sm tracking-[0.25em] uppercase text-[#8A7A65]">
+          <span className="mx-8 text-sm uppercase tracking-[0.25em] text-[#8A7A65]">
             Explore More
           </span>
 

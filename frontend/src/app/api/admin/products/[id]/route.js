@@ -62,6 +62,8 @@ export async function PATCH(request, { params }) {
       stock: body.stock || 0,
       categoryId: body.categoryId,
       featured: body.featured || false,
+      isNewArrival: body.isNewArrival || false,
+      isBestSeller: body.isBestSeller || false,
       isActive: body.isActive !== false,
     });
 

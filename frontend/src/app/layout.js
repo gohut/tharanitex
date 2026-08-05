@@ -1,6 +1,6 @@
 import ThemeProvider from "../components/ThemeProvider";
 import "./globals.css";
-import Footer from "@/components/Footer/Footer";
+import ConditionalFooter from "@/components/Footer/ConditionalFooter";
 import localFont from "next/font/local";
 import { Toaster } from "react-hot-toast";
 
@@ -81,7 +81,7 @@ export default function RootLayout({ children }) {
             },
           }}
         />
-        <Footer />
+        <ConditionalFooter />
       </body>
     </html>
   );
