@@ -9,6 +9,7 @@ export default function ProductCard({
   initiallyWishlisted = false,
 }) {
   const [wishlisted, setWishlisted] = useState(initiallyWishlisted);
+  console.log("PRODUCT CARD:", product);
 
   async function toggleWishlist() {
     try {
