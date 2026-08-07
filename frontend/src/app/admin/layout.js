@@ -27,6 +27,10 @@ export default function AdminLayout({ children }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchVal, setSearchVal] = useState("");
 
+  if (pathname === "/admin") {
+    return children;
+  }
+
   const isActive = (path) =>
     path === "/admin" ? pathname === "/admin" : pathname.startsWith(path);
 
