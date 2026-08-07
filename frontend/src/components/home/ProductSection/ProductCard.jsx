@@ -2,6 +2,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { ShoppingBag } from "lucide-react";
+import Link from "next/link";
 
 export default function ProductCard({
   product,
@@ -98,10 +99,13 @@ export default function ProductCard({
     <div className="group">
 
         <div className="relative overflow-hidden bg-white">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full aspect-[3/4] object-cover transition-transform duration-500 group-hover:scale-[1.02]"        />
+          <Link href={`/product/${product.slug}`}>
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full aspect-[3/4] object-cover transition-transform duration-500 group-hover:scale-[1.02] cursor-pointer"
+            />
+          </Link>
 
         {/* Wishlist */}
         <button
@@ -151,9 +155,11 @@ export default function ProductCard({
 
       </div>
 
-      <h3 className="mt-4 text-[15px] font-normal text-[#444] leading-6">
-        {product.name}
-      </h3>
+      <Link href={`/product/${product.slug}`}>
+        <h3 className="mt-4 text-[15px] font-normal text-[#444] leading-6 hover:text-[#D59B23] cursor-pointer">
+          {product.name}
+        </h3>
+      </Link>
 
       <p className="mt-1 text-[10px] uppercase tracking-[2px] text-[#B98E2A]">
         {product.category}
