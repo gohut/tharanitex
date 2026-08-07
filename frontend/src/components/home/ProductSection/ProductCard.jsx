@@ -156,19 +156,27 @@ export default function ProductCard({
 
       </div>
 
-      <Link href={`/product/${product.slug}`}>
-        <h3 className="mt-4 text-[15px] font-normal text-[#444] leading-6 hover:text-[#D59B23] cursor-pointer">
-          {product.name}
-        </h3>
-      </Link>
+      <div className="mt-4 flex items-start justify-between gap-4">
 
-      <p className="mt-1 text-[10px] uppercase tracking-[2px] text-[#B98E2A]">
-        {product.category}
-      </p>
+        {/* Product info */}
+        <div>
+          <Link href={`/product/${product.slug}`}>
+            <h3 className="text-[15px] font-normal text-[#444] leading-6 hover:text-[#D59B23] cursor-pointer">
+              {product.name}
+            </h3>
+          </Link>
 
-      <p className="mt-2 text-[20px] font-medium text-[#D59B23]">
-        {product.price}
-      </p>
+          <p className="mt-1 text-[10px] uppercase tracking-[2px] text-[#B98E2A]">
+            {product.category}
+          </p>
+        </div>
+
+        {/* Price */}
+        <p className="text-[20px] font-medium text-[#D59B23] whitespace-nowrap">
+          ₹{product.price}
+        </p>
+
+      </div>
 
     </div>
   );
