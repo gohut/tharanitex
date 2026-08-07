@@ -1,24 +1,14 @@
 import Navbar from "@/components/home/Navbar/Navbar";
 import ProductCard from "@/components/home/ProductSection/ProductCard";
 import Link from "next/link";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getWishlist } from "@/lib/db/wishlist";
 
-async function getWishlist() {
-  const res = await fetch(
-    "http://127.0.0.1:8787/api/wishlist?userId=guest",
-    {
-      cache: "no-store",
-    }
-  );
-
-  if (!res.ok) {
-    throw new Error("Failed to load wishlist");
-  }
-
-  return res.json();
-}
+export const dynamic = "force-dynamic";
 
 export default async function WishlistPage() {
-  const wishlistItems = await getWishlist();
+  const { env } = await getCloudflareContext({ async: true });
+  const wishlistItems = await getWishlist(env.DB, "guest");
 
   return (
     <>

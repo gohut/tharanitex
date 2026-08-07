@@ -2,24 +2,14 @@ import Navbar from "@/components/home/Navbar/Navbar";
 import CartItem from "@/components/Cart/CartItem";
 import OrderSummary from "@/components/Cart/OrderSummary";
 import DeliveryCard from "@/components/Cart/DeliveryCard";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getCart } from "@/lib/db/cart";
 
-async function getCart() {
-  const res = await fetch(
-    "http://127.0.0.1:8787/api/cart?userId=guest",
-    {
-      cache: "no-store",
-    }
-  );
-
-  if (!res.ok) {
-    throw new Error("Failed to load cart");
-  }
-
-  return res.json();
-}
+export const dynamic = "force-dynamic";
 
 export default async function CartPage() {
-  const cartItems = await getCart();
+  const { env } = await getCloudflareContext({ async: true });
+  const cartItems = await getCart(env.DB, "guest");
 
   const subtotal = cartItems.reduce(
   (sum, item) => sum + item.price * item.quantity,

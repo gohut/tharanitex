@@ -4,21 +4,14 @@ import Categories from "@/components/home/Categories/Categories";
 import PromoBanner from "@/components/home/PromoBanner/PromoBanner";
 import ProductSection from "@/components/home/ProductSection/ProductSection";
 import WhySection from "@/components/home/WhySection/WhySection";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getHomeData } from "@/lib/db/home-data";
 
-async function getHomeData() {
-  const res = await fetch("http://127.0.0.1:8787/api/home", {
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to load homepage");
-  }
-
-  return res.json();
-}
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const data = await getHomeData();
+  const { env } = await getCloudflareContext({ async: true });
+  const data = await getHomeData(env.DB);
 
   // Only render active sections, in the order chosen by admin.
   const sections = (data.homepageSections || [])

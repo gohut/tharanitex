@@ -4,28 +4,22 @@ import Breadcrumb from "@/components/product/Breadcrumb";
 import ProductGallery from "@/components/product/ProductGallery";
 import ProductDetails from "@/components/product/ProductDetails";
 import ReviewSection from "@/components/product/ReviewSection";
+import { notFound } from "next/navigation";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getProductBySlug } from "@/lib/db/product";
 
 import { productData } from "@/data/productData";
 
-async function getProduct(slug) {
-  const res = await fetch(
-    `http://127.0.0.1:8787/api/products/${slug}`,
-    {
-      cache: "no-store",
-    }
-  );
-
-  if (!res.ok) {
-    throw new Error("Failed to load product");
-  }
-
-  return res.json();
-}
+export const dynamic = "force-dynamic";
 
 export default async function ProductPage({ params }) {
   const { slug } = await params;
+  const { env } = await getCloudflareContext({ async: true });
+  const product = await getProductBySlug(env.DB, slug);
 
-  const product = await getProduct(slug);
+  if (!product) {
+    notFound();
+  }
 
   return (
     <>
