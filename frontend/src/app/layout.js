@@ -1,6 +1,7 @@
 import ThemeProvider from "../components/ThemeProvider";
 import "./globals.css";
 import ConditionalFooter from "@/components/Footer/ConditionalFooter";
+import MobileBottomNav from "@/components/home/MobileBottomNav";
 import localFont from "next/font/local";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { Toaster } from "react-hot-toast";
@@ -60,6 +61,7 @@ export default function RootLayout({ children }) {
         <ThemeProvider />
         {children}
         <ScrollToTop />
+        <MobileBottomNav />
          <Toaster
           position="bottom-right"
           toastOptions={{
