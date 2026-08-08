@@ -12,7 +12,7 @@ export default function Categories({ categories }) {
   }
 
   return (
-    <section className="bg-[#FBF5EA] py-10 md:py-24 lg:py-28">
+    <section className="bg-[#FBF5EA] py-7 md:py-14 lg:py-16">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-10 lg:px-12">
 
         <div className="mx-auto max-w-3xl text-center">
@@ -27,7 +27,7 @@ export default function Categories({ categories }) {
           )}
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-5 lg:grid-cols-4 lg:gap-10">
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-5 lg:mt-8 lg:grid-cols-4 lg:gap-10">
 
           {items.map((item) => (
             <Link
@@ -61,7 +61,7 @@ export default function Categories({ categories }) {
 
         </div>
 
-        <div className="mt-10 flex items-center md:mt-20">
+        <div className="mt-6 flex items-center md:mt-10 lg:mt-12">
           <div className="flex-1 border-t border-[#DCCFB8]" />
 
           <span className="mx-4 whitespace-nowrap text-[11px] uppercase tracking-[0.18em] text-[#8A7A65] sm:mx-8 sm:text-sm sm:tracking-[0.25em]">

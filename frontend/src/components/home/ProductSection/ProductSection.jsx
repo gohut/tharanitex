@@ -28,14 +28,14 @@ export default function ProductSection({
   };
 
   return (
-    <section className="bg-[#FBF5EA] py-10 md:py-20">
+    <section className="bg-[#FBF5EA] py-7 md:py-12 lg:py-14">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 md:px-8">
 
         <h2 className="text-center text-[34px] font-light text-[#D4A437] sm:text-[44px] md:text-[50px]">
           {title}
         </h2>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-6 lg:hidden">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-6 lg:hidden">
           {products.map((product) => (
             <ProductCard
               key={product.id}
@@ -44,7 +44,7 @@ export default function ProductSection({
           ))}
         </div>
 
-        <div className="relative mt-8 hidden lg:block md:mt-14">
+        <div className="relative mt-6 hidden lg:block md:mt-8 lg:mt-10">
 
           {/* Left Arrow */}
           {products.length > visibleCount && (
@@ -123,7 +123,7 @@ export default function ProductSection({
         </div>
 
         {/* Divider */}
-        <div className="mt-10 flex items-center md:mt-16">
+        <div className="mt-6 flex items-center md:mt-8 lg:mt-10">
           <div className="flex-1 border-t border-[#D8CCB4]" />
 
           <span className="mx-4 whitespace-nowrap text-[13px] text-[#8A8175] sm:mx-8 sm:text-[18px]">
