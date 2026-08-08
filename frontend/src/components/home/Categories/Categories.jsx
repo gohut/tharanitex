@@ -16,7 +16,10 @@ export default function Categories({ categories }) {
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-10 lg:px-12">
 
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-center text-[34px] font-light leading-none text-[#D4A437] sm:text-[46px] md:text-[60px] lg:text-[68px]">
+          <h2
+            className="text-center text-[34px] font-normal leading-none text-[#D4A437] sm:text-[46px] md:text-[60px] lg:text-[68px]"
+            style={{ fontFamily: "var(--font-cormorant-garamond)" }}
+          >
             {categories.title}
           </h2>
 

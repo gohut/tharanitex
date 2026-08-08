@@ -4,6 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 :root {
   --sidebar-width: 260px;
   --brand-primary: #0B3D2E;

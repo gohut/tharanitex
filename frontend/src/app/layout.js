@@ -5,6 +5,7 @@ import MobileBottomNav from "@/components/home/MobileBottomNav";
 import localFont from "next/font/local";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { Toaster } from "react-hot-toast";
+import { Cormorant_Garamond } from "next/font/google";
 
 const montserrat = localFont({
   src: [
@@ -46,6 +47,13 @@ const cormorant = localFont({
   src: "../fonts/CormorantInfant-Light.otf",
   variable: "--font-cormorant",
 });
+
+const cormorantGaramond = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-cormorant-garamond",
+});
+
 export const metadata = {
   title: "Tharani Textiles",
   description: "Premium Silk Sarees",
@@ -55,7 +63,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${montserrat.variable} ${cormorant.variable} ${klaristha.variable} ${modernRomance.variable}`}
+      className={`${montserrat.variable} ${cormorant.variable} ${klaristha.variable} ${modernRomance.variable} ${cormorantGaramond.variable}`}
     >
       <body className="font-montserrat">
         <ThemeProvider />
