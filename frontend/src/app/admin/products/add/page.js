@@ -249,29 +249,39 @@ const handleSave = async () => {
       // Upload images to R2
       // -----------------------------
 
-      const uploadedByPreview = new Map();
+      const uploadResults = await Promise.all(
+        imageFiles.map(async (item) => {
+          const formData = new FormData();
 
-      for (const item of imageFiles) {
-        const formData = new FormData();
+          formData.append("file", item.file);
+          formData.append("folder", "products");
 
-        formData.append("file", item.file);
+          const uploadRes = await fetch("/api/admin/upload", {
+            method: "POST",
+            body: formData,
+          });
 
-        const uploadRes = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: formData,
-        });
+          const uploadData = await uploadRes.json();
 
-        const uploadData = await uploadRes.json();
+          if (!uploadRes.ok) {
+            throw new Error(
+              uploadData.error || "Image upload failed"
+            );
+          }
 
-        if (!uploadRes.ok) {
-          throw new Error(
-            uploadData.error || "Image upload failed"
-          );
-        }
+          return {
+            preview: item.preview,
+            url: uploadData.url,
+          };
+        })
+      );
 
-        uploadedByPreview.set(item.preview, uploadData.url);
-      }
-
+      const uploadedByPreview = new Map(
+        uploadResults.map((item) => [
+          item.preview,
+          item.url,
+        ])
+      );
       // -----------------------------
       // Create product
       // -----------------------------

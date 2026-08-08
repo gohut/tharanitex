@@ -10,7 +10,9 @@ export async function GET() {
   try {
     const { env } = getCloudflareContext();
 
-    const products = await getAllProducts(env.DB, { activeOnly: false });
+    const products = await getAllProducts(env.DB, {
+      activeOnly: false,
+    });
 
     return Response.json(products);
   } catch (error) {
@@ -24,6 +26,8 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  const uploadedImages = [];
+
   try {
     const { env } = getCloudflareContext();
 
@@ -39,13 +43,60 @@ export async function POST(request) {
       );
     }
 
-    const slug =
+    // -----------------------------------
+    // Generate a unique product slug
+    // -----------------------------------
+
+    const baseSlug =
       body.slug ||
       body.name
         .toLowerCase()
         .trim()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
+
+    let slug = baseSlug;
+    let suffix = 2;
+
+    while (true) {
+      const existing = await env.DB.prepare(
+        "SELECT id FROM products WHERE slug = ? LIMIT 1"
+      )
+        .bind(slug)
+        .first();
+
+      if (!existing) {
+        break;
+      }
+
+      slug = `${baseSlug}-${suffix}`;
+      suffix++;
+    }
+
+    // -----------------------------------
+    // Remember R2 images for cleanup
+    // -----------------------------------
+
+    if (Array.isArray(body.images)) {
+      for (const imageUrl of body.images) {
+        if (
+          typeof imageUrl === "string" &&
+          imageUrl.startsWith("/api/images/")
+        ) {
+          const key = imageUrl
+            .replace("/api/images/", "")
+            .split("?")[0];
+
+          if (key) {
+            uploadedImages.push(decodeURIComponent(key));
+          }
+        }
+      }
+    }
+
+    // -----------------------------------
+    // Create product
+    // -----------------------------------
 
     const result = await createProduct(env.DB, {
       name: body.name,
@@ -59,6 +110,10 @@ export async function POST(request) {
       isBestSeller: body.isBestSeller || false,
       isActive: body.isActive !== false,
     });
+
+    // -----------------------------------
+    // Add product images
+    // -----------------------------------
 
     if (Array.isArray(body.images) && body.images.length > 0) {
       for (let i = 0; i < body.images.length; i++) {
@@ -82,10 +137,30 @@ export async function POST(request) {
   } catch (error) {
     console.error("Admin product POST error:", error);
 
+    // -----------------------------------
+    // Cleanup R2 images if product creation
+    // fails before they are attached
+    // -----------------------------------
+
+    try {
+      const { env } = getCloudflareContext();
+
+      for (const key of uploadedImages) {
+        await env.tharani_product_images.delete(key);
+      }
+    } catch (cleanupError) {
+      console.error(
+        "R2 cleanup error:",
+        cleanupError
+      );
+    }
+
     return Response.json(
       {
         success: false,
-        error: error.message || "Failed to create product",
+        error:
+          error.message ||
+          "Failed to create product",
       },
       { status: 500 }
     );
