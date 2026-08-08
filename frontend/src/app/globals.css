@@ -282,3 +282,34 @@ a {
     @apply font-sans;
   }
 }
+
+.home-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #fff;
+}
+
+.home-loading-logo {
+  width: 110px;
+  height: auto;
+  animation: logoPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
