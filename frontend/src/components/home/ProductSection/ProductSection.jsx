@@ -27,20 +27,24 @@ export default function ProductSection({
     }
   };
 
-  const visibleProducts = products.slice(
-    startIndex,
-    startIndex + visibleCount
-  );
-
   return (
-    <section className="bg-[#FBF5EA] py-14 md:py-20">
+    <section className="bg-[#FBF5EA] py-10 md:py-20">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 md:px-8">
 
-        <h2 className="text-center text-[38px] font-light text-[#D4A437] sm:text-[44px] md:text-[50px]">
+        <h2 className="text-center text-[34px] font-light text-[#D4A437] sm:text-[44px] md:text-[50px]">
           {title}
         </h2>
 
-        <div className="relative mt-8 md:mt-14">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-6 lg:hidden">
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+            />
+          ))}
+        </div>
+
+        <div className="relative mt-8 hidden lg:block md:mt-14">
 
           {/* Left Arrow */}
           {products.length > visibleCount && (
@@ -76,7 +80,7 @@ export default function ProductSection({
 
           {/* Products */}
           <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10 lg:grid-cols-4 lg:gap-x-10 lg:gap-y-12">
-            {visibleProducts.map((product) => (
+            {products.slice(startIndex, startIndex + visibleCount).map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -119,7 +123,7 @@ export default function ProductSection({
         </div>
 
         {/* Divider */}
-        <div className="mt-12 flex items-center md:mt-16">
+        <div className="mt-10 flex items-center md:mt-16">
           <div className="flex-1 border-t border-[#D8CCB4]" />
 
           <span className="mx-4 whitespace-nowrap text-[13px] text-[#8A8175] sm:mx-8 sm:text-[18px]">

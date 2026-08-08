@@ -20,7 +20,7 @@
 
 @media (max-width:768px){
     .hero-section{
-        height:clamp(300px, 92vw, 390px);
+        height:clamp(240px, 72vw, 320px);
     }
 }
 
@@ -53,7 +53,7 @@
 }
 
 .hero-section .swiper-pagination{
-    bottom:20px !important;
+    bottom:12px !important;
 }
 
 @media (min-width:769px){

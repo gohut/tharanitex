@@ -56,7 +56,7 @@ export default async function WishlistPage() {
           <section className="mx-auto max-w-7xl px-5 py-20 text-center sm:px-6 sm:py-28">
 
             <img
-              src="/assets/wishlist.png"
+              src="/assets/wishlist_icon.png"
               alt="Wishlist"
               className="w-20 mx-auto opacity-70"
             />

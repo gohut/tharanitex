@@ -2,7 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogIn, Menu, Package, Search, ShoppingBag, User, X } from "lucide-react";
+import {
+  Heart,
+  LogIn,
+  Menu,
+  Package,
+  Search,
+  ShoppingBag,
+  ShoppingCart,
+  User,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 
 const sidebarLinks = [
@@ -12,9 +22,19 @@ const sidebarLinks = [
     icon: Package,
   },
   {
-    label: "Your Orders",
+    label: "My Orders",
     href: "/orders",
     icon: ShoppingBag,
+  },
+  {
+    label: "Cart Page",
+    href: "/cart",
+    icon: ShoppingCart,
+  },
+  {
+    label: "Wishlist",
+    href: "/wishlist",
+    icon: Heart,
   },
   {
     label: "Your Account",
@@ -32,7 +52,7 @@ export default function Navbar() {
   return (
     <>
       <header className="sticky top-0 z-50 h-16 w-full border-b border-[#E8DCC8] bg-[#F8F2E8]/95 backdrop-blur-md md:h-[78px]">
-        <div className="mx-auto grid h-full max-w-[1440px] grid-cols-[40px_minmax(0,1fr)_120px] items-center px-3 md:grid-cols-[1fr_auto_1fr] md:px-8 lg:px-10">
+        <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between gap-3 px-4 md:grid md:grid-cols-[1fr_auto_1fr] md:px-8 lg:px-10">
 
           {/* Left */}
           <div className="flex items-center justify-start">
@@ -40,7 +60,7 @@ export default function Navbar() {
               aria-label="Open Menu"
               aria-expanded={isSidebarOpen}
               onClick={() => setIsSidebarOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
+              className="hidden h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95 md:flex"
             >
               <Menu
                 size={24}
@@ -51,7 +71,7 @@ export default function Navbar() {
           </div>
 
           {/* Logo */}
-          <div className="flex justify-center">
+          <div className="flex flex-1 justify-start md:flex-none md:justify-center">
             <Link href="/home" aria-label="Go to home">
               <img
                 src="/assets/logo.png"
@@ -63,7 +83,7 @@ export default function Navbar() {
           </div>
 
           {/* Right */}
-          <div className="flex items-center justify-end gap-0 md:gap-5 lg:gap-7">
+          <div className="flex items-center justify-end gap-1 md:gap-5 lg:gap-7">
 
             <button
               aria-label="Search"
@@ -83,9 +103,9 @@ export default function Navbar() {
               className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
             >
               <img
-                src="/assets/wishlist.png"
+                src="/assets/wishlist_icon.png"
                 alt="Wishlist"
-                className="h-7 w-7 md:h-9 md:w-9"
+                className="h-7 w-7 object-contain md:h-9 md:w-9"
                 draggable={false}
               />
             </button>
