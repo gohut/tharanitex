@@ -6,6 +6,7 @@ import ProductCard from "@/components/home/ProductSection/ProductCard";
 
 export default function ProductSection({
   title,
+  subtitle,
   products = [],
 }) {
   const visibleCount = 4;
@@ -35,7 +36,13 @@ export default function ProductSection({
           {title}
         </h2>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-6 lg:hidden">
+        {subtitle && (
+          <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-6 text-[#72675A] md:mt-4 md:text-base">
+            {subtitle}
+          </p>
+        )}
+
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-6 lg:hidden">
           {products.map((product) => (
             <ProductCard
               key={product.id}

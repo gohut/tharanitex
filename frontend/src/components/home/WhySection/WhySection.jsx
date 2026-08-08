@@ -1,4 +1,4 @@
-export default function WhySection({ content }) {
+export default function WhySection({ content, subtitle }) {
   if (!content) {
     return null;
   }
@@ -24,9 +24,9 @@ export default function WhySection({ content }) {
 
             <div className="mt-5 h-px w-[245px] max-w-full bg-[#e0bd73]" />
 
-            {content.subtitle && (
+            {(subtitle || content.subtitle) && (
               <p className="mt-6 max-w-[430px] whitespace-pre-line font-montserrat text-[0.98rem] font-normal leading-[1.42] text-[#1e1e1e] sm:text-[1.15rem] lg:text-[1.3rem]">
-                {content.subtitle}
+                {subtitle || content.subtitle}
               </p>
             )}
 

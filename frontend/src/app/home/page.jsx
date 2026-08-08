@@ -60,6 +60,7 @@ export default async function HomePage() {
           <ProductSection
             key={section.id}
             title="New Arrivals"
+            subtitle="Freshly woven treasures, crafted to bring a touch of tradition to every occasion."
             products={data.newArrivals || []}
           />
         );
@@ -69,6 +70,7 @@ export default async function HomePage() {
           <ProductSection
             key={section.id}
             title="Best Sellers"
+            subtitle="Loved for their timeless beauty, chosen for moments that deserve something special."
             products={data.bestSellers || []}
           />
         );
@@ -77,6 +79,7 @@ export default async function HomePage() {
         return (
           <WhySection
             key={section.id}
+            subtitle="Rooted in craftsmanship, woven with tradition, and made to be cherished for generations."
             content={data.whyTharani}
           />
         );
