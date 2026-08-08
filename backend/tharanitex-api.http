@@ -1,0 +1,272 @@
+### =============================================================================
+### THARANITEX BACKEND API TEST SUITE
+### Compatible with VS Code REST Client Extension & Postman Import
+### Host: http://localhost:3000
+### =============================================================================
+
+@baseUrl = http://localhost:3000
+@adminEmail = admin@tharanitex.com
+@adminPassword = AdminPassword123!
+
+#################################################################################
+# 1. ADMIN AUTHENTICATION
+#################################################################################
+
+### 1.1 Admin Login (Email & Password)
+# Expected Response: 200 OK with Set-Cookie: tharanitex_session=...
+# @name adminLogin
+POST {{baseUrl}}/api/admin/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+### Store Session Token for subsequent requests
+@sessionToken = {{adminLogin.response.body.data.sessionToken}}
+
+
+### 1.2 Admin Logout of All Devices
+POST {{baseUrl}}/api/admin/auth/logout-all
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+
+
+#################################################################################
+# 2. STORE SETTINGS MODULE (General, Contact, Branding)
+#################################################################################
+
+### 2.1 GET General Settings
+# Requires Settings can_view (Super Admin & Manager allowed, Support Staff forbidden)
+GET {{baseUrl}}/api/admin/settings?category=general
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+
+
+### 2.2 GET Contact Settings
+GET {{baseUrl}}/api/admin/settings?category=contact
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+
+
+### 2.3 GET Branding Settings (Colors, Logos, Links)
+GET {{baseUrl}}/api/admin/settings?category=branding
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+
+
+### 2.4 PUT Update Contact Settings
+# Requires Settings can_edit (Super Admin allowed, Manager & Support Staff 403 Forbidden)
+PUT {{baseUrl}}/api/admin/settings
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+Content-Type: application/json
+
+{
+  "category": "contact",
+  "values": {
+    "admin_email": "admin@tharanitex.com",
+    "support_email": "support@tharanitex.com",
+    "phone": "+91 98765 43210",
+    "gstin": "33AAAAA0000A1Z5",
+    "store_address": "123 Silk Merchant Street, Kanchipuram, Tamil Nadu 631501"
+  }
+}
+
+
+### 2.5 PUT Update Branding Theme Colors & Links
+# Validates hex color formats (e.g. #0F172A)
+PUT {{baseUrl}}/api/admin/settings
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+Content-Type: application/json
+
+{
+  "category": "branding",
+  "values": {
+    "primary_background": "#0F172A",
+    "secondary_background": "#1E293B",
+    "surface_color": "#1E293B",
+    "hover_surface": "#334155",
+    "page_background": "#090D16",
+    "elevated_background": "#1E293B",
+    "major_text_color": "#F8FAFC",
+    "minor_text_color": "#94A3B8",
+    "soft_text_color": "#CBD5E1",
+    "muted_text_color": "#64748B",
+    "accent_color": "#D97706",
+    "accent_hover_color": "#B45309",
+    "accent_text_color": "#FFFFFF",
+    "success_color": "#10B981",
+    "info_color": "#3B82F6",
+    "warning_color": "#F59E0B",
+    "danger_color": "#EF4444",
+    "purple_status_color": "#8B5CF6",
+    "orange_status_color": "#F97316",
+    "neutral_status_color": "#64748B",
+    "facebook_url": "https://facebook.com/tharanitex",
+    "instagram_url": "https://instagram.com/tharanitex"
+  }
+}
+
+
+### 2.6 PUT Update Settings - Validation Error Test (Invalid Hex Color)
+# Expected Response: 400 Bad Request
+PUT {{baseUrl}}/api/admin/settings
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+Content-Type: application/json
+
+{
+  "category": "branding",
+  "values": {
+    "primary_background": "INVALID_HEX_COLOR"
+  }
+}
+
+
+### 2.7 POST Upload Store Logo (Cloudflare R2 Bucket Upload)
+# Requires Settings can_edit
+POST {{baseUrl}}/api/admin/settings/logo
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+Content-Type: multipart/form-data; boundary=Boundary123
+
+--Boundary123
+Content-Disposition: form-data; name="target"
+
+logo
+--Boundary123
+Content-Disposition: form-data; name="file"; filename="logo.png"
+Content-Type: image/png
+
+< ./public/images/logo.png
+--Boundary123--
+
+
+### 2.8 POST Reset Theme Colors to Last Saved Values or Defaults
+POST {{baseUrl}}/api/admin/settings/reset-theme
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+
+
+#################################################################################
+# 3. PUBLIC STOREFRONT LIVE THEME & PRODUCTS (UNAUTHENTICATED)
+#################################################################################
+
+### 3.1 GET Public Live Branding Theme (Storefront Live Colors & Logo)
+# Expected Response: 200 OK (Public, unauthenticated)
+GET {{baseUrl}}/api/public/theme
+
+
+### 3.2 GET Public Published Products Catalog
+# Expected Response: 200 OK (Reads directly from D1 live where is_published = 1)
+GET {{baseUrl}}/api/public/products
+
+
+### 3.3 GET Public Single Product Detail
+GET {{baseUrl}}/api/public/products/1
+
+
+#################################################################################
+# 4. PRODUCT MANAGEMENT & SYNC (ADMIN)
+#################################################################################
+
+### 4.1 GET Admin Products List (Includes Published + Drafts)
+GET {{baseUrl}}/api/admin/products
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+
+
+### 4.2 POST Admin Create New Product
+POST {{baseUrl}}/api/admin/products
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+Content-Type: application/json
+
+{
+  "name": "Kanchipuram Pure Zari Tissue Silk Saree - Emerald Green",
+  "description": "Handcrafted emerald green tissue silk saree with pure zari woven peacocks.",
+  "price_cents": 2450000,
+  "image_key": "products/kanchipuram-emerald.jpg",
+  "stock": 10,
+  "is_published": 1
+}
+
+
+### 4.3 PUT Admin Update Product (Toggle Published Status for Live Sync)
+# Setting is_published = 0 immediately hides it from GET /api/public/products
+PUT {{baseUrl}}/api/admin/products/1
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+Content-Type: application/json
+
+{
+  "name": "Kanjivaram Silk Saree - Crimson Red (Updated)",
+  "price_cents": 1890000,
+  "is_published": 1
+}
+
+
+#################################################################################
+# 5. ADMIN REVIEWS MODULE
+#################################################################################
+
+### 5.1 GET Admin Reviews List (With Stat Counts & Filters)
+GET {{baseUrl}}/api/admin/reviews?status=All&page=1&limit=8
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+
+
+### 5.2 PUT Approve Review
+PUT {{baseUrl}}/api/admin/reviews/3/approve
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+
+
+### 5.3 PUT Flag Review with Reason
+PUT {{baseUrl}}/api/admin/reviews/4/flag
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+Content-Type: application/json
+
+{
+  "reason": "Contains external suspicious promotional link"
+}
+
+
+### 5.4 POST Customer Submit Review (Rate Limited)
+POST {{baseUrl}}/api/customer/reviews
+Cookie: tharanitex_session={{sessionToken}}
+x-session-token: {{sessionToken}}
+Content-Type: application/json
+
+{
+  "product_id": 1,
+  "rating": 5,
+  "comment": "Exceptional silk fabric and brilliant color match!",
+  "product_name": "Kanjivaram Silk Saree - Crimson Red"
+}
+
+
+#################################################################################
+# 6. PERMISSION & AUTH ERROR TEST CASES
+#################################################################################
+
+### 6.1 Unauthorized Test (Missing Session Token)
+# Expected Response: 401 Unauthorized ("Session expired, please log in again.")
+GET {{baseUrl}}/api/admin/settings?category=general
+
+
+### 6.2 Forbidden Test (Support Staff User Attempting Edit Action)
+# Expected Response: 403 Forbidden ("Forbidden: You do not have permission to edit Settings.")
+PUT {{baseUrl}}/api/admin/settings
+Cookie: tharanitex_session=SUPPORT_STAFF_SESSION_TOKEN
+x-session-token: SUPPORT_STAFF_SESSION_TOKEN
+Content-Type: application/json
+
+{
+  "category": "general",
+  "values": { "store_name": "Hacked Name" }
+}
