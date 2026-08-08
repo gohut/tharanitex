@@ -17,7 +17,10 @@ export default async function WishlistPage() {
       <main className="bg-[#F8F2E8] min-h-screen">
 
         {/* Heading */}
-        <section className="bg-white border-b border-[#E8DCCB]">
+        <section
+          className="border-b border-[#E8DCCB] bg-[#F4E7D4] bg-cover bg-[center_right] bg-no-repeat"
+          style={{ backgroundImage: "linear-gradient(90deg, rgba(248, 242, 232, 0.92) 0%, rgba(248, 242, 232, 0.82) 38%, rgba(248, 242, 232, 0.32) 100%), url('/assets/header2.png')" }}
+        >
           <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-12">
 
             <p className="uppercase tracking-[0.3em] text-[#B58A45] text-sm font-medium">
