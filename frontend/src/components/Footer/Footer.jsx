@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { MapPin, Phone, Mail } from "lucide-react";
 import {
   FaInstagram,
@@ -18,10 +19,10 @@ export default function Footer() {
         className="block w-full select-none"
       />
       {/* Content */}
-      <div className="max-w-[1420px] mx-auto px-10 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_1fr_1fr_1.15fr] gap-16">
+      <div className="mx-auto max-w-[1420px] px-6 py-12 sm:px-10 sm:py-16">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-12 lg:grid-cols-[1.25fr_1fr_1fr_1.15fr] lg:gap-16">
             <div className="flex justify-center">
-              <div className="w-64 text-center">
+            <div className="w-52 text-center sm:w-64">
               <img
                 src="/assets/logo.png"
                 alt="Tharani Textiles"
@@ -35,19 +36,19 @@ export default function Footer() {
             </div>
           </div>
           {/* ================= SITE LINKS ================= */}
-          <div className="relative pl-10">
-            <div className="absolute left-0 top-2 bottom-2 w-px bg-[#C79A2B]/25" />
+          <div className="relative border-t border-[#C79A2B]/25 pt-8 sm:border-t-0 sm:pl-10 sm:pt-0">
+            <div className="absolute left-0 top-2 bottom-2 hidden w-px bg-[#C79A2B]/25 sm:block" />
             <h3 className="font-cormorant text-[24px] text-[#C79A2B] mb-7">
                 SITE LINKS
             </h3>
             <ul className="space-y-4 font-sans text-[15px]">
               <li>
-                <a
+                <Link
                   href="/"
                   className="hover:text-[#C79A2B] transition-colors"
                 >
                   Home
-                </a>
+                </Link>
               </li>
               <li>
                 <a
@@ -76,8 +77,8 @@ export default function Footer() {
             </ul>
           </div>
           {/* ================= CUSTOMER CARE ================= */}
-          <div className="relative pl-10">
-            <div className="absolute left-0 top-2 bottom-2 w-px bg-[#C79A2B]/25" />
+          <div className="relative border-t border-[#C79A2B]/25 pt-8 sm:border-t-0 sm:pl-10 sm:pt-0">
+            <div className="absolute left-0 top-2 bottom-2 hidden w-px bg-[#C79A2B]/25 sm:block" />
             <h3 className="font-cormorant text-[24px] text-[#C79A2B] mb-7">
                 CUSTOMER CARE
             </h3>
@@ -104,8 +105,8 @@ export default function Footer() {
               </li>
             </ul>
           </div>
-          <div className="relative pl-10">
-            <div className="absolute left-0 top-2 bottom-2 w-px bg-[#C79A2B]/25" />
+          <div className="relative border-t border-[#C79A2B]/25 pt-8 sm:border-t-0 sm:pl-10 sm:pt-0">
+            <div className="absolute left-0 top-2 bottom-2 hidden w-px bg-[#C79A2B]/25 sm:block" />
             <h3 className="font-cormorant text-[24px] text-[#C79A2B] mb-7">
                 CONTACT
             </h3>

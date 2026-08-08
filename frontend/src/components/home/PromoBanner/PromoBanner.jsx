@@ -9,7 +9,7 @@ export default function PromoBanner({ banner }) {
     <img
       src={banner.image}
       alt={banner.title || "Promotional Banner"}
-      className="block h-auto w-full"
+      className="block min-h-[180px] w-full object-cover sm:min-h-0"
     />
   );
 
@@ -26,16 +26,16 @@ export default function PromoBanner({ banner }) {
 
       {(banner.title || banner.subtitle) && (
         <div className="pointer-events-none absolute inset-0 flex items-center">
-          <div className="mx-auto w-full max-w-[1400px] px-8">
+          <div className="mx-auto w-full max-w-[1400px] px-5 md:px-8">
 
             {banner.title && (
-              <h2 className="text-3xl font-light text-white md:text-5xl">
+              <h2 className="text-2xl font-light leading-tight text-white sm:text-3xl md:text-5xl">
                 {banner.title}
               </h2>
             )}
 
             {banner.subtitle && (
-              <p className="mt-3 text-base text-white/90 md:text-lg">
+              <p className="mt-2 text-sm leading-6 text-white/90 sm:mt-3 sm:text-base md:text-lg">
                 {banner.subtitle}
               </p>
             )}

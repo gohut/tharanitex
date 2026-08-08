@@ -61,13 +61,13 @@ export default function OrderCard({ order }) {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-5 border-t border-[#E7DAC8] pt-5 lg:grid-cols-[120px_1fr_auto] lg:items-center">
+      <div className="mt-5 grid grid-cols-[96px_minmax(0,1fr)] gap-4 border-t border-[#E7DAC8] pt-5 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-5 lg:mt-6 lg:grid-cols-[120px_1fr_auto] lg:items-center">
 
         {firstItem?.image ? (
           <img
             src={firstItem.image}
             alt={firstItem.name}
-            className="h-[140px] w-[120px] object-cover"
+            className="h-[120px] w-[96px] object-cover sm:h-[140px] sm:w-[120px]"
           />
         ) : (
           <div className="flex h-[140px] w-[120px] items-center justify-center bg-[#F1E7D8] text-xs text-[#9A8B78]">
@@ -76,7 +76,7 @@ export default function OrderCard({ order }) {
         )}
 
         <div>
-          <h3 className="text-[26px] font-semibold leading-tight text-[#25211C]">
+          <h3 className="line-clamp-2 text-[19px] font-semibold leading-tight text-[#25211C] sm:text-[24px] lg:text-[26px]">
             {firstItem?.name || "Order"}
           </h3>
 
@@ -104,8 +104,8 @@ export default function OrderCard({ order }) {
           </div>
         </div>
 
-        <div className="justify-self-start lg:justify-self-end">
-          <div className="inline-flex items-center gap-3 border border-[#CDBCA2] px-6 py-4 text-[17px] font-semibold text-[#231F1A] transition hover:border-[#E0A22E] hover:text-[#E0A22E]">
+        <div className="col-span-2 justify-self-stretch pt-1 lg:col-span-1 lg:justify-self-end lg:pt-0">
+          <div className="inline-flex min-h-11 w-full items-center justify-center gap-3 border border-[#CDBCA2] px-5 py-3 text-[15px] font-semibold text-[#231F1A] transition hover:border-[#E0A22E] hover:text-[#E0A22E] lg:w-auto lg:px-6 lg:py-4 lg:text-[17px]">
             <ShoppingBag size={20} />
             <span>Buy Again</span>
           </div>

@@ -31,17 +31,17 @@ const formatPrice = (value) =>
 
         {/* Header */}
         <section className="bg-white border-b border-[#E8DCCB]">
-          <div className="max-w-[1440px] mx-auto px-10 py-12">
+          <div className="mx-auto max-w-[1440px] px-5 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12">
 
             <p className="uppercase tracking-[0.3em] text-[#B58A45] text-sm font-medium">
               Tharani Textiles
             </p>
 
-            <h1 className="mt-3 text-6xl font-serif text-[#5A1F2F]">
+            <h1 className="mt-3 text-4xl font-serif text-[#5A1F2F] sm:text-5xl lg:text-6xl">
               My Cart
             </h1>
 
-            <p className="mt-4 text-gray-600">
+            <p className="mt-3 text-sm text-gray-600 sm:mt-4 sm:text-base">
               {cartItems.length} Item{cartItems.length !== 1 && "s"} in your shopping bag.
             </p>
 
@@ -49,22 +49,22 @@ const formatPrice = (value) =>
         </section>
 
         {/* Breadcrumb */}
-        <section className="max-w-[1440px] mx-auto px-10 py-6 text-sm text-gray-500">
+        <section className="mx-auto max-w-[1440px] px-5 py-4 text-sm text-gray-500 sm:px-6 sm:py-5 lg:px-10 lg:py-6">
           Home
           <span className="mx-2">/</span>
           Cart
         </section>
 
         {/* Main Layout */}
-        <section className="max-w-[1440px] mx-auto px-10 pb-20">
+        <section className="mx-auto max-w-[1440px] px-5 pb-14 sm:px-6 sm:pb-20 lg:px-10">
 
-          <div className="grid lg:grid-cols-[2fr_430px] gap-14">
+          <div className="grid gap-8 lg:grid-cols-[2fr_430px] lg:gap-14">
 
             {/* Left Side */}
             <div>
 
               {/* Column Headers */}
-              <div className="grid grid-cols-[140px_1fr_160px_120px_60px] pb-5 border-b border-[#D8CCB4] text-[#8A8175] uppercase tracking-[0.18em] text-xs">
+              <div className="hidden grid-cols-[140px_1fr_160px_120px_60px] border-b border-[#D8CCB4] pb-5 text-xs uppercase tracking-[0.18em] text-[#8A8175] lg:grid">
 
                 <div>Product</div>
 
@@ -93,7 +93,7 @@ const formatPrice = (value) =>
 
             {/* Right Side */}
 
-            <div className="sticky top-8 self-start">
+            <div className="self-start lg:sticky lg:top-8">
 
               <OrderSummary
                   subtotal={formatPrice(subtotal)}

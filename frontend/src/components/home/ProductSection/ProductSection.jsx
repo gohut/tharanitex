@@ -33,14 +33,14 @@ export default function ProductSection({
   );
 
   return (
-    <section className="bg-[#FBF5EA] py-20">
-      <div className="max-w-[1400px] mx-auto px-8">
+    <section className="bg-[#FBF5EA] py-14 md:py-20">
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 md:px-8">
 
-        <h2 className="text-center text-[50px] font-light text-[#D4A437]">
+        <h2 className="text-center text-[38px] font-light text-[#D4A437] sm:text-[44px] md:text-[50px]">
           {title}
         </h2>
 
-        <div className="relative mt-14">
+        <div className="relative mt-8 md:mt-14">
 
           {/* Left Arrow */}
           {products.length > visibleCount && (
@@ -48,7 +48,7 @@ export default function ProductSection({
               onClick={handlePrevious}
               disabled={!canGoLeft}
               className={`
-                absolute
+                absolute hidden lg:flex
                 left-[-24px]
                 top-[40%]
                 -translate-y-1/2
@@ -75,7 +75,7 @@ export default function ProductSection({
           )}
 
           {/* Products */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-12">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10 lg:grid-cols-4 lg:gap-x-10 lg:gap-y-12">
             {visibleProducts.map((product) => (
               <ProductCard
                 key={product.id}
@@ -90,7 +90,7 @@ export default function ProductSection({
               onClick={handleNext}
               disabled={!canGoRight}
               className={`
-                absolute
+                absolute hidden lg:flex
                 right-[-24px]
                 top-[40%]
                 -translate-y-1/2
@@ -119,10 +119,10 @@ export default function ProductSection({
         </div>
 
         {/* Divider */}
-        <div className="flex items-center mt-16">
+        <div className="mt-12 flex items-center md:mt-16">
           <div className="flex-1 border-t border-[#D8CCB4]" />
 
-          <span className="mx-8 text-[#8A8175] text-[18px]">
+          <span className="mx-4 whitespace-nowrap text-[13px] text-[#8A8175] sm:mx-8 sm:text-[18px]">
             Explore More
           </span>
 

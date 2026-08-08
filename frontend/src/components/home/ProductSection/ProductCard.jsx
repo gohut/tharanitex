@@ -112,8 +112,8 @@ export default function ProductCard({
         <button
             onClick={toggleWishlist}
             className={`
-              absolute top-3 right-3 z-20
-              w-10 h-10
+              absolute right-2 top-2 z-20
+              h-10 w-10 sm:right-3 sm:top-3
               rounded-full
               flex items-center justify-center
               shadow-md
@@ -127,7 +127,7 @@ export default function ProductCard({
               src="/assets/wishlist_icon.png"
               alt="Wishlist"
               className={`
-                w-8 h-8 object-contain transition-all duration-300
+                h-7 w-7 object-contain transition-all duration-300 sm:h-8 sm:w-8
                 ${wishlisted ? "brightness-0 invert" : ""}
               `}
             />
@@ -138,8 +138,8 @@ export default function ProductCard({
           onClick={addToCart}
           aria-label={`Add ${product.name} to cart`}
           className="
-            absolute bottom-3 right-3 z-20
-            w-10 h-10
+            absolute bottom-2 right-2 z-20
+            h-10 w-10 sm:bottom-3 sm:right-3
             rounded-full
             bg-white
             shadow-md
@@ -156,23 +156,23 @@ export default function ProductCard({
 
       </div>
 
-      <div className="mt-4 flex items-start justify-between gap-4">
+      <div className="mt-3 flex flex-col gap-1 sm:mt-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
 
         {/* Product info */}
         <div>
           <Link href={`/product/${product.slug}`}>
-            <h3 className="text-[15px] font-normal text-[#444] leading-6 hover:text-[#D59B23] cursor-pointer">
+            <h3 className="line-clamp-2 text-[13px] font-normal leading-5 text-[#444] hover:text-[#D59B23] sm:text-[15px] sm:leading-6 cursor-pointer">
               {product.name}
             </h3>
           </Link>
 
-          <p className="mt-1 text-[10px] uppercase tracking-[2px] text-[#B98E2A]">
+          <p className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[#B98E2A] sm:text-[10px] sm:tracking-[2px]">
             {product.category}
           </p>
         </div>
 
         {/* Price */}
-        <p className="text-[20px] font-medium text-[#D59B23] whitespace-nowrap">
+        <p className="text-[16px] font-medium text-[#D59B23] whitespace-nowrap sm:text-[20px]">
           ₹{product.price}
         </p>
 

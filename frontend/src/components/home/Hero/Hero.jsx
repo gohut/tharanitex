@@ -48,16 +48,16 @@ export default function Hero({ slides = [] }) {
                 slide.subtitle ||
                 slide.buttonText) && (
                 <div className="absolute inset-0 flex items-center">
-                  <div className="mx-auto w-full max-w-[1400px] px-8">
-                    <div className="max-w-xl">
+                  <div className="mx-auto w-full max-w-[1400px] px-5 md:px-8">
+                    <div className="max-w-[18rem] sm:max-w-xl">
                       {slide.title && (
-                        <h1 className="text-4xl font-light text-white md:text-6xl">
+                        <h1 className="text-3xl font-light leading-tight text-white sm:text-4xl md:text-6xl">
                           {slide.title}
                         </h1>
                       )}
 
                       {slide.subtitle && (
-                        <p className="mt-4 text-lg text-white/90">
+                        <p className="mt-3 text-sm leading-6 text-white/90 sm:mt-4 sm:text-lg">
                           {slide.subtitle}
                         </p>
                       )}
@@ -65,7 +65,7 @@ export default function Hero({ slides = [] }) {
                       {slide.buttonText && slide.buttonLink && (
                         <a
                           href={slide.buttonLink}
-                          className="mt-7 inline-block bg-[#D4A437] px-7 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+                          className="mt-5 inline-flex min-h-11 items-center bg-[#D4A437] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 sm:mt-7 sm:px-7"
                         >
                           {slide.buttonText}
                         </a>

@@ -18,21 +18,21 @@ export default async function WishlistPage() {
 
         {/* Heading */}
         <section className="bg-white border-b border-[#E8DCCB]">
-          <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-12">
 
             <p className="uppercase tracking-[0.3em] text-[#B58A45] text-sm font-medium">
               Tharani Textiles
             </p>
 
-            <h1 className="mt-3 text-5xl lg:text-6xl font-serif text-[#5A1F2F]">
+            <h1 className="mt-3 text-4xl font-serif text-[#5A1F2F] sm:text-5xl lg:text-6xl">
               My Wishlist
             </h1>
 
-            <p className="mt-5 text-gray-600 max-w-2xl leading-7">
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-gray-600 sm:mt-5 sm:text-base sm:leading-7">
               Your curated collection of timeless silk sarees.
             </p>
 
-            <p className="mt-6 text-[#8A8175] text-lg">
+            <p className="mt-5 text-base text-[#8A8175] sm:mt-6 sm:text-lg">
               {wishlistItems.length} Saved Item
               {wishlistItems.length !== 1 && "s"}
             </p>
@@ -41,7 +41,7 @@ export default async function WishlistPage() {
         </section>
 
         {/* Breadcrumb */}
-        <section className="max-w-7xl mx-auto px-6 py-5 text-sm text-gray-500">
+        <section className="mx-auto max-w-7xl px-5 py-4 text-sm text-gray-500 sm:px-6 sm:py-5">
           <Link href="/" className="hover:text-[#5A1F2F]">
             Home
           </Link>
@@ -53,7 +53,7 @@ export default async function WishlistPage() {
 
         {/* Empty State */}
         {wishlistItems.length === 0 ? (
-          <section className="max-w-7xl mx-auto px-6 py-28 text-center">
+          <section className="mx-auto max-w-7xl px-5 py-20 text-center sm:px-6 sm:py-28">
 
             <img
               src="/assets/wishlist.png"
@@ -61,7 +61,7 @@ export default async function WishlistPage() {
               className="w-20 mx-auto opacity-70"
             />
 
-            <h2 className="mt-6 text-4xl text-[#5A1F2F] font-serif">
+            <h2 className="mt-6 text-3xl font-serif text-[#5A1F2F] sm:text-4xl">
               Your Wishlist is Empty
             </h2>
 
@@ -78,9 +78,9 @@ export default async function WishlistPage() {
 
           </section>
         ) : (
-          <section className="max-w-7xl mx-auto px-6 pb-20">
+          <section className="mx-auto max-w-7xl px-5 pb-14 sm:px-6 sm:pb-20">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
 
               {wishlistItems.map((product) => (
                 <ProductCard

@@ -21,34 +21,35 @@ export default function CartItem({ product }) {
     router.refresh();
   }
   return (
-    <div className="grid grid-cols-[140px_1fr_160px_120px_60px] items-center gap-8 py-8 border-b border-[#E8DCCB]">
+    <div className="relative grid grid-cols-[96px_minmax(0,1fr)] gap-x-4 gap-y-4 border-b border-[#E8DCCB] py-5 sm:grid-cols-[120px_minmax(0,1fr)] lg:grid-cols-[140px_1fr_160px_120px_60px] lg:items-center lg:gap-8 lg:py-8">
 
       {/* Product Image */}
       <div>
         <img
           src={product.image}
           alt={product.name}
-          className="w-[120px] h-[160px] object-cover rounded-sm"
+          className="h-[128px] w-[96px] rounded-sm object-cover sm:h-[150px] sm:w-[120px] lg:h-[160px]"
         />
       </div>
 
       {/* Product Details */}
       <div>
-        <h3 className="text-[22px] text-[#3E3A39] font-medium">
+        <h3 className="line-clamp-2 text-[17px] font-medium leading-tight text-[#3E3A39] sm:text-[20px] lg:text-[22px]">
           {product.name}
         </h3>
 
-        <p className="mt-2 uppercase tracking-[0.18em] text-[11px] text-[#C69A39]">
+        <p className="mt-2 text-[10px] uppercase tracking-[0.12em] text-[#C69A39] lg:tracking-[0.18em] lg:text-[11px]">
           {product.category}
         </p>
 
-        <p className="mt-5 text-[28px] font-medium text-[#D49E28]">
+        <p className="mt-3 text-[20px] font-medium text-[#D49E28] sm:text-[24px] lg:mt-5 lg:text-[28px]">
           {formatPrice(product.price)}
         </p>
       </div>
 
       {/* Quantity */}
-      <div className="flex justify-center">
+      <div className="col-span-2 flex items-center justify-between border-t border-[#F0E5D6] pt-4 lg:col-span-1 lg:block lg:border-0 lg:pt-0">
+        <span className="text-xs uppercase tracking-[0.12em] text-[#8A8175] lg:hidden">Quantity</span>
         <QuantitySelector
           cartId={product.id}
           quantity={product.quantity}
@@ -56,18 +57,19 @@ export default function CartItem({ product }) {
       </div>
 
       {/* Total */}
-      <div className="text-center">
-        <p className="text-[22px] text-[#3E3A39] font-medium">
+      <div className="col-span-2 flex items-center justify-between lg:col-span-1 lg:block lg:text-center">
+        <span className="text-xs uppercase tracking-[0.12em] text-[#8A8175] lg:hidden">Total</span>
+        <p className="text-[18px] font-medium text-[#3E3A39] sm:text-[20px] lg:text-[22px]">
           {formatPrice(product.price * product.quantity)}
         </p>
       </div>
 
       {/* Remove */}
-      <div className="flex justify-center">
+      <div className="absolute right-0 top-4 flex justify-center lg:static">
         <button
           onClick={removeItem}
           className="
-            w-10 h-10
+            h-10 w-10
             rounded-full
             flex items-center justify-center
             text-gray-500

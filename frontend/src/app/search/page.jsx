@@ -26,7 +26,7 @@ export default function SearchPage() {
       <Navbar />
 
       <section className="border-b border-[#D8CCB4]">
-        <div className="mx-auto flex max-w-[1440px] items-center px-5 py-5 md:px-8 lg:px-10">
+        <div className="mx-auto flex max-w-[1440px] items-center px-4 py-4 md:px-8 md:py-5 lg:px-10">
           <div className="relative mx-auto w-full max-w-[700px]">
             <Search
               size={28}
@@ -36,7 +36,7 @@ export default function SearchPage() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search for sarees"
-              className="h-[56px] w-full border border-[#5E5951] bg-white pl-14 pr-12 text-[18px] tracking-[0.08em] text-[#33302B] outline-none focus:border-[#D7A13A]"
+              className="h-[52px] w-full border border-[#5E5951] bg-white pl-12 pr-11 text-base tracking-[0.04em] text-[#33302B] outline-none focus:border-[#D7A13A] sm:h-[56px] sm:pl-14 sm:pr-12 sm:text-[18px] sm:tracking-[0.08em]"
             />
             <button
               onClick={() => setQuery("")}
@@ -49,15 +49,15 @@ export default function SearchPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1440px] px-5 pb-20 pt-8 md:px-8 lg:px-10">
+      <section className="mx-auto max-w-[1440px] px-4 pb-14 pt-6 md:px-8 md:pb-20 md:pt-8 lg:px-10">
         <div className="flex items-center justify-end">
-          <button className="inline-flex items-center gap-3 text-[18px] font-medium tracking-[0.06em] text-[#2B2721] transition hover:text-[#D39A2F]">
+          <button className="inline-flex min-h-11 items-center gap-2 px-2 text-base font-medium tracking-[0.04em] text-[#2B2721] transition hover:text-[#D39A2F] sm:gap-3 sm:text-[18px] sm:tracking-[0.06em]">
             <SlidersHorizontal size={24} />
             <span>Filter</span>
           </button>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-12 md:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-8 sm:mt-8 sm:gap-x-5 sm:gap-y-10 md:grid-cols-3 xl:grid-cols-4 xl:gap-x-6 xl:gap-y-12">
           {results.map((product) => (
             <ProductCard
               key={product.id}

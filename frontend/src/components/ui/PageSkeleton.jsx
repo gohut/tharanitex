@@ -16,7 +16,7 @@ export function ProductGridSkeleton({ count = 8 }) {
 
 export function PageSkeleton({ admin = false }) {
   return (
-    <div className={admin ? "min-h-screen bg-green-950 p-6" : "min-h-screen bg-white p-6"}>
+    <div className={admin ? "min-h-screen bg-green-950 p-4 sm:p-6" : "min-h-screen bg-white p-4 sm:p-6"}>
       <div className="mx-auto max-w-7xl space-y-8">
         <div className="space-y-3">
           <Skeleton className="h-8 w-48" />

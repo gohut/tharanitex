@@ -45,7 +45,7 @@ export default function ProductDetails({ product }) {
 
   return (
     <div className="flex flex-col pt-1">
-      <h1 className="max-w-[520px] font-klaristha text-[38px] uppercase leading-[0.95] tracking-[-0.02em] text-[#C79127] md:text-[54px]">
+      <h1 className="max-w-[520px] font-klaristha text-[34px] uppercase leading-[0.95] tracking-[-0.02em] text-[#C79127] sm:text-[38px] md:text-[54px]">
         {product.name}
       </h1>
 
@@ -82,13 +82,13 @@ export default function ProductDetails({ product }) {
 
         <button
           onClick={addToCart}
-          className="h-[50px] flex-1 border-2 border-[#F2A100] bg-transparent px-6 text-sm font-semibold tracking-[0.06em] text-[#3C3128] transition hover:bg-[#F9E2AC]"
+          className="h-[52px] flex-1 border-2 border-[#F2A100] bg-transparent px-6 text-sm font-semibold tracking-[0.06em] text-[#3C3128] transition hover:bg-[#F9E2AC] sm:h-[50px]"
         >
           ADD TO CART
         </button>
       </div>
 
-      <button className="mt-3 h-[50px] w-full bg-[#F2A100] text-sm font-semibold tracking-[0.06em] text-[#2F2417] transition hover:bg-[#DF9600]">
+      <button className="mt-3 h-[52px] w-full bg-[#F2A100] text-sm font-semibold tracking-[0.06em] text-[#2F2417] transition hover:bg-[#DF9600] sm:h-[50px]">
         BUY NOW
       </button>
 

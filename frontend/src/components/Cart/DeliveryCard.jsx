@@ -4,7 +4,7 @@ import { MapPin, Truck } from "lucide-react";
 
 export default function DeliveryCard() {
   return (
-    <div className="mt-6 bg-white border border-[#E8DCCB] rounded-sm p-6 shadow-sm">
+    <div className="mt-6 rounded-sm border border-[#E8DCCB] bg-white p-5 shadow-sm sm:p-6">
 
       <div className="flex items-center gap-3">
         <MapPin className="text-[#D49E28]" size={22} />
@@ -17,7 +17,7 @@ export default function DeliveryCard() {
         Check if delivery is available at your location.
       </p>
 
-      <div className="mt-6 flex gap-3">
+      <div className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row">
 
         <input
           type="text"
@@ -37,7 +37,7 @@ export default function DeliveryCard() {
 
         <button
           className="
-            px-6
+            h-12 px-6
             bg-[#5A1F2F]
             text-white
             rounded-sm

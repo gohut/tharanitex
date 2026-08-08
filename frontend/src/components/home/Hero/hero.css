@@ -20,7 +20,7 @@
 
 @media (max-width:768px){
     .hero-section{
-        height:360px;
+        height:clamp(300px, 92vw, 390px);
     }
 }
 
@@ -53,7 +53,13 @@
 }
 
 .hero-section .swiper-pagination{
-    bottom:32px !important;
+    bottom:20px !important;
+}
+
+@media (min-width:769px){
+    .hero-section .swiper-pagination{
+        bottom:32px !important;
+    }
 }
 
 .hero-section .swiper-pagination-bullet{

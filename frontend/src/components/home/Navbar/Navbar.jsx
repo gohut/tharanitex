@@ -31,8 +31,8 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full h-[78px] bg-[#F8F2E8]/95 backdrop-blur-md border-b border-[#E8DCC8]">
-        <div className="max-w-[1440px] mx-auto h-full px-5 md:px-8 lg:px-10 grid grid-cols-[1fr_auto_1fr] items-center">
+      <header className="sticky top-0 z-50 h-16 w-full border-b border-[#E8DCC8] bg-[#F8F2E8]/95 backdrop-blur-md md:h-[78px]">
+        <div className="mx-auto grid h-full max-w-[1440px] grid-cols-[40px_minmax(0,1fr)_120px] items-center px-3 md:grid-cols-[1fr_auto_1fr] md:px-8 lg:px-10">
 
           {/* Left */}
           <div className="flex items-center justify-start">
@@ -40,7 +40,7 @@ export default function Navbar() {
               aria-label="Open Menu"
               aria-expanded={isSidebarOpen}
               onClick={() => setIsSidebarOpen(true)}
-              className="rounded-full p-2 transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
             >
               <Menu
                 size={24}
@@ -56,19 +56,19 @@ export default function Navbar() {
               <img
                 src="/assets/logo.png"
                 alt="Tharani Textiles"
-                className="h-[58px] md:h-[60px] w-auto object-contain transition-transform duration-300 hover:scale-[1.02]"
+                className="h-10 w-auto max-w-full object-contain transition-transform duration-300 hover:scale-[1.02] md:h-[60px]"
                 draggable={false}
               />
             </Link>
           </div>
 
           {/* Right */}
-          <div className="flex items-center justify-end gap-3 md:gap-5 lg:gap-7">
+          <div className="flex items-center justify-end gap-0 md:gap-5 lg:gap-7">
 
             <button
               aria-label="Search"
               onClick={() => router.push("/search")}
-              className="rounded-full p-2 transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
             >
               <Search
                 size={22}
@@ -80,12 +80,12 @@ export default function Navbar() {
             <button
               aria-label="Wishlist"
               onClick={() => router.push("/wishlist")}
-              className="rounded-full p-1 transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
             >
               <img
                 src="/assets/wishlist.png"
                 alt="Wishlist"
-                className="w-8 h-8 md:w-9 md:h-9"
+                className="h-7 w-7 md:h-9 md:w-9"
                 draggable={false}
               />
             </button>
@@ -93,7 +93,7 @@ export default function Navbar() {
             <button
               aria-label="Cart"
               onClick={() => router.push("/cart")}
-              className="rounded-full p-2 transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
             >
               <ShoppingBag
                 size={22}
@@ -115,7 +115,7 @@ export default function Navbar() {
             className="absolute inset-0 h-full w-full bg-[#2F2B27]/35 backdrop-blur-[2px]"
           />
 
-          <aside className="relative flex h-full w-[min(86vw,360px)] flex-col border-r border-[#E8DCC8] bg-[#F8F2E8] px-7 py-6 shadow-2xl">
+          <aside className="relative flex h-full w-[min(88vw,360px)] flex-col border-r border-[#E8DCC8] bg-[#F8F2E8] px-5 py-5 shadow-2xl sm:px-7 sm:py-6">
             <div className="flex items-center justify-between">
               <Link href="/home" onClick={closeSidebar} aria-label="Go to home">
                 <img
