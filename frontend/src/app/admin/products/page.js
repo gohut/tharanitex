@@ -208,13 +208,21 @@ export default function ProductsPage() {
   // ── Category CRUD ──
   const openAddCat = () => {
     setCatError("");
-    setCatForm({ name: "", slug: "", description: "", image: "", isActive: true });
+    setCatForm({
+      name: "",
+      subtitle: "",
+      slug: "",
+      description: "",
+      image: "",
+      isActive: true,
+    });
     setModal("addCat");
   };
   const openEditCat = (c) => {
     setCatError("");
     setCatForm({
       name: c.name || "",
+      subtitle: c.subtitle || "",
       slug: c.slug || "",
       description: c.description || "",
       image: c.image || "",

@@ -323,3 +323,7 @@ a {
     width: 240px;
   }
 }
+
+.font-cormorant-garamond {
+  font-family: var(--font-cormorant-garamond), "Cormorant Garamond", serif;
+}

@@ -45,14 +45,14 @@ export default function Categories({ categories }) {
                 />
               </div>
 
-              <div className="flex flex-1 flex-col items-center justify-start px-2 pb-1 pt-3 sm:pt-4 lg:pt-6">
-                <h3 className="text-center font-cormorant-garamond text-[24px] font-medium uppercase tracking-[0.04em] text-[#4A433C] sm:text-[28px] lg:text-[32px]">
+              <div className="flex flex-1 flex-col items-center justify-start px-2 pb-1 pt-3 sm:pt-4 lg:pt-5">
+                <h3 className="font-cormorant-garamond text-center text-[22px] font-medium uppercase leading-tight tracking-[0.04em] text-[#4A433C] sm:text-[24px] lg:text-[27px]">
                   {item.name}
                 </h3>
 
-                {item.description && (
-                  <p className="mt-1 text-center font-cormorant-garamond text-[16px] uppercase tracking-[0.08em] text-[#D4A437] sm:text-[18px]">
-                    {item.description}
+                {item.subtitle && (
+                  <p className="font-cormorant-garamond mt-0.5 text-center text-[13px] uppercase leading-tight tracking-[0.04em] text-[#D4A437] sm:text-[14px] lg:text-[16px]">
+                    {item.subtitle}
                   </p>
                 )}
               </div>
