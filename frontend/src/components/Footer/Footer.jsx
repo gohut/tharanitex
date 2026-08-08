@@ -127,7 +127,7 @@ export default function Footer() {
                   size={18}
                   className="shrink-0 text-[#C79A2B]"
                 />
-                <span>+91 XXXXX XXXXX</span>
+                <span>+91 79040 70963</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail

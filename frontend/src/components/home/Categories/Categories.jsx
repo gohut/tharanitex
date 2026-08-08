@@ -16,12 +16,12 @@ export default function Categories({ categories }) {
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-10 lg:px-12">
 
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-[34px] font-light leading-none text-[#D4A437] sm:text-[46px] md:text-[60px] lg:text-[68px]">
+          <h2 className="text-center text-[34px] font-light leading-none text-[#D4A437] sm:text-[46px] md:text-[60px] lg:text-[68px]">
             {categories.title}
           </h2>
 
           {categories.subtitle && (
-            <p className="mt-2 text-sm leading-6 text-[#72675A] md:mt-3 md:text-base">
+            <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-6 text-[#72675A] md:mt-3 md:text-base">
               {categories.subtitle}
             </p>
           )}
