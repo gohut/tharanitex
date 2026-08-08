@@ -8,6 +8,7 @@ export default function ProductSection({
   title,
   subtitle,
   products = [],
+  backgroundImage,
 }) {
   const visibleCount = 4;
   const [startIndex, setStartIndex] = useState(0);
@@ -30,7 +31,14 @@ export default function ProductSection({
   };
 
   return (
-    <section className="bg-[#FBF5EA] py-5 md:py-8 lg:py-10">
+    <section
+      className="bg-[#FBF5EA] bg-cover bg-center bg-no-repeat py-5 md:py-8 lg:py-10"
+      style={
+        backgroundImage
+          ? { backgroundImage: `url(${backgroundImage})` }
+          : undefined
+      }
+    >
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 md:px-8">
 
         {/* Section Heading */}
@@ -71,8 +79,8 @@ export default function ProductSection({
                 z-30
                 w-28
                 bg-gradient-to-r
-                from-[#FBF5EA]
-                via-[#FBF5EA]/80
+                from-[#FBF5EA]/90
+                via-[#FBF5EA]/60
                 to-transparent
               "
             />
@@ -90,8 +98,8 @@ export default function ProductSection({
                 z-30
                 w-28
                 bg-gradient-to-l
-                from-[#FBF5EA]
-                via-[#FBF5EA]/80
+                from-[#FBF5EA]/90
+                via-[#FBF5EA]/60
                 to-transparent
               "
             />
