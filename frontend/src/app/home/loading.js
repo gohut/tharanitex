@@ -1,18 +1,31 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
 export default function Loading() {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!visible) return null;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#FBF5EA]">
-      <div className="animate-pulse">
-        <Image
-          src="/assets/logo.png"
-          alt="Tharani Textiles"
-          width={190}
-          height={60}
-          priority
-          className="h-auto w-[170px] sm:w-[190px]"
-        />
-      </div>
+    <div className="home-loading">
+      <Image
+        src="/assets/logo.png"
+        alt="Tharani Textiles"
+        width={360}
+        height={120}
+        priority
+        className="home-loading-logo"
+      />
     </div>
   );
 }
