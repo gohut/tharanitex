@@ -16,7 +16,7 @@ export default function Categories({ categories }) {
       <div className="mx-auto max-w-[1440px] px-6 md:px-10 lg:px-12">
 
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-[42px] font-light leading-tight text-[#D4A437] md:text-[48px] lg:text-[52px]">
+          <h2 className="text-[52px] font-light leading-none text-[#D4A437] md:text-[60px] lg:text-[68px]">
             {categories.title}
           </h2>
 
@@ -27,7 +27,7 @@ export default function Categories({ categories }) {
           )}
         </div>
 
-        <div className="mt-16 grid grid-cols-2 gap-8 lg:grid-cols-4 lg:gap-10">
+        <div className="mt-8 grid grid-cols-2 gap-8 lg:grid-cols-4 lg:gap-10">
 
           {items.map((item) => (
             <Link

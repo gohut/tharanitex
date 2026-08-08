@@ -2,6 +2,7 @@ import ThemeProvider from "../components/ThemeProvider";
 import "./globals.css";
 import ConditionalFooter from "@/components/Footer/ConditionalFooter";
 import localFont from "next/font/local";
+import ScrollToTop from "@/components/ScrollToTop";
 import { Toaster } from "react-hot-toast";
 
 const montserrat = localFont({
@@ -58,6 +59,7 @@ export default function RootLayout({ children }) {
       <body className="font-montserrat">
         <ThemeProvider />
         {children}
+        <ScrollToTop />
          <Toaster
           position="bottom-right"
           toastOptions={{

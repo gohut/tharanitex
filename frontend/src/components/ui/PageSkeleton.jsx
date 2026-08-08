@@ -25,7 +25,7 @@ export function PageSkeleton({ admin = false }) {
         <ProductGridSkeleton />
       </div>
     </div>
-  );
+  )
 }
 
 export function AdminSkeleton() {
