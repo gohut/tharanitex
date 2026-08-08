@@ -16,10 +16,7 @@ export default function Categories({ categories }) {
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-10 lg:px-12">
 
         <div className="mx-auto max-w-3xl text-center">
-          <h2
-            className="text-center text-[34px] font-normal leading-none text-[#D4A437] sm:text-[46px] md:text-[60px] lg:text-[68px]"
-            style={{ fontFamily: "var(--font-cormorant-garamond)" }}
-          >
+          <h2 className="text-center text-[34px] font-light leading-none text-[#D4A437] sm:text-[46px] md:text-[60px] lg:text-[68px]">
             {categories.title}
           </h2>
 
@@ -49,12 +46,12 @@ export default function Categories({ categories }) {
               </div>
 
               <div className="flex flex-1 flex-col items-center justify-start px-2 pb-1 pt-3 sm:pt-4 lg:pt-6">
-                <h3 className="min-h-[2.75rem] text-center text-[14px] font-medium leading-5 tracking-wide text-[#4A433C] transition-colors duration-300 group-hover:text-[#B88718] sm:min-h-[3rem] sm:text-[17px] lg:text-[19px]">
+                <h3 className="text-center font-cormorant-garamond text-[24px] font-medium uppercase tracking-[0.04em] text-[#4A433C] sm:text-[28px] lg:text-[32px]">
                   {item.name}
                 </h3>
 
                 {item.description && (
-                  <p className="mt-1 text-center text-[10px] tracking-[0.12em] text-[#8A8175] sm:mt-2 sm:text-[13px] sm:tracking-[2px]">
+                  <p className="mt-1 text-center font-cormorant-garamond text-[16px] uppercase tracking-[0.08em] text-[#D4A437] sm:text-[18px]">
                     {item.description}
                   </p>
                 )}
