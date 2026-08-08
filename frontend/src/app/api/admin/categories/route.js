@@ -35,6 +35,7 @@ export async function POST(request) {
 
     const result = await createCategory(env.DB, {
       name: body.name.trim(),
+      subtitle: body.subtitle || "",
       slug: body.slug,
       description: body.description || "",
       image: body.image || null,

@@ -458,7 +458,15 @@ export default function ProductsPage() {
           <FormInput label="Stock Quantity" id="stock" type="number" value={form.stock || ""} onChange={(e) => setForm({ ...form, stock: e.target.value })} placeholder="0" required />
           <FormInput label="Status" id="status" type="select" value={form.status || "Active"} onChange={(e) => setForm({ ...form, status: e.target.value })} options={["Active", "Low Stock", "Out of Stock"]} />
           <div className="sm:col-span-2">
-            <FormInput label="Description" id="desc" type="textarea" value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Product description..." rows={3} />
+            <FormInput
+              label="Subtitle"
+              id="catsubtitle"
+              value={catForm.subtitle || ""}
+              onChange={(e) =>
+                setCatForm({ ...catForm, subtitle: e.target.value })
+              }
+              placeholder="e.g. SILKS"
+            />
           </div>
         </div>
         <div className="flex justify-end gap-3 mt-5">

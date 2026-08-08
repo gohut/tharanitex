@@ -52,6 +52,7 @@ export async function PATCH(request, { params }) {
     await updateCategory(env.DB, id, {
       name: body.name,
       slug: body.slug,
+      subtitle: body.subtitle || "",
       description: body.description || "",
       image: body.image || null,
       isActive: body.isActive !== false,

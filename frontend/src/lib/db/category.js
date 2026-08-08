@@ -12,6 +12,7 @@ export async function getAllCategories(db, { activeOnly = false } = {}) {
       SELECT
         id,
         name,
+        subtitle,
         slug,
         description,
         image_url AS image,
@@ -32,6 +33,7 @@ export async function getCategoryById(db, id) {
       SELECT
         id,
         name,
+        subtitle,
         slug,
         description,
         image_url AS image,
@@ -46,14 +48,25 @@ export async function getCategoryById(db, id) {
 }
 
 export async function createCategory(db, data) {
-  const slug = data.slug ? slugify(data.slug) : slugify(data.name);
+  const slug = data.slug
+    ? slugify(data.slug)
+    : slugify(data.name);
+
   const result = await db
     .prepare(`
-      INSERT INTO categories (name, slug, description, image_url, is_active)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO categories (
+        name,
+        subtitle,
+        slug,
+        description,
+        image_url,
+        is_active
+      )
+      VALUES (?, ?, ?, ?, ?, ?)
     `)
     .bind(
       data.name,
+      data.subtitle || "",
       slug,
       data.description || "",
       data.image || null,
@@ -61,23 +74,33 @@ export async function createCategory(db, data) {
     )
     .run();
 
-  return { success: true, id: result.meta.last_row_id, slug };
+  return {
+    success: true,
+    id: result.meta.last_row_id,
+    slug,
+  };
 }
 
 export async function updateCategory(db, id, data) {
-  const slug = data.slug ? slugify(data.slug) : slugify(data.name);
+  const slug = data.slug
+    ? slugify(data.slug)
+    : slugify(data.name);
+
   await db
     .prepare(`
       UPDATE categories
-      SET name = ?,
-          slug = ?,
-          description = ?,
-          image_url = ?,
-          is_active = ?
+      SET
+        name = ?,
+        subtitle = ?,
+        slug = ?,
+        description = ?,
+        image_url = ?,
+        is_active = ?
       WHERE id = ?
     `)
     .bind(
       data.name,
+      data.subtitle || "",
       slug,
       data.description || "",
       data.image || null,
@@ -86,7 +109,10 @@ export async function updateCategory(db, id, data) {
     )
     .run();
 
-  return { success: true, slug };
+  return {
+    success: true,
+    slug,
+  };
 }
 
 export async function categoryHasProducts(db, id) {
@@ -108,5 +134,7 @@ export async function deleteCategory(db, id) {
     .bind(Number(id))
     .run();
 
-  return { success: true };
+  return {
+    success: true,
+  };
 }
