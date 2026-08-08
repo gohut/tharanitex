@@ -29,7 +29,7 @@ export default function ProductSection({
   };
 
   return (
-    <section className="bg-[#FBF5EA] py-7 md:py-12 lg:py-14">
+    <section className="bg-[#FBF5EA] py-5 md:py-8 lg:py-10">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 md:px-8">
 
         <h2 className="text-center text-[34px] font-light text-[#D4A437] sm:text-[44px] md:text-[50px]">
@@ -37,21 +37,22 @@ export default function ProductSection({
         </h2>
 
         {subtitle && (
-          <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-6 text-[#72675A] md:mt-4 md:text-base">
+          <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-6 text-[#72675A] md:mt-3 md:text-base">
             {subtitle}
           </p>
         )}
 
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-6 lg:hidden">
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:gap-6 lg:hidden">
           {products.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
+              isHomepageCard={true}
             />
           ))}
         </div>
 
-        <div className="relative mt-6 hidden lg:block md:mt-8 lg:mt-10">
+        <div className="relative mt-4 hidden lg:block md:mt-5 lg:mt-6">
 
           {/* Left Arrow */}
           {products.length > visibleCount && (
@@ -91,6 +92,7 @@ export default function ProductSection({
               <ProductCard
                 key={product.id}
                 product={product}
+                isHomepageCard={true}
               />
             ))}
           </div>
@@ -128,18 +130,6 @@ export default function ProductSection({
           )}
 
         </div>
-
-        {/* Divider */}
-        <div className="mt-6 flex items-center md:mt-8 lg:mt-10">
-          <div className="flex-1 border-t border-[#D8CCB4]" />
-
-          <span className="mx-4 whitespace-nowrap text-[13px] text-[#8A8175] sm:mx-8 sm:text-[18px]">
-            Explore More
-          </span>
-
-          <div className="flex-1 border-t border-[#D8CCB4]" />
-        </div>
-
       </div>
     </section>
   );

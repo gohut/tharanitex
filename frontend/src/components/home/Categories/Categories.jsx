@@ -12,7 +12,7 @@ export default function Categories({ categories }) {
   }
 
   return (
-    <section className="bg-[#FBF5EA] py-7 md:py-14 lg:py-16">
+    <section className="bg-[#FBF5EA] py-5 md:py-8 lg:py-10">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-10 lg:px-12">
 
         <div className="mx-auto max-w-3xl text-center">
@@ -21,13 +21,13 @@ export default function Categories({ categories }) {
           </h2>
 
           {categories.subtitle && (
-            <p className="mt-3 text-sm leading-6 text-[#72675A] md:mt-4 md:text-base">
+            <p className="mt-2 text-sm leading-6 text-[#72675A] md:mt-3 md:text-base">
               {categories.subtitle}
             </p>
           )}
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-5 lg:mt-8 lg:grid-cols-4 lg:gap-10">
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:gap-5 lg:mt-6 lg:grid-cols-4 lg:gap-8">
 
           {items.map((item) => (
             <Link
@@ -60,17 +60,6 @@ export default function Categories({ categories }) {
           ))}
 
         </div>
-
-        <div className="mt-6 flex items-center md:mt-10 lg:mt-12">
-          <div className="flex-1 border-t border-[#DCCFB8]" />
-
-          <span className="mx-4 whitespace-nowrap text-[11px] uppercase tracking-[0.18em] text-[#8A7A65] sm:mx-8 sm:text-sm sm:tracking-[0.25em]">
-            Explore More
-          </span>
-
-          <div className="flex-1 border-t border-[#DCCFB8]" />
-        </div>
-
       </div>
     </section>
   );

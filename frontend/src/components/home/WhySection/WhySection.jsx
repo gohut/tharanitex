@@ -6,7 +6,7 @@ export default function WhySection({ content, subtitle }) {
   const features = content.features || [];
 
   return (
-    <section className="bg-[#fbf3e6] px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-16">
+    <section className="bg-[#fbf3e6] px-5 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10">
       <div className="mx-auto grid max-w-[1180px] gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-16 xl:gap-24">
 
         <div className="flex items-center justify-center">

@@ -4,9 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Heart,
-  LogIn,
   Menu,
-  Package,
   Search,
   ShoppingBag,
   ShoppingCart,
@@ -17,17 +15,12 @@ import { useState } from "react";
 
 const sidebarLinks = [
   {
-    label: "Collections",
-    href: "/search",
-    icon: Package,
-  },
-  {
-    label: "My Orders",
+    label: "Orders",
     href: "/orders",
     icon: ShoppingBag,
   },
   {
-    label: "Cart Page",
+    label: "Cart",
     href: "/cart",
     icon: ShoppingCart,
   },
@@ -46,8 +39,15 @@ const sidebarLinks = [
 export default function Navbar() {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [sidebarSearch, setSidebarSearch] = useState("");
 
   const closeSidebar = () => setIsSidebarOpen(false);
+  const openSearch = (event) => {
+    event.preventDefault();
+    const query = sidebarSearch.trim();
+    closeSidebar();
+    router.push(query ? `/search?q=${encodeURIComponent(query)}` : "/search");
+  };
 
   return (
     <>
@@ -155,7 +155,24 @@ export default function Navbar() {
               </button>
             </div>
 
-            <nav className="mt-10 space-y-3">
+            <form onSubmit={openSearch} className="mt-6">
+              <label className="relative block">
+                <Search
+                  size={18}
+                  strokeWidth={1.8}
+                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#8A7A65]"
+                />
+                <input
+                  type="search"
+                  value={sidebarSearch}
+                  onChange={(event) => setSidebarSearch(event.target.value)}
+                  placeholder="Search collections"
+                  className="h-12 w-full rounded-full border border-[#E8DCC8] bg-white pl-11 pr-4 text-sm text-[#2F2B27] outline-none transition focus:border-[#C79A2B]"
+                />
+              </label>
+            </form>
+
+            <nav className="mt-8 space-y-3">
               {sidebarLinks.map(({ label, href, icon: Icon }) => (
                 <Link
                   key={href}
@@ -168,17 +185,6 @@ export default function Navbar() {
                 </Link>
               ))}
             </nav>
-
-            <div className="mt-auto border-t border-[#E8DCC8] pt-6">
-              <Link
-                href="/login"
-                onClick={closeSidebar}
-                className="flex h-12 w-full items-center justify-center gap-3 rounded-full bg-[#5A1F2F] px-6 text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[#471825]"
-              >
-                <LogIn size={18} strokeWidth={1.8} />
-                Log In
-              </Link>
-            </div>
           </aside>
         </div>
       )}

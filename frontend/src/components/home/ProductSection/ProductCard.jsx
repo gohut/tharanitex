@@ -8,6 +8,7 @@ import Link from "next/link";
 export default function ProductCard({
   product,
   initiallyWishlisted = false,
+  isHomepageCard = false,
 }) {
   const [wishlisted, setWishlisted] = useState(initiallyWishlisted);
 
@@ -128,29 +129,35 @@ export default function ProductCard({
           />
         </button>
 
-        <button
-          onClick={addToCart}
-          aria-label={`Add ${product.name} to cart`}
-          className="
-            absolute bottom-2 right-2 z-20
-            flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md
-            transition-all duration-300 hover:scale-110 hover:bg-[#D4A437] hover:text-white active:scale-95
-            sm:bottom-3 sm:right-3
-          "
-        >
-          <ShoppingBag size={20} strokeWidth={2} />
-        </button>
+        {!isHomepageCard && (
+          <button
+            onClick={addToCart}
+            aria-label={`Add ${product.name} to cart`}
+            className="
+              absolute bottom-2 right-2 z-20
+              flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md
+              transition-all duration-300 hover:scale-110 hover:bg-[#D4A437] hover:text-white active:scale-95
+              sm:bottom-3 sm:right-3
+            "
+          >
+            <ShoppingBag size={20} strokeWidth={2} />
+          </button>
+        )}
       </div>
 
       <div className="mt-3 flex flex-1 flex-col justify-between gap-2 sm:mt-4">
         <div className="min-h-[4.75rem]">
           <Link href={`/product/${product.slug}`}>
-            <h3 className="line-clamp-2 cursor-pointer text-[13px] font-normal leading-5 text-[#444] hover:text-[#D59B23] sm:text-[15px] sm:leading-6">
+            <h3 className={`line-clamp-2 cursor-pointer text-[13px] font-normal leading-5 sm:text-[15px] sm:leading-6 ${
+              isHomepageCard ? "text-[#D59B23] hover:text-[#B88718]" : "text-[#444] hover:text-[#D59B23]"
+            }`}>
               {product.name}
             </h3>
           </Link>
 
-          <p className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[#B98E2A] sm:text-[10px] sm:tracking-[2px]">
+          <p className={`mt-1 text-[9px] uppercase tracking-[0.12em] sm:text-[10px] sm:tracking-[2px] ${
+            isHomepageCard ? "text-[#1E1E1E]" : "text-[#B98E2A]"
+          }`}>
             {product.category}
           </p>
         </div>
