@@ -1,7 +1,6 @@
 import ThemeProvider from "../components/ThemeProvider";
 import "./globals.css";
 import ConditionalFooter from "@/components/Footer/ConditionalFooter";
-import MobileBottomNav from "@/components/home/MobileBottomNav";
 import localFont from "next/font/local";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { Toaster } from "react-hot-toast";
@@ -57,6 +56,11 @@ const cormorantGaramond = Cormorant_Garamond({
 export const metadata = {
   title: "Tharani Textiles",
   description: "Premium Silk Sarees",
+  icons: {
+    icon: "/assets/logo.png",
+    shortcut: "/assets/logo.png",
+    apple: "/assets/logo.png",
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -69,7 +73,6 @@ export default function RootLayout({ children }) {
         <ThemeProvider />
         {children}
         <ScrollToTop />
-        <MobileBottomNav />
          <Toaster
           position="bottom-right"
           toastOptions={{

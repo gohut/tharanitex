@@ -24,9 +24,10 @@ export default function DeliveryCard() {
           placeholder="Enter Pincode"
           className="
             flex-1
-            h-12
+            h-14
             px-4
-            border
+            text-base
+            border-2
             border-[#D8CCB4]
             rounded-sm
             outline-none
@@ -37,12 +38,15 @@ export default function DeliveryCard() {
 
         <button
           className="
-            h-12 px-6
+            h-10 px-5
+            self-center
+            text-sm font-medium
             bg-[#5A1F2F]
             text-white
             rounded-sm
             hover:bg-[#471825]
             transition
+            sm:h-11 sm:self-auto
           "
         >
           Check

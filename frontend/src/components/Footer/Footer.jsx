@@ -20,15 +20,15 @@ export default function Footer() {
       />
       {/* Content */}
       <div className="mx-auto max-w-[1420px] px-6 py-12 sm:px-10 sm:py-16">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-12 lg:grid-cols-[1.25fr_1fr_1fr_1.15fr] lg:gap-16">
-            <div className="flex justify-center">
-            <div className="w-52 text-center sm:w-64">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:gap-12 lg:grid-cols-[1.25fr_1fr_1fr_1.15fr] lg:gap-16">
+            <div className="col-span-2 flex justify-center lg:col-span-1">
+            <div className="w-44 text-center sm:w-64">
               <img
                 src="/assets/logo.png"
                 alt="Tharani Textiles"
                 className="w-full"
               />
-              <p className="mt-8 text-center font-sans text-[15px] leading-8 text-[#F6ECD0]">
+              <p className="mt-6 text-center font-sans text-[15px] leading-8 text-[#F6ECD0] sm:mt-8">
                 Timeless Craftsmanship
                 <br />
                 Since 1995
@@ -36,12 +36,12 @@ export default function Footer() {
             </div>
           </div>
           {/* ================= SITE LINKS ================= */}
-          <div className="relative border-t border-[#C79A2B]/25 pt-8 sm:border-t-0 sm:pl-10 sm:pt-0">
-            <div className="absolute left-0 top-2 bottom-2 hidden w-px bg-[#C79A2B]/25 sm:block" />
-            <h3 className="font-cormorant text-[24px] text-[#C79A2B] mb-7">
+          <div className="relative lg:pl-10">
+            <div className="absolute left-0 top-2 bottom-2 hidden w-px bg-[#C79A2B]/25 lg:block" />
+            <h3 className="font-cormorant text-[20px] text-[#C79A2B] mb-5 sm:text-[24px] sm:mb-7">
                 SITE LINKS
             </h3>
-            <ul className="space-y-4 font-sans text-[15px]">
+            <ul className="space-y-3 font-sans text-[13px] sm:space-y-4 sm:text-[15px]">
               <li>
                 <Link
                   href="/"
@@ -77,12 +77,12 @@ export default function Footer() {
             </ul>
           </div>
           {/* ================= CUSTOMER CARE ================= */}
-          <div className="relative border-t border-[#C79A2B]/25 pt-8 sm:border-t-0 sm:pl-10 sm:pt-0">
-            <div className="absolute left-0 top-2 bottom-2 hidden w-px bg-[#C79A2B]/25 sm:block" />
-            <h3 className="font-cormorant text-[24px] text-[#C79A2B] mb-7">
+          <div className="relative border-l border-[#C79A2B]/25 pl-5 lg:border-l-0 lg:pl-10">
+            <div className="absolute left-0 top-2 bottom-2 hidden w-px bg-[#C79A2B]/25 lg:block" />
+            <h3 className="font-cormorant text-[20px] text-[#C79A2B] mb-5 sm:text-[24px] sm:mb-7">
                 CUSTOMER CARE
             </h3>
-            <ul className="space-y-4 font-sans text-[15px]">
+            <ul className="space-y-3 font-sans text-[13px] sm:space-y-4 sm:text-[15px]">
               <li>
                 <a href="#" className="hover:text-[#C79A2B] transition-colors">
                   Terms & Conditions
@@ -105,9 +105,9 @@ export default function Footer() {
               </li>
             </ul>
           </div>
-          <div className="relative border-t border-[#C79A2B]/25 pt-8 sm:border-t-0 sm:pl-10 sm:pt-0">
-            <div className="absolute left-0 top-2 bottom-2 hidden w-px bg-[#C79A2B]/25 sm:block" />
-            <h3 className="font-cormorant text-[24px] text-[#C79A2B] mb-7">
+          <div className="col-span-2 relative border-t border-[#C79A2B]/25 pt-8 lg:col-span-1 lg:border-t-0 lg:pl-10 lg:pt-0">
+            <div className="absolute left-0 top-2 bottom-2 hidden w-px bg-[#C79A2B]/25 lg:block" />
+            <h3 className="font-cormorant text-[20px] text-[#C79A2B] mb-5 sm:text-[24px] sm:mb-7">
                 CONTACT
             </h3>
             <div className="space-y-5 font-sans text-[15px] text-[#F6ECD0]">

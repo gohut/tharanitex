@@ -21,55 +21,65 @@ export default function CartItem({ product }) {
     router.refresh();
   }
   return (
-    <div className="relative grid grid-cols-[96px_minmax(0,1fr)] gap-x-4 gap-y-4 border-b border-[#E8DCCB] py-5 sm:grid-cols-[120px_minmax(0,1fr)] lg:grid-cols-[140px_1fr_160px_120px_60px] lg:items-center lg:gap-8 lg:py-8">
+    <div className="relative grid grid-cols-[80px_minmax(0,1fr)] gap-x-3 gap-y-1 border-b border-[#E8DCCB] py-4 sm:grid-cols-[104px_minmax(0,1fr)] sm:gap-x-4 sm:py-5 lg:grid-cols-[140px_1fr_160px_120px_60px] lg:items-center lg:gap-8 lg:py-8">
 
       {/* Product Image */}
       <div>
         <img
           src={product.image}
           alt={product.name}
-          className="h-[128px] w-[96px] rounded-sm object-cover sm:h-[150px] sm:w-[120px] lg:h-[160px]"
+          className="h-[96px] w-[80px] rounded-sm object-cover sm:h-[128px] sm:w-[104px] lg:h-[160px] lg:w-[140px]"
         />
       </div>
 
       {/* Product Details */}
       <div>
-        <h3 className="line-clamp-2 text-[17px] font-medium leading-tight text-[#3E3A39] sm:text-[20px] lg:text-[22px]">
+        <h3 className="line-clamp-2 text-[14px] font-medium leading-tight text-[#3E3A39] sm:text-[18px] lg:text-[22px]">
           {product.name}
         </h3>
 
-        <p className="mt-2 text-[10px] uppercase tracking-[0.12em] text-[#C69A39] lg:tracking-[0.18em] lg:text-[11px]">
+        <p className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[#C69A39] sm:mt-1.5 sm:text-[10px] lg:tracking-[0.18em] lg:text-[11px]">
           {product.category}
         </p>
 
-        <p className="mt-3 text-[20px] font-medium text-[#D49E28] sm:text-[24px] lg:mt-5 lg:text-[28px]">
+        {/* Quantity + Price grouped together (mobile / tablet) */}
+        <div className="mt-2.5 flex items-center justify-between gap-3 sm:mt-3 lg:hidden">
+          <QuantitySelector
+            cartId={product.id}
+            quantity={product.quantity}
+          />
+          <p className="text-[16px] font-medium text-[#D49E28] sm:text-[19px]">
+            {formatPrice(product.price * product.quantity)}
+          </p>
+        </div>
+
+        {/* Price only (desktop keeps its own column) */}
+        <p className="mt-4 hidden text-[26px] font-medium text-[#D49E28] lg:block">
           {formatPrice(product.price)}
         </p>
       </div>
 
-      {/* Quantity */}
-      <div className="col-span-2 flex items-center justify-between border-t border-[#F0E5D6] pt-4 lg:col-span-1 lg:block lg:border-0 lg:pt-0">
-        <span className="text-xs uppercase tracking-[0.12em] text-[#8A8175] lg:hidden">Quantity</span>
+      {/* Quantity (desktop column) */}
+      <div className="hidden lg:block">
         <QuantitySelector
           cartId={product.id}
           quantity={product.quantity}
         />
       </div>
 
-      {/* Total */}
-      <div className="col-span-2 flex items-center justify-between lg:col-span-1 lg:block lg:text-center">
-        <span className="text-xs uppercase tracking-[0.12em] text-[#8A8175] lg:hidden">Total</span>
-        <p className="text-[18px] font-medium text-[#3E3A39] sm:text-[20px] lg:text-[22px]">
+      {/* Total (desktop column) */}
+      <div className="hidden lg:block lg:text-center">
+        <p className="text-[22px] font-medium text-[#3E3A39]">
           {formatPrice(product.price * product.quantity)}
         </p>
       </div>
 
       {/* Remove */}
-      <div className="absolute right-0 top-4 flex justify-center lg:static">
+      <div className="absolute right-0 top-3 flex justify-center lg:static">
         <button
           onClick={removeItem}
           className="
-            h-10 w-10
+            h-8 w-8
             rounded-full
             flex items-center justify-center
             text-gray-500
@@ -77,9 +87,10 @@ export default function CartItem({ product }) {
             hover:text-white
             transition-all
             duration-300
+            lg:h-10 lg:w-10
           "
         >
-          <X size={20} />
+          <X size={16} />
         </button>
       </div>
 

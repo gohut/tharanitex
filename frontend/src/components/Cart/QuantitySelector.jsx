@@ -43,29 +43,29 @@ export default function QuantitySelector({
       <button
         onClick={decrease}
         className="
-          w-12 h-12
+          w-8 h-8
           flex items-center justify-center
           hover:bg-[#E8C86C]
           transition
         "
       >
-        <Minus size={18} />
+        <Minus size={13} />
       </button>
 
-      <span className="w-10 text-center text-lg font-medium">
+      <span className="w-7 text-center text-sm font-medium">
         {quantity}
       </span>
 
       <button
         onClick={increase}
         className="
-          w-12 h-12
+          w-8 h-8
           flex items-center justify-center
           hover:bg-[#E8C86C]
           transition
         "
       >
-        <Plus size={18} />
+        <Plus size={13} />
       </button>
     </div>
   );

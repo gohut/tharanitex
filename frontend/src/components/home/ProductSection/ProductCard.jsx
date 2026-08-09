@@ -120,9 +120,9 @@ export default function ProductCard({
           onClick={toggleWishlist}
           className={`
             absolute right-2 top-2 z-20
-            flex h-10 w-10 items-center justify-center rounded-full shadow-md
+            flex h-7 w-7 items-center justify-center rounded-full shadow-md
             transition-all duration-300 hover:scale-110 active:scale-95
-            sm:right-3 sm:top-3
+            sm:right-2.5 sm:top-2.5 sm:h-8 sm:w-8
             ${wishlisted ? "bg-[#D4A437]" : "bg-white"}
           `}
           aria-label={`Toggle wishlist for ${product.name}`}
@@ -131,8 +131,8 @@ export default function ProductCard({
             src="/assets/wishlist_icon.png"
             alt="Wishlist"
             className={`
-              h-7 w-7 object-contain transition-all duration-300
-              sm:h-8 sm:w-8
+              h-4 w-4 object-contain transition-all duration-300
+              sm:h-[18px] sm:w-[18px]
               ${wishlisted ? "brightness-0 invert" : ""}
             `}
           />
@@ -145,15 +145,15 @@ export default function ProductCard({
             aria-label={`Add ${product.name} to cart`}
             className="
               absolute bottom-2 right-2 z-20
-              flex h-10 w-10 items-center justify-center rounded-full
+              flex h-7 w-7 items-center justify-center rounded-full
               bg-white shadow-md
               transition-all duration-300
               hover:scale-110 hover:bg-[#D4A437] hover:text-white
               active:scale-95
-              sm:bottom-3 sm:right-3
+              sm:bottom-2.5 sm:right-2.5 sm:h-8 sm:w-8
             "
           >
-            <ShoppingBag size={20} strokeWidth={2} />
+            <ShoppingBag size={14} strokeWidth={2} />
           </button>
         )}
       </div>

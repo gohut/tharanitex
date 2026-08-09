@@ -26,7 +26,7 @@ export default function RelatedProducts({ products }) {
           You May Also Like
         </h2>
 
-        <div className="relative mt-10">
+        <div className="relative mt-4 sm:mt-5">
           <button
             onClick={() => scrollCards("left")}
             aria-label="Previous related products"
@@ -87,15 +87,15 @@ function RelatedCard({ product }) {
         <button
           onClick={() => setWishlisted(!wishlisted)}
           aria-label="Add to wishlist"
-          className={`absolute top-3 right-3 z-20 flex h-10 w-10 items-center justify-center rounded-full shadow-md transition-all duration-300 hover:scale-110 active:scale-95 ${
+          className={`absolute top-2 right-2 z-20 flex h-7 w-7 items-center justify-center rounded-full shadow-md transition-all duration-300 hover:scale-110 active:scale-95 sm:h-8 sm:w-8 ${
             wishlisted ? "bg-[#5B2333]" : "bg-white"
           }`}
         >
           <Image
             src="/assets/wishlist_icon.png"
             alt="Wishlist"
-            width={32}
-            height={32}
+            width={16}
+            height={16}
             className={`object-contain transition-all duration-300 ${
               wishlisted ? "brightness-0 invert" : ""
             }`}

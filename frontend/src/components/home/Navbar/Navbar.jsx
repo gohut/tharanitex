@@ -60,7 +60,7 @@ export default function Navbar() {
               aria-label="Open Menu"
               aria-expanded={isSidebarOpen}
               onClick={() => setIsSidebarOpen(true)}
-              className="hidden h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95 md:flex"
+              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
             >
               <Menu
                 size={24}
@@ -71,7 +71,7 @@ export default function Navbar() {
           </div>
 
           {/* Logo */}
-          <div className="flex flex-1 justify-start md:flex-none md:justify-center">
+          <div className="flex flex-1 justify-center md:flex-none">
             <Link href="/home" aria-label="Go to home">
               <img
                 src="/assets/logo.png"
