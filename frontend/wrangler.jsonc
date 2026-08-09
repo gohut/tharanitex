@@ -27,5 +27,11 @@
 			"bucket_name": "tharani-product-images",
 			"binding": "tharani_product_images"
 		}
-	]
+	],
+	"observability": {
+		"enabled": true,
+			"logs": {
+				"invocation_logs": true
+			}
+		}
 }
