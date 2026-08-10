@@ -31,13 +31,12 @@ export default function WhySection({ content, subtitle }) {
       </div>
 
       {/* Features */}
-      <div className="mt-8 border-t border-[#e0bd73] pt-7 sm:mt-10 sm:pt-8 lg:border-l lg:border-t-0 lg:pl-16 lg:pt-0 xl:pl-20">
-        <div className="grid grid-cols-2 lg:block">
+      <div className="mt-8 border-t border-[#e0bd73] pt-7 sm:mt-10 sm:pt-8">
+        <div className="grid grid-cols-2">
           {features.map((item, index) => (
             <div
               key={`${item.title}-${index}`}
               className={[
-                // Mobile
                 "text-center",
                 index === 0
                   ? "border-r border-[#e0bd73] pr-4"
@@ -46,22 +45,15 @@ export default function WhySection({ content, subtitle }) {
                   ? "pl-4"
                   : "",
                 index === 2
-                  ? "col-span-2 mt-8 border-t-0 pt-0"
+                  ? "col-span-2 mt-8"
                   : "",
-
-                // Desktop - restore original vertical layout
-                "lg:text-left",
-                index !== features.length - 1
-                  ? "lg:mb-7 lg:border-b lg:border-[#e0bd73] lg:pb-7"
-                  : "",
-                "lg:border-r-0 lg:pl-0 lg:pr-0",
               ].join(" ")}
             >
-              <h3 className="font-modern-romance text-[1.85rem] leading-[0.95] text-[#4d4d4d] sm:text-[3.2rem] lg:text-[3.65rem]">
+              <h3 className="font-modern-romance text-[1.85rem] leading-[0.95] text-[#4d4d4d] sm:text-[3.2rem]">
                 {item.title}
               </h3>
 
-              <p className="mx-auto mt-2 max-w-[155px] whitespace-pre-line font-montserrat text-[0.72rem] leading-[1.35] text-[#555555] sm:mt-5 sm:max-w-[350px] sm:text-[1.12rem] lg:mx-0 lg:mt-3 lg:text-[1.28rem]">
+              <p className="mx-auto mt-2 max-w-[155px] whitespace-pre-line font-montserrat text-[0.72rem] leading-[1.35] text-[#555555] sm:mt-5 sm:max-w-[350px] sm:text-[1.12rem]">
                 {item.description}
               </p>
             </div>
