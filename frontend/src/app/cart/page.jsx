@@ -5,7 +5,7 @@ import DeliveryCard from "@/components/Cart/DeliveryCard";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getCart } from "@/lib/db/cart";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 export default async function CartPage() {
   const { env } = await getCloudflareContext({ async: true });
   const cartItems = await getCart(env.DB, "guest");

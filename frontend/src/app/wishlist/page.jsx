@@ -4,7 +4,7 @@ import Link from "next/link";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getWishlist } from "@/lib/db/wishlist";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 export default async function WishlistPage() {
   const { env } = await getCloudflareContext({ async: true });
   const wishlistItems = await getWishlist(env.DB, "guest");
