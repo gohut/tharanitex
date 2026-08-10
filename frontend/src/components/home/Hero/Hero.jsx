@@ -21,6 +21,7 @@ export default function Hero({ slides = [] }) {
         loop={slides.length > 1}
         speed={900}
         grabCursor={true}
+        className="hero-swiper w-full"
         autoplay={
           slides.length > 1
             ? {
@@ -40,7 +41,7 @@ export default function Hero({ slides = [] }) {
               <img
                 src={slide.image}
                 alt={slide.title || `Hero Banner ${slide.id}`}
-                className="hero-image"
+                className="hero-image h-full w-full object-contain"
                 draggable={false}
               />
 

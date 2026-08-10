@@ -9,41 +9,39 @@ export default function PromoBanner({ banner }) {
     <img
       src={banner.image}
       alt={banner.title || "Promotional Banner"}
-      className="block min-h-[180px] w-full object-cover sm:min-h-0"
+      className="block h-full w-full object-contain"
     />
   );
 
   return (
-    <section className="relative bg-[#FBF5EA]">
+    <section className="relative w-full overflow-hidden bg-[#FBF5EA]">
+      <div className="relative aspect-[16/7] w-full sm:aspect-auto">
+        {banner.link ? (
+          <Link href={banner.link} className="block h-full w-full">
+            {image}
+          </Link>
+        ) : (
+          image
+        )}
 
-      {banner.link ? (
-        <Link href={banner.link}>
-          {image}
-        </Link>
-      ) : (
-        image
-      )}
+        {(banner.title || banner.subtitle) && (
+          <div className="pointer-events-none absolute inset-0 flex items-center">
+            <div className="mx-auto w-full max-w-[1400px] px-5 md:px-8">
+              {banner.title && (
+                <h2 className="text-2xl font-light leading-tight text-white sm:text-3xl md:text-5xl">
+                  {banner.title}
+                </h2>
+              )}
 
-      {(banner.title || banner.subtitle) && (
-        <div className="pointer-events-none absolute inset-0 flex items-center">
-          <div className="mx-auto w-full max-w-[1400px] px-5 md:px-8">
-
-            {banner.title && (
-              <h2 className="text-2xl font-light leading-tight text-white sm:text-3xl md:text-5xl">
-                {banner.title}
-              </h2>
-            )}
-
-            {banner.subtitle && (
-              <p className="mt-2 text-sm leading-6 text-white/90 sm:mt-3 sm:text-base md:text-lg">
-                {banner.subtitle}
-              </p>
-            )}
-
+              {banner.subtitle && (
+                <p className="mt-2 text-sm leading-6 text-white/90 sm:mt-3 sm:text-base md:text-lg">
+                  {banner.subtitle}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-
+        )}
+      </div>
     </section>
   );
 }
