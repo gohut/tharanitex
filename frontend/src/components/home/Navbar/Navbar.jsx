@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
+  ArrowLeft,
   Heart,
   Menu,
   Search,
@@ -38,6 +39,7 @@ const sidebarLinks = [
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sidebarSearch, setSidebarSearch] = useState("");
 
@@ -56,11 +58,12 @@ export default function Navbar() {
 
           {/* Left */}
           <div className="flex items-center justify-start">
+            {/* Desktop: keep hamburger exactly as before */}
             <button
               aria-label="Open Menu"
               aria-expanded={isSidebarOpen}
               onClick={() => setIsSidebarOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
+              className="hidden h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95 md:flex"
             >
               <Menu
                 size={24}
@@ -68,19 +71,55 @@ export default function Navbar() {
                 className="text-[#2F2B27]"
               />
             </button>
+
+            {/* Mobile: Home page → logo */}
+            {(pathname === "/" || pathname === "/home") && (
+              <Link
+                href="/home"
+                aria-label="Go to home"
+                className="flex md:hidden"
+              >
+                <img
+                  src="/assets/logo.png"
+                  alt="Tharani Textiles"
+                  className="h-10 w-auto max-w-full object-contain"
+                  draggable={false}
+                />
+              </Link>
+            )}
+
+            {/* Mobile: Other pages → Back button */}
+            {pathname !== "/" && pathname !== "/home" && (
+              <button
+                type="button"
+                aria-label="Go back"
+                onClick={() => router.back()}
+                className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95 md:hidden"
+              >
+                <ArrowLeft
+                  size={24}
+                  strokeWidth={1.8}
+                  className="text-[#2F2B27]"
+                />
+              </button>
+            )}
           </div>
 
-          {/* Logo */}
-          <div className="flex flex-1 justify-center md:flex-none">
-            <Link href="/home" aria-label="Go to home">
-              <img
-                src="/assets/logo.png"
-                alt="Tharani Textiles"
-                className="h-10 w-auto max-w-full object-contain transition-transform duration-300 hover:scale-[1.02] md:h-[60px]"
-                draggable={false}
-              />
-            </Link>
-          </div>
+          {/* Logo - centered on mobile inner pages, desktop unchanged */}
+            <div
+              className={`flex flex-1 justify-center md:flex-none ${
+                pathname === "/" || pathname === "/home" ? "hidden md:flex" : ""
+              }`}
+            >
+              <Link href="/home" aria-label="Go to home">
+                <img
+                  src="/assets/logo.png"
+                  alt="Tharani Textiles"
+                  className="h-10 w-auto max-w-full object-contain transition-transform duration-300 hover:scale-[1.02] md:h-[60px]"
+                  draggable={false}
+                />
+              </Link>
+            </div>
 
           {/* Right */}
           <div className="flex items-center justify-end gap-1 md:gap-5 lg:gap-7">
