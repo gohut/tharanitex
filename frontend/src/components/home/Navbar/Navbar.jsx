@@ -144,7 +144,7 @@ export default function Navbar() {
               <img
                 src="/assets/wishlist_icon.png"
                 alt="Wishlist"
-                className="h-7 w-7 object-contain md:h-9 md:w-9"
+                className="h-6 w-6 object-contain md:h-7 md:w-7"
                 draggable={false}
               />
             </button>
