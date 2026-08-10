@@ -1,23 +1,82 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 
 export default function ProductGallery({ images }) {
   const [selected, setSelected] = useState(0);
   const [wishlisted, setWishlisted] = useState(false);
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const touchStart = useRef({ x: 0, y: 0 });
+  const horizontalSwipe = useRef(false);
+
+  const handleTouchStart = (event) => {
+    const touch = event.touches[0];
+    touchStart.current = { x: touch.clientX, y: touch.clientY };
+    horizontalSwipe.current = false;
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (event) => {
+    const touch = event.touches[0];
+    const dx = touch.clientX - touchStart.current.x;
+    const dy = touch.clientY - touchStart.current.y;
+
+    if (!horizontalSwipe.current && Math.abs(dx) < Math.abs(dy)) {
+      setIsDragging(false);
+      return;
+    }
+
+    if (Math.abs(dx) > 8) {
+      horizontalSwipe.current = true;
+      setDragX(dx);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (horizontalSwipe.current) {
+      if (dragX < -50 && selected < images.length - 1) {
+        setSelected((current) => current + 1);
+      } else if (dragX > 50 && selected > 0) {
+        setSelected((current) => current - 1);
+      }
+    }
+
+    setDragX(0);
+    setIsDragging(false);
+    horizontalSwipe.current = false;
+  };
 
   return (
     <div className="flex flex-col gap-3 sm:gap-4">
-      <div className="relative aspect-[0.82] w-full overflow-hidden border border-[#E8DDCE] bg-[#F4EBDD] sm:aspect-[0.78]">
-        <Image
-          src={images[selected]}
-          alt="Product"
-          fill
-          priority
-          unoptimized
-          className="object-cover"
-        />
+      <div
+        className="relative aspect-[0.82] w-full overflow-hidden border border-[#E8DDCE] bg-[#F4EBDD] sm:aspect-[0.78]"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
+        style={{ touchAction: "pan-y" }}
+      >
+        <div
+          className={`flex h-full w-full ${isDragging ? "transition-none" : "transition-transform duration-300 ease-out"}`}
+          style={{
+            transform: `translateX(calc(-${selected * 100}% + ${dragX}px))`,
+          }}
+        >
+          {images.map((image, index) => (
+            <div key={index} className="relative h-full min-w-full shrink-0">
+              <Image
+                src={image}
+                alt={`Product image ${index + 1}`}
+                fill
+                priority={index === 0}
+                unoptimized
+                className="object-cover"
+              />
+            </div>
+          ))}
+        </div>
 
         <button
           onClick={() => setWishlisted(!wishlisted)}
