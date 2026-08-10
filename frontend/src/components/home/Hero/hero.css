@@ -1,24 +1,137 @@
 .hero-section {
   width: 100%;
-  height: 56.25vw;
-  min-height: 210px;
-  max-height: 320px;
+  height: 420px;
   overflow: hidden;
   position: relative;
   background: #FBF5EA;
 }
 
-@media (min-width: 640px) {
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 639px) {
+  .hero-section {
+    height: auto;
+    min-height: 0;
+  }
+
+  .hero-section .swiper {
+    width: 100%;
+    height: auto;
+  }
+
+  .hero-section .swiper-slide {
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+  }
+
+  .hero-image {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    object-position: center center;
+    display: block;
+    user-select: none;
+    pointer-events: none;
+    transform: none;
+  }
+
+  .hero-section .swiper-slide-active .hero-image {
+    transform: none;
+  }
+
+  .hero-section .swiper-pagination {
+    bottom: 12px !important;
+  }
+}
+
+/* =========================
+   TABLET
+   ========================= */
+
+@media (min-width: 640px) and (max-width: 1023px) {
   .hero-section {
     height: 520px;
   }
+
+  .hero-section .swiper {
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-section .swiper-slide {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+    user-select: none;
+    pointer-events: none;
+    transform: scale(1);
+    transition: transform 7s ease;
+  }
+
+  .hero-section .swiper-slide-active .hero-image {
+    transform: scale(1.05);
+  }
+
+  .hero-section .swiper-pagination {
+    bottom: 32px !important;
+  }
 }
+
+/* =========================
+   DESKTOP
+   ========================= */
 
 @media (min-width: 1024px) {
   .hero-section {
     height: 640px;
   }
+
+  .hero-section .swiper {
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-section .swiper-slide {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+    user-select: none;
+    pointer-events: none;
+    transform: scale(1);
+    transition: transform 7s ease;
+  }
+
+  .hero-section .swiper-slide-active .hero-image {
+    transform: scale(1.05);
+  }
+
+  .hero-section .swiper-pagination {
+    bottom: 32px !important;
+  }
 }
+
+/* =========================
+   LARGE DESKTOP
+   ========================= */
 
 @media (min-width: 1440px) {
   .hero-section {
@@ -26,42 +139,9 @@
   }
 }
 
-.hero-section .swiper {
-  width: 100%;
-  height: 100%;
-}
-
-.hero-section .swiper-slide {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.hero-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center center;
-  display: block;
-  user-select: none;
-  pointer-events: none;
-  transform: scale(1);
-  transition: transform 7s ease;
-}
-
-.hero-section .swiper-slide-active .hero-image {
-  transform: scale(1.05);
-}
-
-.hero-section .swiper-pagination {
-  bottom: 12px !important;
-}
-
-@media (min-width: 769px) {
-  .hero-section .swiper-pagination {
-    bottom: 32px !important;
-  }
-}
+/* =========================
+   PAGINATION
+   ========================= */
 
 .hero-section .swiper-pagination-bullet {
   width: 8px;
