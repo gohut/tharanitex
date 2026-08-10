@@ -6,7 +6,7 @@ export default function WhySection({ content, subtitle }) {
   const features = content.features || [];
 
   return (
-    <section>
+    <section className="px-6 py-9 sm:px-8 sm:py-12">
       {/* Heading */}
       <div className="flex items-center justify-center">
         <div className="flex max-w-[470px] flex-col items-center text-center">
@@ -23,7 +23,7 @@ export default function WhySection({ content, subtitle }) {
           <div className="mt-4 h-px w-[245px] max-w-full bg-[#e0bd73] sm:mt-5" />
 
           {(subtitle || content.subtitle) && (
-            <p className="mt-4 max-w-[430px] whitespace-pre-line font-montserrat text-[0.78rem] font-normal leading-[1.4] text-[#1e1e1e] sm:mt-6 sm:text-[1.15rem] lg:text-[1.3rem]">
+            <p className="mt-4 max-w-[360px] whitespace-pre-line font-montserrat text-[0.78rem] font-normal leading-[1.4] text-[#1e1e1e] sm:mt-6 sm:text-[1.15rem] lg:text-[1.3rem]">
               {subtitle || content.subtitle}
             </p>
           )}
