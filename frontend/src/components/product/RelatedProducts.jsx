@@ -20,7 +20,7 @@ export default function RelatedProducts({ products }) {
   };
 
   return (
-    <section className="border-t-0 pt-0 md:border-t md:border-[#E6D9C6] md:pt-12">
+    <section className="pt-10 sm:pt-12">
       <div className="mx-auto max-w-[1420px] px-5 md:px-8 lg:px-10">
         <h2 className="text-center font-klaristha text-[34px] uppercase tracking-[0.02em] text-[#D38E2E] md:text-[46px]">
           You May Also Like

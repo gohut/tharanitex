@@ -1,78 +1,56 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 export default function ProductGallery({ images }) {
   const [selected, setSelected] = useState(0);
   const [wishlisted, setWishlisted] = useState(false);
-  const [dragX, setDragX] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const touchStart = useRef({ x: 0, y: 0 });
-  const horizontalSwipe = useRef(false);
+  const scrollerRef = useRef(null);
 
-  const handleTouchStart = (event) => {
-    const touch = event.touches[0];
-    touchStart.current = { x: touch.clientX, y: touch.clientY };
-    horizontalSwipe.current = false;
-    setIsDragging(true);
-  };
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
 
-  const handleTouchMove = (event) => {
-    const touch = event.touches[0];
-    const dx = touch.clientX - touchStart.current.x;
-    const dy = touch.clientY - touchStart.current.y;
+    const handleScroll = () => {
+      const width = scroller.clientWidth || 1;
+      const nextIndex = Math.round(scroller.scrollLeft / width);
+      setSelected(Math.max(0, Math.min(nextIndex, images.length - 1)));
+    };
 
-    if (!horizontalSwipe.current && Math.abs(dx) < Math.abs(dy)) {
-      setIsDragging(false);
-      return;
-    }
+    scroller.addEventListener("scroll", handleScroll, { passive: true });
+    return () => scroller.removeEventListener("scroll", handleScroll);
+  }, [images.length]);
 
-    if (Math.abs(dx) > 8) {
-      horizontalSwipe.current = true;
-      setDragX(dx);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (horizontalSwipe.current) {
-      if (dragX < -50 && selected < images.length - 1) {
-        setSelected((current) => current + 1);
-      } else if (dragX > 50 && selected > 0) {
-        setSelected((current) => current - 1);
-      }
-    }
-
-    setDragX(0);
-    setIsDragging(false);
-    horizontalSwipe.current = false;
+  const selectImage = (index) => {
+    setSelected(index);
+    scrollerRef.current?.children[index]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "start",
+    });
   };
 
   return (
     <div className="flex flex-col gap-3 sm:gap-4">
-      <div
-        className="relative aspect-[0.82] w-full overflow-hidden border border-[#E8DDCE] bg-[#F4EBDD] sm:aspect-[0.78]"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchEnd}
-        style={{ touchAction: "pan-y" }}
-      >
+      <div className="relative aspect-[0.82] w-full overflow-hidden border border-[#E8DDCE] bg-[#F4EBDD] sm:aspect-[0.78]">
         <div
-          className={`flex h-full w-full ${isDragging ? "transition-none" : "transition-transform duration-300 ease-out"}`}
-          style={{
-            transform: `translateX(calc(-${selected * 100}% + ${dragX}px))`,
-          }}
+          ref={scrollerRef}
+          className="flex h-full w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {images.map((image, index) => (
-            <div key={index} className="relative h-full min-w-full shrink-0">
+            <div
+              key={`${image}-${index}`}
+              className="relative h-full w-full shrink-0 snap-start"
+            >
               <Image
                 src={image}
                 alt={`Product image ${index + 1}`}
                 fill
                 priority={index === 0}
                 unoptimized
-                className="object-cover"
+                draggable={false}
+                className="select-none object-cover"
               />
             </div>
           ))}
@@ -101,7 +79,7 @@ export default function ProductGallery({ images }) {
         {images.map((image, index) => (
           <button
             key={index}
-            onClick={() => setSelected(index)}
+            onClick={() => selectImage(index)}
             className={`relative h-[68px] w-[56px] shrink-0 overflow-hidden border transition sm:h-[74px] sm:w-[62px] ${
               selected === index
                 ? "border-[#C79127]"

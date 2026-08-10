@@ -14,19 +14,10 @@ export async function POST(request) {
       );
     }
 
-    const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
-    const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
-    if (!allowedTypes.includes(file.type)) {
+    // Product uploads intentionally have no file-size or image-count limit here.
+    if (!file.type?.startsWith("image/")) {
       return Response.json(
-        { error: "Only PNG, JPEG, and WebP images are allowed" },
-        { status: 400 }
-      );
-    }
-
-    if (file.size > MAX_FILE_SIZE) {
-      return Response.json(
-        { error: "Image is too large. Maximum size is 5 MB." },
+        { error: "Only image files are allowed" },
         { status: 400 }
       );
     }

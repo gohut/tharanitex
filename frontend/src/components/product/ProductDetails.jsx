@@ -45,7 +45,7 @@ export default function ProductDetails({ product }) {
 
   return (
     <div className="flex flex-col pt-1">
-      <h1 className="max-w-[520px] font-klaristha text-[24px] uppercase leading-[1.05] tracking-[-0.01em] text-[#C79127] sm:text-[28px] md:text-[36px]">
+      <h1 className="max-w-[520px] font-klaristha text-[26px] uppercase leading-[1.05] tracking-[-0.01em] text-[#C79127] sm:text-[28px] md:text-[36px]">
         {product.name}
       </h1>
 
@@ -58,35 +58,37 @@ export default function ProductDetails({ product }) {
           {formatPrice(product.price)}
         </p>
 
-        <div className="flex h-[22px] border border-[#F2A100]">
+        <div className="flex h-[22px] shrink-0 border border-[#F2A100]">
           <button
             onClick={() => qty > 1 && setQty(qty - 1)}
             aria-label="Decrease quantity"
-            className="flex w-[20px] items-center justify-center bg-[#F2A100] text-[#3F2C12] transition hover:bg-[#DF9600]"
+            className="flex w-[22px] items-center justify-center bg-[#F2A100] text-[#3F2C12] transition hover:bg-[#DF9600]"
           >
             <Minus size={10} strokeWidth={2.5} />
           </button>
 
-          <div className="flex w-[20px] items-center justify-center bg-[#F7E8C5] text-[11px] font-medium leading-none text-[#3F2C12]">
+          <div className="flex w-[22px] items-center justify-center bg-[#F7E8C5] text-[11px] font-medium leading-none text-[#3F2C12]">
             {qty}
           </div>
 
           <button
             onClick={() => setQty(qty + 1)}
             aria-label="Increase quantity"
-            className="flex w-[20px] items-center justify-center bg-[#F2A100] text-[#3F2C12] transition hover:bg-[#DF9600]"
+            className="flex w-[22px] items-center justify-center bg-[#F2A100] text-[#3F2C12] transition hover:bg-[#DF9600]"
           >
             <Plus size={10} strokeWidth={2.5} />
           </button>
         </div>
       </div>
 
-      <button
-        onClick={addToCart}
-        className="mt-6 h-11 w-full border-2 border-[#F2A100] bg-[#F2A100] px-6 text-sm font-semibold tracking-[0.06em] text-[#2F2417] transition hover:bg-[#DF9600] sm:h-[50px]"
-      >
-        ADD TO BAG
-      </button>
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <button
+          onClick={addToCart}
+          className="h-11 w-full border-2 border-[#F2A100] bg-[#F2A100] px-6 text-sm font-semibold tracking-[0.06em] text-[#2F2417] transition hover:bg-[#DF9600] sm:h-[50px]"
+        >
+          ADD TO BAG
+        </button>
+      </div>
 
       <button className="mt-3 h-11 w-full border-2 border-[#5A1F2F] bg-[#5A1F2F] text-sm font-semibold tracking-[0.06em] text-white transition hover:bg-[#471825] sm:h-[50px]">
         BUY NOW
