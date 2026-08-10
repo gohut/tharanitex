@@ -33,7 +33,9 @@ function AddProductContent() {
   const [existingImages, setExistingImages] = useState([]);
   const [slug, setSlug] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);  
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ completed: 0, total: 0 });
+  const [isUploading, setIsUploading] = useState(false);
 
   // Calculated Discount for Main Product
   const discount = useMemo(() => {
@@ -118,29 +120,50 @@ function AddProductContent() {
     loadProduct();
   }, [editId]);
 
+  const MAX_IMAGES = 8;
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+  const UPLOAD_CONCURRENCY = 3;
+  const UPLOAD_RETRIES = 2;
+
   const handleImageChange = (event) => {
     const files = Array.from(event.target.files || []);
+    event.target.value = "";
 
     if (!files.length) return;
 
-    const validFiles = files.filter((file) =>
-      file.type.startsWith("image/")
-    );
+    const remainingSlots = MAX_IMAGES - images.length;
+    if (remainingSlots <= 0) {
+      alert(`You can upload a maximum of ${MAX_IMAGES} images per product.`);
+      return;
+    }
 
-    const previews = validFiles.map((file) =>
-      URL.createObjectURL(file)
-    );
+    const selectedFiles = files.slice(0, remainingSlots);
+    const invalidType = selectedFiles.find((file) => !["image/png", "image/jpeg", "image/webp"].includes(file.type));
+    if (invalidType) {
+      alert(`${invalidType.name} is not supported. Please use PNG, JPEG, or WebP.`);
+      return;
+    }
+
+    const oversized = selectedFiles.find((file) => file.size > MAX_FILE_SIZE);
+    if (oversized) {
+      alert(`${oversized.name} is too large. Maximum image size is 5 MB.`);
+      return;
+    }
+
+    if (files.length > remainingSlots) {
+      alert(`Only ${remainingSlots} image${remainingSlots === 1 ? "" : "s"} can be added. Maximum is ${MAX_IMAGES}.`);
+    }
+
+    const previews = selectedFiles.map((file) => URL.createObjectURL(file));
 
     setImageFiles((prev) => [
       ...prev,
-      ...validFiles.map((file, index) => ({
+      ...selectedFiles.map((file, index) => ({
         file,
         preview: previews[index],
       })),
     ]);
     setImages((prev) => [...prev, ...previews]);
-
-    event.target.value = "";
   };
 
   const handleRemoveImage = (index) => {
@@ -249,32 +272,70 @@ const handleSave = async () => {
       // Upload images to R2
       // -----------------------------
 
-      const uploadResults = await Promise.all(
-        imageFiles.map(async (item) => {
-          const formData = new FormData();
+      const uploadResults = [];
+      setIsUploading(true);
+      setUploadProgress({ completed: 0, total: imageFiles.length });
 
-          formData.append("file", item.file);
-          formData.append("folder", "products");
+      const uploadOne = async (item) => {
+        let lastError;
 
-          const uploadRes = await fetch("/api/admin/upload", {
-            method: "POST",
-            body: formData,
-          });
+        for (let attempt = 0; attempt <= UPLOAD_RETRIES; attempt += 1) {
+          try {
+            const formData = new FormData();
+            formData.append("file", item.file);
+            formData.append("folder", "products");
 
-          const uploadData = await uploadRes.json();
+            const uploadRes = await fetch("/api/admin/upload", {
+              method: "POST",
+              body: formData,
+            });
 
-          if (!uploadRes.ok) {
-            throw new Error(
-              uploadData.error || "Image upload failed"
-            );
+            let uploadData = {};
+            try {
+              uploadData = await uploadRes.json();
+            } catch {
+              uploadData = {};
+            }
+
+            if (!uploadRes.ok) {
+              throw new Error(uploadData.error || `Image upload failed (${uploadRes.status})`);
+            }
+
+            if (!uploadData.url) {
+              throw new Error("Image upload succeeded but no image URL was returned.");
+            }
+
+            return { preview: item.preview, url: uploadData.url };
+          } catch (error) {
+            lastError = error;
+            if (attempt < UPLOAD_RETRIES) {
+              await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+            }
           }
+        }
 
-          return {
-            preview: item.preview,
-            url: uploadData.url,
-          };
-        })
+        throw new Error(`${item.file.name}: ${lastError?.message || "Image upload failed"}`);
+      };
+
+      let nextIndex = 0;
+      const worker = async () => {
+        while (true) {
+          const currentIndex = nextIndex++;
+          if (currentIndex >= imageFiles.length) return;
+
+          const result = await uploadOne(imageFiles[currentIndex]);
+          uploadResults[currentIndex] = result;
+          setUploadProgress((prev) => ({ ...prev, completed: prev.completed + 1 }));
+        }
+      };
+
+      await Promise.all(
+        Array.from(
+          { length: Math.min(UPLOAD_CONCURRENCY, imageFiles.length) },
+          () => worker()
+        )
       );
+      setIsUploading(false);
 
       const uploadedByPreview = new Map(
         uploadResults.map((item) => [
@@ -329,6 +390,7 @@ const payload = {
       router.refresh();
 
     } catch (error) {
+      setIsUploading(false);
       console.error("Save product error:", error);
 
       alert(
@@ -538,11 +600,30 @@ const payload = {
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
                   multiple
+                  disabled={images.length >= MAX_IMAGES || isUploading}
                   onChange={handleImageChange}
                   className="hidden"
                 />
               </label>
             </div>
+            <div className="flex items-center justify-between text-xs text-green-400">
+              <span>{images.length}/{MAX_IMAGES} images</span>
+              <span>PNG, JPEG, WebP · Max 5 MB each</span>
+            </div>
+            {isUploading && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs text-green-300">
+                  <span>Uploading images...</span>
+                  <span>{uploadProgress.completed}/{uploadProgress.total}</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-green-950">
+                  <div
+                    className="h-full bg-gold-500 transition-all duration-300"
+                    style={{ width: `${uploadProgress.total ? (uploadProgress.completed / uploadProgress.total) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+            )}
             {images.length === 0 && (
               <div className="flex items-start gap-2 p-3 bg-green-950/50 border border-green-800 rounded-xl text-green-400 text-xs">
                 <ImageIcon size={16} className="shrink-0 mt-0.5" />
@@ -552,8 +633,8 @@ const payload = {
           </div>
 
           <div className="bg-green-900 border border-green-800 rounded-2xl p-6 shadow-card">
-            <Button onClick={handleSave} className="w-full justify-center text-base py-3">
-              {isEditing ? "Save Changes" : "Save Product"}
+            <Button onClick={handleSave} disabled={isUploading} className="w-full justify-center text-base py-3">
+              {isUploading ? `Uploading ${uploadProgress.completed}/${uploadProgress.total}...` : (isEditing ? "Save Changes" : "Save Product")}
             </Button>
             <Button variant="secondary" onClick={() => router.push("/admin/products")} className="w-full justify-center text-base py-3 mt-3">
               Cancel
