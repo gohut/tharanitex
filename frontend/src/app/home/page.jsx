@@ -7,7 +7,6 @@ import WhySection from "@/components/home/WhySection/WhySection";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getHomeData } from "@/lib/db/home-data";
   
-export const revalidate = 3600;
 export default async function HomePage() {
   const { env } = await getCloudflareContext({ async: true });
   const data = await getHomeData(env.DB);
