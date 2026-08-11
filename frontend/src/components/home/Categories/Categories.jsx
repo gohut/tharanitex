@@ -32,9 +32,7 @@ export default function Categories({ categories }) {
           {items.map((item) => (
             <Link
               key={item.id}
-              href={`/search?category=${encodeURIComponent(
-                item.slug
-              )}`}
+              href={`/collections/${item.slug}`}
               className="group flex h-full flex-col cursor-pointer"
             >
               <div className="overflow-hidden bg-white transition-all duration-500">
