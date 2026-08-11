@@ -71,7 +71,6 @@ export default async function HomePage() {
             title="Best Sellers"
             subtitle="Loved for their timeless beauty, chosen for moments that deserve something special."
             products={data.bestSellers || []}
-            backgroundImage="/assets/backgrounds/best-sellers-bg.png"
           />
         );
 

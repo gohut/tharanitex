@@ -12,33 +12,47 @@ export default function ProductSection({
 }) {
   const visibleCount = 4;
   const [startIndex, setStartIndex] = useState(0);
+  const mobileVisibleCount = 4;
+  const mobileStep = 2;
 
-  const canGoLeft = startIndex > 0;
-  const canGoRight = startIndex + visibleCount < products.length;
+  const [mobileStartIndex, setMobileStartIndex] = useState(0);
 
-  const hasSlider = products.length > visibleCount;
+  const canGoMobileLeft = mobileStartIndex > 0;
 
-  const handlePrevious = () => {
-    if (canGoLeft) {
-      setStartIndex((prev) => prev - 1);
+  const canGoMobileRight =
+    mobileStartIndex + mobileVisibleCount < products.length;
+
+  const handleMobilePrevious = () => {
+    if (canGoMobileLeft) {
+      setMobileStartIndex((prev) => Math.max(0, prev - mobileStep));
     }
   };
 
-  const handleNext = () => {
-    if (canGoRight) {
-      setStartIndex((prev) => prev + 1);
+  const handleMobileNext = () => {
+    if (canGoMobileRight) {
+      setMobileStartIndex((prev) => prev + mobileStep);
     }
   };
+
+    const canGoLeft = startIndex > 0;
+    const canGoRight = startIndex + visibleCount < products.length;
+
+    const hasSlider = products.length > visibleCount;
+
+    const handlePrevious = () => {
+      if (canGoLeft) {
+        setStartIndex((prev) => prev - 1);
+      }
+    };
+
+    const handleNext = () => {
+      if (canGoRight) {
+        setStartIndex((prev) => prev + 1);
+      }
+    };
 
   return (
-    <section
-      className="bg-[#FBF5EA] bg-cover bg-center bg-no-repeat py-5 md:py-8 lg:py-10"
-      style={
-        backgroundImage
-          ? { backgroundImage: `url(${backgroundImage})` }
-          : undefined
-      }
-    >
+    <section className="bg-[#003D2C] py-5 md:py-8 lg:py-10">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 md:px-8">
 
         {/* Section Heading */}
@@ -48,20 +62,126 @@ export default function ProductSection({
 
         {/* Section Subtitle */}
         {subtitle && (
-          <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-6 text-[#72675A] md:mt-3 md:text-base">
+          <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-6 text-[#F7F1E5] md:mt-3 md:text-base">
             {subtitle}
           </p>
         )}
 
-        {/* Mobile / Tablet */}
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:gap-6 lg:hidden">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              isHomepageCard={true}
+        {/* Mobile / Tablet Slider */}
+        <div className="relative mt-3 sm:mt-4 lg:hidden">
+
+          {/* LEFT FADE */}
+          {canGoMobileLeft && (
+            <div
+              className="
+                pointer-events-none
+                absolute
+                left-0
+                top-0
+                bottom-0
+                z-20
+                w-12
+                bg-gradient-to-r
+                from-[#FBF5EA]
+                to-transparent
+              "
             />
-          ))}
+          )}
+
+          {/* RIGHT FADE */}
+          {canGoMobileRight && (
+            <div
+              className="
+                pointer-events-none
+                absolute
+                right-0
+                top-0
+                bottom-0
+                z-20
+                w-12
+                bg-gradient-to-l
+                from-[#FBF5EA]
+                to-transparent
+              "
+            />
+          )}
+
+          {/* LEFT ARROW */}
+          {canGoMobileLeft && (
+            <button
+              type="button"
+              onClick={handleMobilePrevious}
+              aria-label="Previous products"
+              className="
+                absolute
+                left-1
+                top-[40%]
+                z-30
+                flex
+                h-9
+                w-9
+                -translate-y-1/2
+                items-center
+                justify-center
+                rounded-full
+                bg-white
+                shadow-md
+              "
+            >
+              <ArrowLeft
+                size={17}
+                strokeWidth={1.8}
+                color="#D69E2E"
+              />
+            </button>
+          )}
+
+          {/* PRODUCTS */}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-6 sm:gap-y-8">
+            {products
+              .slice(
+                mobileStartIndex,
+                mobileStartIndex + mobileVisibleCount
+              )
+              .map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  isHomepageCard={true}
+                />
+              ))}
+          </div>
+
+          {/* RIGHT ARROW */}
+          {canGoMobileRight && (
+            <button
+              type="button"
+              onClick={handleMobileNext}
+              aria-label="Next products"
+              className="
+                absolute
+                right-1
+                top-[40%]
+                z-30
+                flex
+                h-9
+                w-9
+                -translate-y-1/2
+                items-center
+                justify-center
+                rounded-full
+                bg-white
+                shadow-md
+              "
+            >
+              <ArrowRight
+                size={17}
+                strokeWidth={1.8}
+                color="#D69E2E"
+              />
+            </button>
+          )}
+
         </div>
 
         {/* Desktop Slider */}
