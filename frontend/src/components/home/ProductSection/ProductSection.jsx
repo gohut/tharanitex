@@ -9,50 +9,115 @@ export default function ProductSection({
   subtitle,
   products = [],
   backgroundImage,
+  backgroundColor = "#FBF5EA",
 }) {
   const visibleCount = 4;
+
+  // Desktop slider
   const [startIndex, setStartIndex] = useState(0);
-  const mobileVisibleCount = 4;
+
+  const canGoLeft = startIndex > 0;
+  const canGoRight = startIndex + visibleCount < products.length;
+
+  const hasSlider = products.length > visibleCount;
+
+  const handlePrevious = () => {
+    if (canGoLeft) {
+      setStartIndex((prev) => prev - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (canGoRight) {
+      setStartIndex((prev) => prev + 1);
+    }
+  };
+
+  // --------------------------------------------------
+  // MOBILE — TWO INDEPENDENT ROW SLIDERS
+  // --------------------------------------------------
+
+  const mobileVisibleCount = 2;
   const mobileStep = 2;
 
-  const [mobileStartIndex, setMobileStartIndex] = useState(0);
+  /*
+   * Split the products into two rows.
+   *
+   * Example with 8 products:
+   *
+   * Row 1 → 1  2  3  4
+   * Row 2 → 5  6  7  8
+   */
+  const mobileRowSize = Math.ceil(products.length / 2);
 
-  const canGoMobileLeft = mobileStartIndex > 0;
+  const mobileRow1Products = products.slice(0, mobileRowSize);
+  const mobileRow2Products = products.slice(mobileRowSize);
 
-  const canGoMobileRight =
-    mobileStartIndex + mobileVisibleCount < products.length;
+  const [mobileRow1Index, setMobileRow1Index] = useState(0);
+  const [mobileRow2Index, setMobileRow2Index] = useState(0);
 
-  const handleMobilePrevious = () => {
-    if (canGoMobileLeft) {
-      setMobileStartIndex((prev) => Math.max(0, prev - mobileStep));
+  // Row 1 controls
+  const row1CanGoLeft = mobileRow1Index > 0;
+
+  const row1CanGoRight =
+    mobileRow1Index + mobileVisibleCount <
+    mobileRow1Products.length;
+
+  // Row 2 controls
+  const row2CanGoLeft = mobileRow2Index > 0;
+
+  const row2CanGoRight =
+    mobileRow2Index + mobileVisibleCount <
+    mobileRow2Products.length;
+
+  const handleMobileRow1Previous = () => {
+    if (row1CanGoLeft) {
+      setMobileRow1Index((prev) =>
+        Math.max(0, prev - mobileStep)
+      );
     }
   };
 
-  const handleMobileNext = () => {
-    if (canGoMobileRight) {
-      setMobileStartIndex((prev) => prev + mobileStep);
+  const handleMobileRow1Next = () => {
+    if (row1CanGoRight) {
+      setMobileRow1Index((prev) =>
+        Math.min(
+          mobileRow1Products.length - mobileVisibleCount,
+          prev + mobileStep
+        )
+      );
     }
   };
 
-    const canGoLeft = startIndex > 0;
-    const canGoRight = startIndex + visibleCount < products.length;
+  const handleMobileRow2Previous = () => {
+    if (row2CanGoLeft) {
+      setMobileRow2Index((prev) =>
+        Math.max(0, prev - mobileStep)
+      );
+    }
+  };
 
-    const hasSlider = products.length > visibleCount;
-
-    const handlePrevious = () => {
-      if (canGoLeft) {
-        setStartIndex((prev) => prev - 1);
-      }
-    };
-
-    const handleNext = () => {
-      if (canGoRight) {
-        setStartIndex((prev) => prev + 1);
-      }
-    };
+  const handleMobileRow2Next = () => {
+    if (row2CanGoRight) {
+      setMobileRow2Index((prev) =>
+        Math.min(
+          mobileRow2Products.length - mobileVisibleCount,
+          prev + mobileStep
+        )
+      );
+    }
+  };
 
   return (
-    <section className="bg-[#003D2C] py-5 md:py-8 lg:py-10">
+    <section
+      className="bg-cover bg-center bg-no-repeat py-5 md:py-8 lg:py-10"
+      style={{
+        backgroundColor,
+        ...(backgroundImage
+          ? { backgroundImage: `url(${backgroundImage})` }
+          : {}),
+      }}
+    >
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 md:px-8">
 
         {/* Section Heading */}
@@ -62,129 +127,208 @@ export default function ProductSection({
 
         {/* Section Subtitle */}
         {subtitle && (
-          <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-6 text-[#F7F1E5] md:mt-3 md:text-base">
+          <p
+            className={`mx-auto mt-2 max-w-2xl text-center text-sm leading-6 md:mt-3 md:text-base ${
+              backgroundColor === "#003D2C"
+                ? "text-[#F7F1E5]"
+                : "text-[#72675A]"
+            }`}
+          >
             {subtitle}
           </p>
         )}
 
-        {/* Mobile / Tablet Slider */}
-        <div className="relative mt-3 sm:mt-4 lg:hidden">
+        {/* ================================================= */}
+        {/* MOBILE / TABLET — TWO INDEPENDENT SLIDER ROWS */}
+        {/* ================================================= */}
 
-          {/* LEFT FADE */}
-          {canGoMobileLeft && (
-            <div
-              className="
-                pointer-events-none
-                absolute
-                left-0
-                top-0
-                bottom-0
-                z-20
-                w-12
-                bg-gradient-to-r
-                from-[#FBF5EA]
-                to-transparent
-              "
-            />
-          )}
+        <div className="mt-3 space-y-6 sm:mt-4 sm:space-y-8 lg:hidden">
 
-          {/* RIGHT FADE */}
-          {canGoMobileRight && (
-            <div
-              className="
-                pointer-events-none
-                absolute
-                right-0
-                top-0
-                bottom-0
-                z-20
-                w-12
-                bg-gradient-to-l
-                from-[#FBF5EA]
-                to-transparent
-              "
-            />
-          )}
+          {/* ================= ROW 1 ================= */}
 
-          {/* LEFT ARROW */}
-          {canGoMobileLeft && (
-            <button
-              type="button"
-              onClick={handleMobilePrevious}
-              aria-label="Previous products"
-              className="
-                absolute
-                left-1
-                top-[40%]
-                z-30
-                flex
-                h-9
-                w-9
-                -translate-y-1/2
-                items-center
-                justify-center
-                rounded-full
-                bg-white
-                shadow-md
-              "
-            >
-              <ArrowLeft
-                size={17}
-                strokeWidth={1.8}
-                color="#D69E2E"
-              />
-            </button>
-          )}
+          <div className="relative">
 
-          {/* PRODUCTS */}
-          <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-6 sm:gap-y-8">
-            {products
-              .slice(
-                mobileStartIndex,
-                mobileStartIndex + mobileVisibleCount
-              )
-              .map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  isHomepageCard={true}
+            {/* Row 1 LEFT BUTTON */}
+            {row1CanGoLeft && (
+              <button
+                type="button"
+                onClick={handleMobileRow1Previous}
+                aria-label="Previous products in first row"
+                className="
+                  absolute
+                  left-0
+                  top-1/2
+                  z-30
+                  flex
+                  h-9
+                  w-9
+                  -translate-y-1/2
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-white
+                  shadow-md
+                  transition-transform
+                  duration-200
+                  hover:scale-105
+                  active:scale-95
+                "
+              >
+                <ArrowLeft
+                  size={17}
+                  strokeWidth={1.8}
+                  color="#D69E2E"
                 />
-              ))}
+              </button>
+            )}
+
+            {/* Row 1 PRODUCTS */}
+            <div className="grid grid-cols-2 gap-x-3 sm:gap-x-6">
+              {mobileRow1Products
+                .slice(
+                  mobileRow1Index,
+                  mobileRow1Index + mobileVisibleCount
+                )
+                .map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    isHomepageCard={true}
+                  />
+                ))}
+            </div>
+
+            {/* Row 1 RIGHT BUTTON */}
+            {row1CanGoRight && (
+              <button
+                type="button"
+                onClick={handleMobileRow1Next}
+                aria-label="Next products in first row"
+                className="
+                  absolute
+                  right-0
+                  top-1/2
+                  z-30
+                  flex
+                  h-9
+                  w-9
+                  -translate-y-1/2
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-white
+                  shadow-md
+                  transition-transform
+                  duration-200
+                  hover:scale-105
+                  active:scale-95
+                "
+              >
+                <ArrowRight
+                  size={17}
+                  strokeWidth={1.8}
+                  color="#D69E2E"
+                />
+              </button>
+            )}
           </div>
 
-          {/* RIGHT ARROW */}
-          {canGoMobileRight && (
-            <button
-              type="button"
-              onClick={handleMobileNext}
-              aria-label="Next products"
-              className="
-                absolute
-                right-1
-                top-[40%]
-                z-30
-                flex
-                h-9
-                w-9
-                -translate-y-1/2
-                items-center
-                justify-center
-                rounded-full
-                bg-white
-                shadow-md
-              "
-            >
-              <ArrowRight
-                size={17}
-                strokeWidth={1.8}
-                color="#D69E2E"
-              />
-            </button>
-          )}
+          {/* ================= ROW 2 ================= */}
 
+          {mobileRow2Products.length > 0 && (
+            <div className="relative">
+
+              {/* Row 2 LEFT BUTTON */}
+              {row2CanGoLeft && (
+                <button
+                  type="button"
+                  onClick={handleMobileRow2Previous}
+                  aria-label="Previous products in second row"
+                  className="
+                    absolute
+                    left-0
+                    top-1/2
+                    z-30
+                    flex
+                    h-9
+                    w-9
+                    -translate-y-1/2
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white
+                    shadow-md
+                    transition-transform
+                    duration-200
+                    hover:scale-105
+                    active:scale-95
+                  "
+                >
+                  <ArrowLeft
+                    size={17}
+                    strokeWidth={1.8}
+                    color="#D69E2E"
+                  />
+                </button>
+              )}
+
+              {/* Row 2 PRODUCTS */}
+              <div className="grid grid-cols-2 gap-x-3 sm:gap-x-6">
+                {mobileRow2Products
+                  .slice(
+                    mobileRow2Index,
+                    mobileRow2Index + mobileVisibleCount
+                  )
+                  .map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      isHomepageCard={true}
+                    />
+                  ))}
+              </div>
+
+              {/* Row 2 RIGHT BUTTON */}
+              {row2CanGoRight && (
+                <button
+                  type="button"
+                  onClick={handleMobileRow2Next}
+                  aria-label="Next products in second row"
+                  className="
+                    absolute
+                    right-0
+                    top-1/2
+                    z-30
+                    flex
+                    h-9
+                    w-9
+                    -translate-y-1/2
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white
+                    shadow-md
+                    transition-transform
+                    duration-200
+                    hover:scale-105
+                    active:scale-95
+                  "
+                >
+                  <ArrowRight
+                    size={17}
+                    strokeWidth={1.8}
+                    color="#D69E2E"
+                  />
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Desktop Slider */}
+        {/* ================================================= */}
+        {/* DESKTOP SLIDER — LEAVE AS IT IS */}
+        {/* ================================================= */}
+
         <div className="relative mt-4 hidden lg:block md:mt-5 lg:mt-6">
 
           {/* LEFT FADE */}
@@ -310,7 +454,6 @@ export default function ProductSection({
               />
             </button>
           )}
-
         </div>
       </div>
     </section>
