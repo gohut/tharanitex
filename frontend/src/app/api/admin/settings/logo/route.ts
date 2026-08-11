@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { enforceAdminPermission } from '../../../../../lib/auth';
-import { ApiResponse, CloudflareEnv } from '../../../../../types/auth';
+import { ApiResponse } from '../../../../../types/auth';
 
 /**
  * POST /api/admin/settings/logo
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     try {
       const { getCloudflareContext } = await import('@opennextjs/cloudflare');
       const ctx = await getCloudflareContext();
-      const imagesBucket = (ctx?.env as CloudflareEnv)?.IMAGES;
+      const imagesBucket = (ctx?.env as unknown as { tharani_product_images?: R2Bucket })?.tharani_product_images;
 
       if (imagesBucket) {
         await imagesBucket.put(r2Key, arrayBuffer, {
@@ -142,3 +142,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     );
   }
 }
+
+
+
+
+
+
