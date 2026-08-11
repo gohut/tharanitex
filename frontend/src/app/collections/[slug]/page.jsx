@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Navbar from "@/components/home/Navbar/Navbar";
 import ProductCard from "@/components/home/ProductSection/ProductCard";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function CollectionPage({ params }) {
   const { slug } = await params;
+
   const { env } = await getCloudflareContext({ async: true });
 
   const category = await getCategoryBySlug(env.DB, slug);
@@ -30,7 +31,7 @@ export default async function CollectionPage({ params }) {
             href="/collections"
             className="text-xs uppercase tracking-[0.25em] text-[#9B7A2B] hover:text-[#D4A437]"
           >
-            ? All Collections
+            ← All Collections
           </Link>
 
           <h1 className="mt-4 text-[44px] font-light leading-none text-[#D4A437] sm:text-[58px] md:text-[72px]">
@@ -54,6 +55,7 @@ export default async function CollectionPage({ params }) {
               <ProductCard
                 key={product.id}
                 product={product}
+                isHomepageCard={false}
               />
             ))}
           </div>

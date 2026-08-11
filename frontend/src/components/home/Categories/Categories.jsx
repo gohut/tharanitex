@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 export default function Categories({ categories }) {
   if (!categories) {
@@ -62,3 +62,4 @@ export default function Categories({ categories }) {
     </section>
   );
 }
+

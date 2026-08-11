@@ -374,3 +374,42 @@ export async function deleteProductImages(db, productId) {
     success: true,
   };
 }
+export async function getProductsByCategorySlug(db, slug, { activeOnly = true } = {}) {
+  const { results } = await db
+    .prepare(`
+      SELECT
+        p.id,
+        p.name,
+        p.slug,
+        p.price,
+        p.description,
+        p.stock,
+        p.featured,
+        p.is_new_arrival AS isNewArrival,
+        p.is_best_seller AS isBestSeller,
+        p.is_active AS isActive,
+        c.name AS category,
+        c.slug AS categorySlug,
+        c.subtitle AS categorySubtitle,
+        c.description AS categoryDescription,
+        c.image_url AS categoryImage,
+        (
+          SELECT image_url
+          FROM product_images pi
+          WHERE pi.product_id = p.id
+          ORDER BY sort_order ASC, id ASC
+          LIMIT 1
+        ) AS image
+      FROM products p
+      JOIN categories c
+        ON c.id = p.category_id
+      WHERE c.slug = ?
+      ${activeOnly ? "AND p.is_active = 1" : ""}
+      AND c.is_active = 1
+      ORDER BY p.id DESC;
+    `)
+    .bind(slug)
+    .all();
+
+  return results;
+}

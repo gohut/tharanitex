@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Navbar from "@/components/home/Navbar/Navbar";
 import ProductCard from "@/components/home/ProductSection/ProductCard";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -59,6 +59,7 @@ export default async function ProductsPage() {
               <ProductCard
                 key={product.id}
                 product={product}
+                isHomepageCard={false}
               />
             ))}
           </div>
