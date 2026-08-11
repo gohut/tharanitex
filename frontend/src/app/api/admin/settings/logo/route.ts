@@ -1,3 +1,4 @@
+import type { R2Bucket } from '@cloudflare/workers-types';
 import { NextRequest, NextResponse } from 'next/server';
 import { enforceAdminPermission } from '../../../../../lib/auth';
 import { ApiResponse } from '../../../../../types/auth';

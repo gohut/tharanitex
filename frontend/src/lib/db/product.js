@@ -92,42 +92,7 @@ export async function getAllProducts(db, { activeOnly = true } = {}) {
   return results;
 }
 
-export async function getProductsByCategorySlug(db, slug) {
-  const { results } = await db
-    .prepare(`
-      SELECT
-        p.id,
-        p.name,
-        p.slug,
-        p.price,
-        p.description,
-        p.stock,
-        p.featured,
-        p.is_new_arrival AS isNewArrival,
-        p.is_best_seller AS isBestSeller,
-        p.is_active AS isActive,
-        c.name AS category,
-        c.slug AS categorySlug,
-        (
-          SELECT image_url
-          FROM product_images pi
-          WHERE pi.product_id = p.id
-          ORDER BY sort_order ASC, id ASC
-          LIMIT 1
-        ) AS image
-      FROM products p
-      JOIN categories c
-        ON c.id = p.category_id
-      WHERE c.slug = ?
-        AND c.is_active = 1
-        AND p.is_active = 1
-      ORDER BY p.id DESC;
-    `)
-    .bind(slug)
-    .all();
 
-  return results;
-}
 
 export async function getProductBySlug(db, slug) {
   const product = await db
@@ -141,7 +106,8 @@ export async function getProductBySlug(db, slug) {
         p.stock,
         c.name AS category
       FROM products p
-      JOIN categories c ON c.id = p.category_id
+      JOIN categories c
+        ON c.id = p.category_id
       WHERE p.slug = ?
       LIMIT 1
     `)
@@ -155,16 +121,15 @@ export async function getProductBySlug(db, slug) {
       SELECT image_url
       FROM product_images
       WHERE product_id = ?
-      ORDER BY sort_order
+      ORDER BY sort_order ASC, id ASC
     `)
     .bind(product.id)
     .all();
 
-  product.images = images.map(i => i.image_url);
+  product.images = images.map((image) => image.image_url);
 
   return product;
 }
-
 export async function getProductById(db, id) {
   const product = await db
     .prepare(`

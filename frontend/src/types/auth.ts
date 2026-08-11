@@ -1,3 +1,4 @@
+import type { R2Bucket } from '@cloudflare/workers-types';
 // Cloudflare KV Database, D1 Database, and Worker Environment Bindings
 export interface CloudflareEnv {
   KV: KVNamespace;

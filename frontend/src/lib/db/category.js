@@ -11,7 +11,7 @@ export async function getAllCategories(db, { activeOnly = false } = {}) {
     .prepare(`
       SELECT
         id,
-        na
+        name,
         subtitle,
         slug,
         description,
@@ -27,6 +27,27 @@ export async function getAllCategories(db, { activeOnly = false } = {}) {
   return results;
 }
 
+
+export async function getCategoryBySlug(db, slug) {
+  return db
+    .prepare(`
+      SELECT
+        id,
+        name,
+        subtitle,
+        slug,
+        description,
+        image_url AS image,
+        is_active AS isActive,
+        created_at AS createdAt
+      FROM categories
+      WHERE slug = ?
+        AND is_active = 1
+      LIMIT 1
+    `)
+    .bind(slug)
+    .first();
+}
 export async function getCategoryById(db, id) {
   return db
     .prepare(`
@@ -44,27 +65,6 @@ export async function getCategoryById(db, id) {
       LIMIT 1
     `)
     .bind(Number(id))
-    .first();
-}
-
-export async function getCategoryBySlug(db, slug, { activeOnly = true } = {}) {
-  return db
-    .prepare(`
-      SELECT
-        id,
-        name,
-        subtitle,
-        slug,
-        description,
-        image_url AS image,
-        is_active AS isActive,
-        created_at AS createdAt
-      FROM categories
-      WHERE slug = ?
-      ${activeOnly ? "AND is_active = 1" : ""}
-      LIMIT 1
-    `)
-    .bind(slug)
     .first();
 }
 
