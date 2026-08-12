@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import ProductCard from "@/components/home/ProductSection/ProductCard";
 
@@ -55,6 +55,16 @@ export default function ProductSection({
 
   const [mobileRow1Index, setMobileRow1Index] = useState(0);
   const [mobileRow2Index, setMobileRow2Index] = useState(0);
+
+  const mobileRow1Ref = useRef(null);
+  const mobileRow2Ref = useRef(null);
+
+  const scrollMobileRow = (ref) => {
+    ref.current?.scrollBy({
+      left: ref.current.clientWidth,
+      behavior: "smooth",
+    });
+  };
 
   // Row 1 controls
   const row1CanGoLeft = mobileRow1Index > 0;
@@ -138,8 +148,9 @@ export default function ProductSection({
           </p>
         )}
 
+
         {/* ================================================= */}
-        {/* MOBILE / TABLET — TWO INDEPENDENT SLIDER ROWS */}
+        {/* MOBILE / TABLET — TWO INDEPENDENT SCROLLABLE ROWS */}
         {/* ================================================= */}
 
         <div className="mt-3 space-y-6 sm:mt-4 sm:space-y-8 lg:hidden">
@@ -148,66 +159,49 @@ export default function ProductSection({
 
           <div className="relative">
 
-            {/* Row 1 LEFT BUTTON */}
-            {row1CanGoLeft && (
-              <button
-                type="button"
-                onClick={handleMobileRow1Previous}
-                aria-label="Previous products in first row"
-                className="
-                  absolute
-                  left-0
-                  top-1/2
-                  z-30
-                  flex
-                  h-10
-                  w-10
-                  -translate-y-1/2
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-white
-                  shadow-md
-                  transition-transform
-                  duration-200
-                  hover:scale-105
-                  active:scale-95
-                "
-              >
-                <ArrowLeft
-                  size={18}
-                  strokeWidth={1.8}
-                  color="#D69E2E"
-                />
-              </button>
-            )}
-
-            {/* Row 1 PRODUCTS */}
-            <div className="grid grid-cols-2 gap-x-3 sm:gap-x-6">
-              {mobileRow1Products
-                .slice(
-                  mobileRow1Index,
-                  mobileRow1Index + mobileVisibleCount
-                )
-                .map((product) => (
+            <div
+              ref={mobileRow1Ref}
+              className="
+                flex
+                gap-3
+                overflow-x-auto
+                scroll-smooth
+                snap-x
+                snap-mandatory
+                scrollbar-hide
+                sm:gap-6
+              "
+            >
+              {mobileRow1Products.map((product) => (
+                <div
+                  key={product.id}
+                  className="
+                    w-[calc((100%-12px)/2)]
+                    min-w-[calc((100%-12px)/2)]
+                    shrink-0
+                    snap-start
+                    sm:w-[calc((100%-24px)/2)]
+                    sm:min-w-[calc((100%-24px)/2)]
+                  "
+                >
                   <ProductCard
-                    key={product.id}
                     product={product}
                     isHomepageCard={true}
                   />
-                ))}
+                </div>
+              ))}
             </div>
 
-            {/* Row 1 RIGHT BUTTON */}
-            {row1CanGoRight && (
+            {/* Row 1 Arrow */}
+            {mobileRow1Products.length > mobileVisibleCount && (
               <button
                 type="button"
-                onClick={handleMobileRow1Next}
+                onClick={() => scrollMobileRow(mobileRow1Ref)}
                 aria-label="Next products in first row"
                 className="
                   absolute
                   right-0
-                  top-1/2
+                  top-[28%]
                   z-30
                   flex
                   h-10
@@ -222,6 +216,8 @@ export default function ProductSection({
                   duration-200
                   hover:scale-105
                   active:scale-95
+                  sm:h-10
+                  sm:w-10
                 "
               >
                 <ArrowRight
@@ -233,71 +229,55 @@ export default function ProductSection({
             )}
           </div>
 
+
           {/* ================= ROW 2 ================= */}
 
           {mobileRow2Products.length > 0 && (
             <div className="relative">
 
-              {/* Row 2 LEFT BUTTON */}
-              {row2CanGoLeft && (
-                <button
-                  type="button"
-                  onClick={handleMobileRow2Previous}
-                  aria-label="Previous products in second row"
-                  className="
-                    absolute
-                    left-0
-                    top-1/2
-                    z-30
-                    flex
-                    h-10
-                    w-10
-                    -translate-y-1/2
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-white
-                    shadow-md
-                    transition-transform
-                    duration-200
-                    hover:scale-105
-                    active:scale-95
-                  "
-                >
-                  <ArrowLeft
-                    size={18}
-                    strokeWidth={1.8}
-                    color="#D69E2E"
-                  />
-                </button>
-              )}
-
-              {/* Row 2 PRODUCTS */}
-              <div className="grid grid-cols-2 gap-x-3 sm:gap-x-6">
-                {mobileRow2Products
-                  .slice(
-                    mobileRow2Index,
-                    mobileRow2Index + mobileVisibleCount
-                  )
-                  .map((product) => (
+              <div
+                ref={mobileRow2Ref}
+                className="
+                  flex
+                  gap-3
+                  overflow-x-auto
+                  scroll-smooth
+                  snap-x
+                  snap-mandatory
+                  scrollbar-hide
+                  sm:gap-6
+                "
+              >
+                {mobileRow2Products.map((product) => (
+                  <div
+                    key={product.id}
+                    className="
+                      w-[calc((100%-12px)/2)]
+                      min-w-[calc((100%-12px)/2)]
+                      shrink-0
+                      snap-start
+                      sm:w-[calc((100%-24px)/2)]
+                      sm:min-w-[calc((100%-24px)/2)]
+                    "
+                  >
                     <ProductCard
-                      key={product.id}
                       product={product}
                       isHomepageCard={true}
                     />
-                  ))}
+                  </div>
+                ))}
               </div>
 
-              {/* Row 2 RIGHT BUTTON */}
-              {row2CanGoRight && (
+              {/* Row 2 Arrow */}
+              {mobileRow2Products.length > mobileVisibleCount && (
                 <button
                   type="button"
-                  onClick={handleMobileRow2Next}
+                  onClick={() => scrollMobileRow(mobileRow2Ref)}
                   aria-label="Next products in second row"
                   className="
                     absolute
                     right-0
-                    top-1/2
+                    top-[28%]
                     z-30
                     flex
                     h-10
@@ -312,6 +292,8 @@ export default function ProductSection({
                     duration-200
                     hover:scale-105
                     active:scale-95
+                    sm:h-10
+                    sm:w-10
                   "
                 >
                   <ArrowRight
@@ -323,6 +305,7 @@ export default function ProductSection({
               )}
             </div>
           )}
+
         </div>
 
         {/* ================================================= */}

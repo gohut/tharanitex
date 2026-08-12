@@ -327,3 +327,12 @@ a {
 .font-cormorant-garamond {
   font-family: var(--font-cormorant-garamond), "Cormorant Garamond", serif;
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
