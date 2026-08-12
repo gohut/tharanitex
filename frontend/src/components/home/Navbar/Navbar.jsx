@@ -164,14 +164,14 @@ export default function Navbar() {
           ) : (
             <>
 
-          {/* Left */}
-          <div className="flex shrink-0 items-center justify-start gap-1">
-            {/* Desktop: keep hamburger exactly as before */}
+          {/* Left — Mobile menu/back, Desktop menu */}
+          <div className="relative z-10 flex shrink-0 items-center justify-start gap-1">
+            {/* Desktop: hamburger */}
             <button
               aria-label="Open Menu"
               aria-expanded={isSidebarOpen}
               onClick={() => setIsSidebarOpen(true)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95 md:flex"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
             >
               <Menu
                 size={24}
@@ -180,29 +180,13 @@ export default function Navbar() {
               />
             </button>
 
-            {/* Mobile: Home page → logo */}
-            {(pathname === "/" || pathname === "/home") && (
-              <Link
-                href="/home"
-                aria-label="Go to home"
-                className="flex md:hidden"
-              >
-                <img
-                  src="/assets/logo.png"
-                  alt="Tharani Textiles"
-                  className="h-10 w-auto max-w-full object-contain"
-                  draggable={false}
-                />
-              </Link>
-            )}
-
-            {/* Mobile: Other pages → Back button */}
+            {/* Mobile: back button on inner pages */}
             {pathname !== "/" && pathname !== "/home" && (
               <button
                 type="button"
                 aria-label="Go back"
                 onClick={() => router.back()}
-                className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95 md:hidden"
+                className="absolute left-0 flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95 md:hidden"
               >
                 <ArrowLeft
                   size={24}
@@ -213,21 +197,32 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Logo - centered on mobile inner pages, desktop unchanged */}
-            <div
-              className={`flex flex-1 justify-center md:justify-start ${
-                pathname === "/" || pathname === "/home" ? "hidden md:flex" : ""
-              }`}
-            >
-              <Link href="/home" aria-label="Go to home">
-                <img
-                  src="/assets/logo.png"
-                  alt="Tharani Textiles"
-                  className="h-10 w-auto max-w-full object-contain transition-transform duration-300 hover:scale-[1.02] md:h-[60px]"
-                  draggable={false}
-                />
-              </Link>
-            </div>
+          {/* Logo — centered on mobile, normal desktop positioning */}
+          <div
+            className="
+              absolute
+              left-1/2
+              top-1/2
+              z-0
+              -translate-x-1/2
+              -translate-y-1/2
+              md:static
+              md:z-auto
+              md:flex-1
+              md:translate-x-0
+              md:translate-y-0
+              md:justify-start
+            "
+          >
+            <Link href="/home" aria-label="Go to home">
+              <img
+                src="/assets/logo.png"
+                alt="Tharani Textiles"
+                className="h-10 w-auto max-w-[150px] object-contain transition-transform duration-300 hover:scale-[1.02] md:h-[60px]"
+                draggable={false}
+              />
+            </Link>
+          </div>
 
           {/* Right */}
           <div className="flex items-center justify-end gap-1 md:gap-5 lg:gap-7">
