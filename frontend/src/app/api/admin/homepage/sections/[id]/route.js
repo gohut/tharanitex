@@ -4,6 +4,7 @@ import {
   updateHomepageSection,
   deleteHomepageSection,
 } from "@/lib/db/homepage";
+import { getProductsByIds } from "@/lib/db/product";
 
 
 export async function PATCH(request, { params }) {
@@ -12,6 +13,18 @@ export async function PATCH(request, { params }) {
 
     const { id } = await params;
     const body = await request.json();
+
+    if (body.sectionType === "product_showcase") {
+      if (!body.title?.trim() || !Array.isArray(body.productIds) || !body.productIds.length) {
+        return Response.json({ success: false, error: "A title and at least one product are required" }, { status: 400 });
+      }
+      const requestedIds = [...new Set(body.productIds.map(Number).filter(Number.isInteger))];
+      const products = await getProductsByIds(env.DB, requestedIds);
+      if (requestedIds.length !== products.length) {
+        return Response.json({ success: false, error: "One or more selected products are unavailable" }, { status: 400 });
+      }
+      body.productIds = requestedIds;
+    }
 
     await updateHomepageSection(
       env.DB,

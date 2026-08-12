@@ -233,6 +233,11 @@ export async function getHomepageSections(db) {
         hs.reference_id AS referenceId,
         hs.sort_order AS sortOrder,
         hs.is_active AS isActive,
+        hs.title,
+        hs.subtitle,
+        hs.product_ids AS productIds,
+        hs.background_color AS backgroundColor,
+        hs.background_image AS backgroundImage,
 
         CASE
           WHEN hs.section_type = 'banner'
@@ -256,7 +261,16 @@ export async function getHomepageSections(db) {
     `)
     .all();
 
-  return results;
+  return results.map((section) => ({
+    ...section,
+    productIds: (() => {
+      try {
+        return JSON.parse(section.productIds || "[]");
+      } catch {
+        return [];
+      }
+    })(),
+  }));
 }
 
 
@@ -267,15 +281,25 @@ export async function createHomepageSection(db, data) {
         section_type,
         reference_id,
         sort_order,
-        is_active
+        is_active,
+        title,
+        subtitle,
+        product_ids,
+        background_color,
+        background_image
       )
-      VALUES (?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
     .bind(
       data.sectionType,
       data.referenceId ?? null,
       Number(data.sortOrder) || 0,
-      data.isActive === false ? 0 : 1
+      data.isActive === false ? 0 : 1,
+      data.title || null,
+      data.subtitle || null,
+      JSON.stringify(data.productIds || []),
+      data.backgroundColor || null,
+      data.backgroundImage || null
     )
     .run();
 
@@ -295,7 +319,13 @@ export async function updateHomepageSection(db, id, data) {
         section_type = ?,
         reference_id = ?,
         sort_order = ?,
-        is_active = ?
+        is_active = ?,
+        title = ?,
+        subtitle = ?,
+        product_ids = ?,
+        background_color = ?,
+        background_image = ?,
+        updated_at = CURRENT_TIMESTAMP
 
       WHERE id = ?
     `)
@@ -304,6 +334,11 @@ export async function updateHomepageSection(db, id, data) {
       data.referenceId ?? null,
       Number(data.sortOrder) || 0,
       data.isActive === false ? 0 : 1,
+      data.title || null,
+      data.subtitle || null,
+      JSON.stringify(data.productIds || []),
+      data.backgroundColor || null,
+      data.backgroundImage || null,
       Number(id)
     )
     .run();

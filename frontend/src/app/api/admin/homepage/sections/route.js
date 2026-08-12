@@ -5,6 +5,7 @@ import {
   createHomepageSection,
   reorderHomepageSections,
 } from "@/lib/db/homepage";
+import { getProductsByIds } from "@/lib/db/product";
 
 
 export async function GET() {
@@ -51,6 +52,7 @@ export async function POST(request) {
       "new_arrivals",
       "best_sellers",
       "why_tharani",
+      "product_showcase",
     ];
 
     if (!allowedTypes.includes(body.sectionType)) {
@@ -74,6 +76,21 @@ export async function POST(request) {
         },
         { status: 400 }
       );
+    }
+
+    if (body.sectionType === "product_showcase") {
+      if (!body.title?.trim()) {
+        return Response.json({ success: false, error: "Section title is required" }, { status: 400 });
+      }
+      if (!Array.isArray(body.productIds) || !body.productIds.length) {
+        return Response.json({ success: false, error: "Select at least one product" }, { status: 400 });
+      }
+      const requestedIds = [...new Set(body.productIds.map(Number).filter(Number.isInteger))];
+      const products = await getProductsByIds(env.DB, requestedIds);
+      if (requestedIds.length !== products.length) {
+        return Response.json({ success: false, error: "One or more selected products are unavailable" }, { status: 400 });
+      }
+      body.productIds = requestedIds;
     }
 
     const result = await createHomepageSection(

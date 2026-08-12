@@ -74,6 +74,18 @@ export default async function HomePage() {
           />
         );
 
+      case "product_showcase":
+        return (
+          <ProductSection
+            key={section.id}
+            title={section.title}
+            subtitle={section.subtitle}
+            products={data.showcaseProducts?.[section.id] || []}
+            backgroundColor={section.backgroundColor || undefined}
+            backgroundImage={section.backgroundImage || undefined}
+          />
+        );
+
       case "why_tharani":
         return (
           <WhySection

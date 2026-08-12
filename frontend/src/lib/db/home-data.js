@@ -1,6 +1,7 @@
 import {
   getBestSellerProducts,
   getNewArrivalProducts,
+  getProductsByIds,
 } from "@/lib/db/product";
 import { getAllCategories } from "@/lib/db/category";
 import {
@@ -30,6 +31,17 @@ export async function getHomeData(db) {
     getHomepageSections(db),
   ]);
 
+  const showcaseSections = homepageSections.filter(
+    (section) => section.sectionType === "product_showcase"
+  );
+  const productsBySection = await Promise.all(
+    showcaseSections.map(async (section) => [
+      section.id,
+      await getProductsByIds(db, section.productIds),
+    ])
+  );
+  const showcaseProducts = Object.fromEntries(productsBySection);
+
   return {
     heroSlides,
     categories: {
@@ -42,5 +54,6 @@ export async function getHomeData(db) {
     bestSellers,
     whyTharani: shapeWhyTharani(settings),
     homepageSections,
+    showcaseProducts,
   };
 }

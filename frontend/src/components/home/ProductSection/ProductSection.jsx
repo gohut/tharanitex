@@ -331,43 +331,6 @@ export default function ProductSection({
 
         <div className="relative mt-4 hidden lg:block md:mt-5 lg:mt-6">
 
-          {/* LEFT FADE */}
-          {hasSlider && canGoLeft && (
-            <div
-              className="
-                pointer-events-none
-                absolute
-                left-0
-                top-0
-                bottom-0
-                z-30
-                w-28
-                bg-gradient-to-r
-                from-[#FBF5EA]/90
-                via-[#FBF5EA]/60
-                to-transparent
-              "
-            />
-          )}
-
-          {/* RIGHT FADE */}
-          {hasSlider && canGoRight && (
-            <div
-              className="
-                pointer-events-none
-                absolute
-                right-0
-                top-0
-                bottom-0
-                z-30
-                w-28
-                bg-gradient-to-l
-                from-[#FBF5EA]/90
-                via-[#FBF5EA]/60
-                to-transparent
-              "
-            />
-          )}
 
           {/* LEFT ARROW */}
           {hasSlider && canGoLeft && (

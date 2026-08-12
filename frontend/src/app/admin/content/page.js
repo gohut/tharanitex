@@ -49,6 +49,16 @@ const emptySettings = {
   whyFeatures: [],
 };
 
+const emptyShowcase = {
+  title: "",
+  subtitle: "",
+  productIds: [],
+  sortOrder: 1,
+  isActive: true,
+  backgroundColor: "",
+  backgroundImage: "",
+};
+
 export default function ContentPage() {
   const [tab, setTab] = useState("hero");
 
@@ -69,6 +79,10 @@ export default function ContentPage() {
   const [sections, setSections] = useState([]);
   const [layoutLoading, setLayoutLoading] = useState(false);
   const [addSectionOpen, setAddSectionOpen] = useState(false);
+  const [showcaseOpen, setShowcaseOpen] = useState(false);
+  const [showcaseSection, setShowcaseSection] = useState(null);
+  const [showcaseForm, setShowcaseForm] = useState(emptyShowcase);
+  const [products, setProducts] = useState([]);
 
   const [newSection, setNewSection] = useState({
     sectionType: "banner",
@@ -78,7 +92,19 @@ export default function ContentPage() {
   useEffect(() => {
     loadHomepage();
     loadSections();
+    loadProducts();
   }, []);
+
+  async function loadProducts() {
+    try {
+      const res = await fetch("/api/admin/products", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load products");
+      setProducts((data || []).filter((product) => product.isActive));
+    } catch (error) {
+      toast.error(error.message || "Failed to load products");
+    }
+  }
 
   async function loadHomepage() {
     try {
@@ -200,6 +226,15 @@ async function toggleSection(section) {
           referenceId: section.referenceId,
           sortOrder: section.sortOrder,
           isActive: !Boolean(section.isActive),
+          ...(section.sectionType === "product_showcase"
+            ? {
+                title: section.title,
+                subtitle: section.subtitle,
+                productIds: section.productIds,
+                backgroundColor: section.backgroundColor,
+                backgroundImage: section.backgroundImage,
+              }
+            : {}),
         }),
       }
     );
@@ -247,6 +282,13 @@ async function removeSection(section) {
 
 async function addHomepageSection() {
   try {
+    if (newSection.sectionType === "product_showcase") {
+      setAddSectionOpen(false);
+      setShowcaseSection(null);
+      setShowcaseForm({ ...emptyShowcase, sortOrder: sections.length + 1 });
+      setShowcaseOpen(true);
+      return;
+    }
     if (
       newSection.sectionType === "banner" &&
       !newSection.referenceId
@@ -301,6 +343,26 @@ async function addHomepageSection() {
     toast.error(error.message || "Failed to add section");
   }
 }
+
+
+  function openEditShowcase(section) {
+    setShowcaseSection(section);
+    setShowcaseForm({ title: section.title || "", subtitle: section.subtitle || "", productIds: section.productIds || [], sortOrder: section.sortOrder ?? 1, isActive: Boolean(section.isActive), backgroundColor: section.backgroundColor || "", backgroundImage: section.backgroundImage || "" });
+    setShowcaseOpen(true);
+  }
+
+  async function saveShowcase() {
+    if (!showcaseForm.title.trim() || !showcaseForm.productIds.length) { toast.error("A title and at least one product are required"); return; }
+    try {
+      setSaving(true);
+      const res = await fetch(showcaseSection ? `/api/admin/homepage/sections/${showcaseSection.id}` : "/api/admin/homepage/sections", { method: showcaseSection ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...showcaseForm, sectionType: "product_showcase", referenceId: null, sortOrder: Number(showcaseForm.sortOrder) || sections.length + 1 }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save product section");
+      toast.success(showcaseSection ? "Product section updated" : "Product section added");
+      setShowcaseOpen(false); setShowcaseSection(null); await loadSections();
+    } catch (error) { toast.error(error.message || "Failed to save product section"); }
+    finally { setSaving(false); }
+  }
 
   async function uploadImage(file, folder) {
     if (!file) return null;
@@ -1042,6 +1104,7 @@ async function addHomepageSection() {
               new_arrivals: "New Arrivals",
               best_sellers: "Best Sellers",
               why_tharani: "Why Tharani",
+              product_showcase: section.title || "Product Showcase",
             };
 
             return (
@@ -1124,6 +1187,17 @@ async function addHomepageSection() {
                   >
                     <ArrowDown size={15} />
                   </button>
+
+                  {section.sectionType === "product_showcase" && (
+                    <button
+                      type="button"
+                      onClick={() => openEditShowcase(section)}
+                      className="rounded-lg bg-green-800 p-2 text-green-300 transition hover:bg-green-700"
+                      title="Edit product section"
+                    >
+                      <Edit2 size={15} />
+                    </button>
+                  )}
 
                   <button
                     type="button"
@@ -1485,6 +1559,7 @@ async function addHomepageSection() {
               "new_arrivals",
               "best_sellers",
               "why_tharani",
+              "product_showcase",
             ]}
           />
 
@@ -1548,6 +1623,36 @@ async function addHomepageSection() {
           </Button>
 
         </div>
+      </Modal>
+
+      <Modal
+        open={showcaseOpen}
+        onClose={() => { setShowcaseOpen(false); setShowcaseSection(null); }}
+        title={showcaseSection ? "Edit Product Showcase Section" : "Add Product Showcase Section"}
+        size="lg"
+      >
+        <div className="space-y-4">
+          <FormInput label="Section Title" id="showcaseTitle" value={showcaseForm.title} onChange={(e) => setShowcaseForm({ ...showcaseForm, title: e.target.value })} />
+          <FormInput label="Subtitle / Description" id="showcaseSubtitle" type="textarea" rows={3} value={showcaseForm.subtitle} onChange={(e) => setShowcaseForm({ ...showcaseForm, subtitle: e.target.value })} />
+          <div>
+            <label className="mb-2 block text-xs font-medium text-green-300">Products</label>
+            <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-green-800 bg-green-950 p-3">
+              {products.map((product) => (
+                <label key={product.id} className="flex cursor-pointer items-center gap-3 text-sm text-white">
+                  <input type="checkbox" checked={showcaseForm.productIds.includes(product.id)} onChange={(e) => setShowcaseForm({ ...showcaseForm, productIds: e.target.checked ? [...showcaseForm.productIds, product.id] : showcaseForm.productIds.filter((id) => id !== product.id) })} />
+                  <span>{product.name}</span><span className="ml-auto text-xs text-green-400">{product.category}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <FormInput label="Display Order" id="showcaseOrder" type="number" value={showcaseForm.sortOrder} onChange={(e) => setShowcaseForm({ ...showcaseForm, sortOrder: Number(e.target.value) })} />
+            <div><label className="mb-2 block text-xs font-medium text-green-300">Background Color</label><input type="color" value={showcaseForm.backgroundColor || "#FBF5EA"} onChange={(e) => setShowcaseForm({ ...showcaseForm, backgroundColor: e.target.value })} className="h-10 w-full rounded-xl border border-green-700 bg-green-950 p-1" /><p className="mt-1 text-xs text-green-500">The homepage default is used until a color is selected.</p></div>
+          </div>
+          <ImageUpload image={showcaseForm.backgroundImage} uploading={uploading} onUpload={async (file) => { const url = await uploadImage(file, "homepage/product-showcases"); if (url) setShowcaseForm((prev) => ({ ...prev, backgroundImage: url })); }} />
+          <Toggle checked={Boolean(showcaseForm.isActive)} onChange={(value) => setShowcaseForm({ ...showcaseForm, isActive: value })} label="Active" />
+        </div>
+        <div className="mt-6 flex justify-end gap-3"><Button variant="secondary" onClick={() => setShowcaseOpen(false)}>Cancel</Button><Button onClick={saveShowcase} disabled={saving}>{saving ? "Saving..." : "Save Section"}</Button></div>
       </Modal>
 
     </div>

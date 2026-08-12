@@ -60,6 +60,33 @@ export async function getBestSellerProducts(db) {
   return getPlacedProducts(db, "is_best_seller");
 }
 
+export async function getProductsByIds(db, productIds = []) {
+  const ids = [...new Set(productIds.map(Number).filter(Number.isInteger))];
+
+  if (!ids.length) return [];
+
+  const placeholders = ids.map(() => "?").join(", ");
+  const { results } = await db
+    .prepare(`
+      SELECT
+        p.id, p.name, p.slug, p.price, c.name AS category,
+        (
+          SELECT image_url FROM product_images pi
+          WHERE pi.product_id = p.id
+          ORDER BY sort_order ASC, id ASC LIMIT 1
+        ) AS image
+      FROM products p
+      JOIN categories c ON c.id = p.category_id
+      WHERE p.id IN (${placeholders})
+        AND p.is_active = 1 AND c.is_active = 1
+    `)
+    .bind(...ids)
+    .all();
+
+  const productsById = new Map(results.map((product) => [Number(product.id), product]));
+  return ids.map((id) => productsById.get(id)).filter(Boolean);
+}
+
 export async function getAllProducts(db, { activeOnly = true } = {}) {
   const { results } = await db.prepare(`
     SELECT
