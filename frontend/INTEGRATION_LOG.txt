@@ -1,0 +1,116 @@
+========================================================================
+             THARANI TEXTILES - INTEGRATION AND CONFLICT AVOIDANCE LOG
+========================================================================
+Target Directory: tharanitex-main-fin/tharanitex-main/frontend
+Source Directory: tharanitex-Linges-backend/tharanitex-Linges-backend/frontend
+Date Integrated:  August 11, 2026
+Integrated By:    Antigravity AIPair Programmer
+========================================================================
+
+1. OVERVIEW OF INTEGRATION
+--------------------------
+This document tracks the integration of specific client-facing features and
+their backend dependencies from the 'Linges-backend' development branch into
+the 'main-fin' production-ready branch. 
+
+Features integrated:
+- Login Page (support credentials sign-up/sign-in, Google Login consent, and admin login)
+- Profile Page (inline editing of personal information, address management, and order navigation)
+- My Orders (history list tab layouts and dynamic database order timeline tracking)
+- Search Page (database product query support, sorting, and category/price filters)
+- Privacy, Shipping, Refund and Terms of Service Policy Pages
+
+No existing functionalities or other frontend components (e.g. Cart, Checkout,
+Product Section, Homepage) were overwritten or disrupted.
+
+2. LIST OF ADDED DIRECTORIES AND FILES
+--------------------------------------
+All files below were copied from `tharanitex-Linges-backend` into the `tharanitex-main-fin` branch:
+
+Backend Services & DB Modules (New):
+- src/config/google.js                  -> Configures Google client credentials
+- src/controllers/                      -> Handles API endpoint request processing (Address, Auth, Cart, Category, Coupon, Order, Payment, Product, Review, Wishlist controllers)
+- src/database/db.js                    -> SQLite/D1 database driver initialization
+- src/database/schema.sql               -> SQL table creation statements
+- src/middleware/auth.js                -> JWT-based route authentication middleware
+- src/repositories/                     -> Database repository access layers
+- src/services/                         -> Core business logic modules
+- src/utils/                            -> Helper services (ApiResponse structure, hashing, JWT token encoding)
+- src/validators/validators.js          -> Input validations for data payloads
+
+Frontend Pages (New):
+- src/app/policies/                     -> Directory containing policies:
+  - layout.jsx                          -> Left-hand policy navigation layout
+  - privacy-policy/page.jsx             -> Privacy policy terms
+  - refund-policy/page.jsx              -> Refund/returns policy
+  - shipping-policy/page.jsx            -> Shipping and delivery terms
+  - terms-of-service/page.jsx           -> General usage terms of service
+
+New API Routes (New):
+- src/app/api/auth/                     -> Sign-in, Register, Profile info endpoints
+- src/app/api/customer/                 -> User address, cart checkout, coupons and reviews endpoints
+- src/app/api/payment/                  -> Secure checkout payment handlers
+- src/app/api/webhook/                  -> Payment gateway webhooks
+- src/app/api/upload/                   -> Media/images upload to R2 Cloudflare bucket
+
+3. LIST OF MODIFIED FILES
+-------------------------
+The following existing files in `tharanitex-main-fin` were modified/updated:
+
+Frontend Pages Overwritten:
+- src/app/login/page.js                 -> Swapped static admin page for interactive credentials + Google login.
+- src/app/profile/page.jsx              -> Swapped static TODO layout for dynamic user details and address management dashboard.
+- src/app/orders/page.jsx               -> Adjusted centering and responsiveness of orders page header.
+- src/app/orders/[id]/page.jsx          -> Changed static orders list to dynamic DB tracking timeline, showing multi-item order layouts.
+- src/app/search/page.jsx               -> Converted local client search into database filter query with category checklist and price range selector.
+
+Shared Components:
+- src/components/orders/CustomerPageHeader.jsx -> Added a `center` prop to support text alignment in profile/account views.
+- src/components/orders/OrderCard.jsx          -> Re-designed to display multiple items inside a single order as a horizontal scrolling list.
+- src/components/orders/OrderTabs.jsx          -> Upgraded tab buttons to wrap on smaller screens.
+
+Configuration Files:
+- package.json                          -> Added `"bcryptjs": "^3.0.3"` dependency for password hashing.
+- wrangler.jsonc                        -> Added R2 bindings: `BUCKET` (tharanitex-r2) and `tharani_tex_r2` (tharani-tex-r2).
+
+4. DETAILED FUNCTIONALITY CHANGES
+---------------------------------
+
+A. Authenticated Login & Setup Modal (src/app/login/page.js)
+   - Supports username/password verification against local registered users database.
+   - Integrates Google OAuth (YouTube/Gmail credentials authentication).
+   - If `GOOGLE_CLIENT_ID` isn't configured, displays a modal setup helper detailing how to obtain OAuth Credentials from Google Cloud Console.
+
+B. Customer Address & Profile Details Dashboard (src/app/profile/page.jsx)
+   - Allows users to edit full name, email (disabled/locked), phone, shipping address, and pincode.
+   - Saves profile states locally and keeps in-session details synchronized across Header/Navbar navigation elements.
+
+C. Multi-Item Order Tracking (src/app/orders/[id]/page.jsx & OrderCard.jsx)
+   - Connects orders list page directly to D1 database endpoints via `/api/orders?userId=1`.
+   - Tracks package status updates: Order Placed -> Order Confirmed -> Shipped -> Delivered (or Cancelled) via a dynamic timeline graphic.
+   - Custom `OrderCard` scrollbar lists each saree's image, variant name, and price individually for multi-item orders.
+
+D. Dynamic Search, Filtering & Sorting (src/app/search/page.jsx)
+   - Integrates database `/api/customer/products` queries.
+   - Features a sliding filter panel on mobile/desktop allowing shoppers to filter search results by Category checkbox lists and Price limits.
+   - Implements Price: Low-to-High / High-to-Low and Newest collection sort filters.
+
+5. GUIDELINES TO PREVENT FUTURE MERGE CONFLICTS
+-----------------------------------------------
+To avoid breaking the integration or getting into conflict hell during future git merges, follow these rules:
+
+1. DO NOT DELETE OR REORGANIZATION FOLDERS WITHOUT COORDINATION:
+   Keep all controllers, services, repositories and db utilities inside `frontend/src/` as mapped in this integration. Any renaming of `src/` to root directory will cause broken import paths across 100+ files.
+   
+2. ALIAS PATTERNS:
+   Always use the `@/` path alias prefix to point to directories. It is mapped to `./src/*` inside `tsconfig.json`.
+   Example:
+   - Correct: `import Navbar from "@/components/home/Navbar/Navbar"`
+   - Incorrect: `import Navbar from "../../components/home/Navbar/Navbar"`
+   
+3. PACKAGE MANAGEMENT:
+   Before making commits on package.json, run `npm install` to keep `package-lock.json` aligned. Do not edit `package-lock.json` manually.
+
+4. DATABASE SCHEMA MODIFICATIONS:
+   If modifying SQLite database columns, do not change existing tables directly. Write migrations scripts inside `frontend/migrations/` and apply them to D1 database instances to avoid breaking production tables.
+========================================================================
