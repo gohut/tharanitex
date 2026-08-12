@@ -16,105 +16,121 @@ export default function Footer() {
       <img
         src="/assets/footer-top.png"
         alt=""
-        className="block w-full select-none"
+        className="block h-[52px] w-full select-none object-cover object-center sm:h-[64px] lg:h-auto"
       />
 
       {/* ================= MOBILE / TABLET LAYOUT (< lg) ================= */}
-      <div className="lg:hidden mx-auto max-w-[1420px] px-5 py-10 sm:px-10">
-        <div className="flex items-start justify-between gap-2">
-          {/* Logo */}
-          <div className="flex-1 text-center">
+      <div className="lg:hidden mx-auto max-w-[1420px] px-5 py-10 sm:px-8 sm:py-12">
+
+        {/* TOP 3 COLUMNS */}
+        <div className="grid grid-cols-[0.9fr_1fr_1.2fr]">
+
+          {/* LOGO */}
+          <div className="flex flex-col items-center justify-start text-center pr-3">
             <img
               src="/assets/logo.png"
               alt="Tharani Textiles"
-              className="mx-auto w-20 sm:w-28"
+              className="w-[72px] sm:w-[90px]"
             />
-            <p className="mt-3 font-sans text-[10px] leading-[1.6] text-[#F6ECD0] sm:text-[12px]">
+
+            <p className="mt-3 font-sans text-[9px] leading-[1.5] text-[#F6ECD0] sm:text-[11px]">
               Timeless Craftsmanship
               <br />
               since 1995
             </p>
           </div>
 
-          <div className="mt-1 h-24 w-px shrink-0 bg-[#C79A2B]/25 sm:h-28" />
+          {/* VERTICAL DIVIDER */}
+          <div className="relative px-3 sm:px-5">
+            <div className="absolute left-0 top-0 bottom-0 w-px bg-[#C79A2B]/50" />
 
-          {/* Site Links */}
-          <div className="flex-1">
-            <h3 className="font-cormorant text-[15px] text-[#C79A2B] mb-3 sm:text-[18px]">
+            <h3 className="font-cormorant text-[15px] text-[#C79A2B] sm:text-[18px]">
               SITE LINKS
             </h3>
-            <ul className="space-y-2 font-sans text-[11px] sm:text-[13px]">
+
+            <div className="mt-1 h-px w-[65px] bg-[#C79A2B] sm:w-[75px]" />
+
+            <ul className="mt-5 space-y-2 font-sans text-[10px] leading-[1.35] sm:text-[12px]">
               <li>
                 <Link
                   href="/"
-                  className="hover:text-[#C79A2B] transition-colors"
+                  className="transition-colors hover:text-[#C79A2B]"
                 >
                   Home
                 </Link>
               </li>
+
               <li>
-                <a
+                <Link
                   href="/cart"
-                  className="hover:text-[#C79A2B] transition-colors"
+                  className="transition-colors hover:text-[#C79A2B]"
                 >
                   Your Cart
-                </a>
+                </Link>
               </li>
+
               <li>
-                <a
+                <Link
                   href="/wishlist"
-                  className="hover:text-[#C79A2B] transition-colors"
+                  className="transition-colors hover:text-[#C79A2B]"
                 >
                   Wishlist
-                </a>
+                </Link>
               </li>
+
               <li>
-                <a
+                <Link
                   href="/account"
-                  className="hover:text-[#C79A2B] transition-colors"
+                  className="transition-colors hover:text-[#C79A2B]"
                 >
                   Your Account
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
 
-          <div className="mt-1 h-24 w-px shrink-0 bg-[#C79A2B]/25 sm:h-28" />
+          {/* CUSTOMER CARE */}
+          <div className="relative pl-3 sm:pl-5">
+            <div className="absolute left-0 top-0 bottom-0 w-px bg-[#C79A2B]/50" />
 
-          {/* Customer Care */}
-          <div className="flex-1">
-            <h3 className="font-cormorant text-[15px] text-[#C79A2B] mb-3 sm:text-[18px]">
+            <h3 className="font-cormorant text-[15px] text-[#C79A2B] sm:text-[18px]">
               CUSTOMER CARE
             </h3>
-            <ul className="space-y-2 font-sans text-[11px] sm:text-[13px]">
+
+            <div className="mt-1 h-px w-[65px] bg-[#C79A2B] sm:w-[75px]" />
+
+            <ul className="mt-5 space-y-2 font-sans text-[10px] leading-[1.35] sm:text-[12px]">
               <li>
                 <Link
                   href="/policies/terms-of-service"
-                  className="hover:text-[#C79A2B] transition-colors"
+                  className="transition-colors hover:text-[#C79A2B]"
                 >
                   Terms & Conditions
                 </Link>
               </li>
+
               <li>
                 <Link
                   href="/policies/privacy-policy"
-                  className="hover:text-[#C79A2B] transition-colors"
+                  className="transition-colors hover:text-[#C79A2B]"
                 >
                   Privacy Policy
                 </Link>
               </li>
+
               <li>
                 <Link
                   href="/policies/shipping-policy"
-                  className="hover:text-[#C79A2B] transition-colors"
+                  className="transition-colors hover:text-[#C79A2B]"
                 >
                   Shipping Policy
                 </Link>
               </li>
+
               <li>
-               <Link
+                <Link
                   href="/policies/refund-policy"
-                  className="hover:text-[#C79A2B] transition-colors"
+                  className="transition-colors hover:text-[#C79A2B]"
                 >
                   Return & Refund Policy
                 </Link>
@@ -123,49 +139,77 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Contact rows — no heading, matches reference layout */}
-        <div className="mt-10 space-y-4 font-sans text-[11px] sm:text-[13px]">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-2">
-              <MapPin size={16} className="mt-0.5 shrink-0 text-[#C79A2B]" />
-              <span>Elampillai, Tamil Nadu</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Mail size={16} className="shrink-0 text-[#C79A2B]" />
-              <span>info@tharanitextiles.com</span>
-            </div>
+
+        {/* CONTACT INFORMATION */}
+        <div className="mt-10 grid grid-cols-2 gap-x-5 gap-y-5 font-sans text-[10px] sm:mt-12 sm:text-[12px]">
+
+          {/* LOCATION */}
+          <div className="flex items-start gap-2">
+            <MapPin
+              size={16}
+              className="mt-0.5 shrink-0 text-[#C79A2B]"
+            />
+
+            <span>
+              Elampillai, Tamil Nadu
+            </span>
           </div>
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Phone size={16} className="shrink-0 text-[#C79A2B]" />
-              <span>+91 79040 70963</span>
-            </div>
-            <div className="flex gap-5 text-[18px] text-[#C79A2B]">
-              <a
-                href="#"
-                className="transition hover:scale-110 hover:text-white"
-              >
-                <FaYoutube />
-              </a>
-              <a
-                href="#"
-                className="transition hover:scale-110 hover:text-white"
-              >
-                <FaFacebookF />
-              </a>
-              <a
-                href="#"
-                className="transition hover:scale-110 hover:text-white"
-              >
-                <FaXTwitter />
-              </a>
-              <a
-                href="#"
-                className="transition hover:scale-110 hover:text-white"
-              >
-                <FaInstagram />
-              </a>
-            </div>
+
+          {/* EMAIL */}
+          <div className="flex items-start gap-2">
+            <Mail
+              size={16}
+              className="mt-0.5 shrink-0 text-[#C79A2B]"
+            />
+
+            <span className="break-all">
+              info@tharanitextiles.com
+            </span>
+          </div>
+
+          {/* PHONE */}
+          <div className="flex items-center gap-2">
+            <Phone
+              size={16}
+              className="shrink-0 text-[#C79A2B]"
+            />
+
+            <span>
+              +91 79040 70963
+            </span>
+          </div>
+
+          {/* SOCIAL ICONS */}
+          <div className="flex items-center gap-4 text-[16px] text-[#C79A2B] sm:gap-5 sm:text-[18px]">
+
+            <a
+              href="#"
+              className="transition hover:scale-110 hover:text-white"
+            >
+              <FaYoutube />
+            </a>
+
+            <a
+              href="#"
+              className="transition hover:scale-110 hover:text-white"
+            >
+              <FaFacebookF />
+            </a>
+
+            <a
+              href="#"
+              className="transition hover:scale-110 hover:text-white"
+            >
+              <FaXTwitter />
+            </a>
+
+            <a
+              href="#"
+              className="transition hover:scale-110 hover:text-white"
+            >
+              <FaInstagram />
+            </a>
+
           </div>
         </div>
       </div>
@@ -331,7 +375,7 @@ export default function Footer() {
       <img
         src="/assets/footer-bottom.png"
         alt=""
-        className="block w-full select-none"
+        className="block h-[64px] w-full select-none object-cover object-center sm:h-[76px] lg:h-auto"
       />
     </footer>
   );

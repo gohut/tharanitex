@@ -165,13 +165,13 @@ export default function Navbar() {
             <>
 
           {/* Left */}
-          <div className="flex shrink-0 items-center justify-start">
+          <div className="flex shrink-0 items-center justify-start gap-1">
             {/* Desktop: keep hamburger exactly as before */}
             <button
               aria-label="Open Menu"
               aria-expanded={isSidebarOpen}
               onClick={() => setIsSidebarOpen(true)}
-              className="hidden h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95 md:flex"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95 md:flex"
             >
               <Menu
                 size={24}
