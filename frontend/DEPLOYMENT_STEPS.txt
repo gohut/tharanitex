@@ -1,0 +1,89 @@
+================================================================================
+          THARANI TEXTILES - CLOUDFLARE FULL DEPLOYMENT GUIDE
+================================================================================
+
+You have already successfully logged into Cloudflare and created your D1 database 
+named "tharanitex-d1" with ID: 5902446c-900d-4967-a371-f0be1e911bdc. 
+
+We have automatically configured your 'wrangler.jsonc' file with this database ID.
+
+Follow the exact steps below to initialize the database tables, set up image 
+storage, run the project locally, and deploy it to the live internet.
+
+--------------------------------------------------------------------------------
+STEP 1: Log in to Cloudflare (If not already logged in)
+--------------------------------------------------------------------------------
+Open your terminal in the 'frontend' folder and run:
+
+    npx wrangler login
+
+This will open your browser. Log in with your Cloudflare account to authorize 
+wrangler commands.
+
+--------------------------------------------------------------------------------
+STEP 2: Initialize D1 Database Tables and Seeds
+--------------------------------------------------------------------------------
+Run this command to execute the 'schema.sql' script on your remote database:
+
+    npx wrangler d1 execute tharanitex-d1 --remote --file=src/database/schema.sql
+
+* This will create all tables (Users, Products, Cart, Orders, Banners, Coupons, 
+  etc.) and seed the default login credentials and categories.
+* If you want to check if the tables were created successfully, you can run:
+  npx wrangler d1 execute tharanitex-d1 --remote --command="SELECT * FROM Categories;"
+
+--------------------------------------------------------------------------------
+STEP 3: Create R2 Storage Bucket for Images
+--------------------------------------------------------------------------------
+Run this command to create the R2 bucket for storing product pictures:
+
+    npx wrangler r2 bucket create tharanitex-r2
+
+* This binds the bucket to your Cloudflare account. The upload endpoint in the 
+  code is already bound to look for 'tharanitex-r2' via your wrangler.jsonc config.
+
+--------------------------------------------------------------------------------
+STEP 4: Run the Application Locally (With Database & R2 Storage Emulation)
+--------------------------------------------------------------------------------
+Wrangler can emulate Cloudflare D1 and R2 locally so you don't use production data 
+while testing:
+
+1. First, seed your local emulator database:
+   npx wrangler d1 execute tharanitex-d1 --local --file=src/database/schema.sql
+
+2. Run Next.js with local bindings emulation:
+   npx wrangler dev
+
+--------------------------------------------------------------------------------
+STEP 5: Deploy the Project to Cloudflare Pages (Live Deployment)
+--------------------------------------------------------------------------------
+To compile and deploy your Next.js application live to Cloudflare Pages:
+
+1. Install the build adapter tool (if you haven't already):
+   npm install --save-dev @cloudflare/next-on-pages
+
+2. Compile your Next.js project into a Cloudflare Pages compatible format:
+   npx @cloudflare/next-on-pages
+
+3. Deploy the compiled assets:
+   npx wrangler pages deploy .vercel/output/static --project-name=tharani-textiles
+
+* Note: Follow the terminal instructions to complete the Pages project creation.
+* Go to your Cloudflare Web Dashboard -> Workers & Pages -> select your page -> 
+  go to Settings -> Bindings -> and make sure you bind:
+  1. D1 Database: bind variable name 'DB' to D1 database 'tharanitex-d1'.
+  2. R2 Bucket: bind variable name 'BUCKET' to R2 bucket 'tharanitex-r2'.
+  3. Under Environment Variables: Add 'JWT_SECRET' with a secure custom string 
+     (e.g., 'your_secure_random_key_here').
+
+================================================================================
+DEFAULT SEED LOGINS CREATED IN STEP 2
+================================================================================
+* Admin Portal Credentials:
+  - Email: admin@tharanitex.com
+  - Password: admin123
+
+* Customer Credentials:
+  - Email: customer@tharanitex.com
+  - Password: customer123
+================================================================================
