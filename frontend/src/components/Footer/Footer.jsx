@@ -88,24 +88,36 @@ export default function Footer() {
             </h3>
             <ul className="space-y-2 font-sans text-[11px] sm:text-[13px]">
               <li>
-                <a href="#" className="hover:text-[#C79A2B] transition-colors">
+                <Link
+                  href="/policies/terms-of-service"
+                  className="hover:text-[#C79A2B] transition-colors"
+                >
                   Terms & Conditions
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#C79A2B] transition-colors">
+                <Link
+                  href="/policies/privacy-policy"
+                  className="hover:text-[#C79A2B] transition-colors"
+                >
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#C79A2B] transition-colors">
+                <Link
+                  href="/policies/shipping-policy"
+                  className="hover:text-[#C79A2B] transition-colors"
+                >
                   Shipping Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#C79A2B] transition-colors">
+               <Link
+                  href="/policies/refund-policy"
+                  className="hover:text-[#C79A2B] transition-colors"
+                >
                   Return & Refund Policy
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -227,24 +239,36 @@ export default function Footer() {
             </h3>
             <ul className="space-y-4 font-sans text-[15px]">
               <li>
-                <a href="#" className="hover:text-[#C79A2B] transition-colors">
+                <Link
+                  href="/policies/terms-of-service"
+                  className="hover:text-[#C79A2B] transition-colors"
+                >
                   Terms & Conditions
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#C79A2B] transition-colors">
+                <Link
+                  href="/policies/privacy-policy"
+                  className="hover:text-[#C79A2B] transition-colors"
+                >
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#C79A2B] transition-colors">
+                <Link
+                  href="/policies/shipping-policy"
+                  className="hover:text-[#C79A2B] transition-colors"
+                >
                   Shipping Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#C79A2B] transition-colors">
+                <Link
+                  href="/policies/refund-policy"
+                  className="hover:text-[#C79A2B] transition-colors"
+                >
                   Return & Refund Policy
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

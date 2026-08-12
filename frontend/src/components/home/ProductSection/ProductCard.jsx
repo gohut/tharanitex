@@ -100,7 +100,7 @@ export default function ProductCard({
   }
 
   const formattedPrice = new Intl.NumberFormat("en-IN").format(
-    Number(product.price)
+    Number(String(product.price).replace(/[^0-9.]/g, "")) || 0
   );
 
   return (
@@ -120,7 +120,7 @@ export default function ProductCard({
           onClick={toggleWishlist}
           className={`
             absolute right-2 top-2 z-20
-            flex h-7 w-7 items-center justify-center rounded-full shadow-md
+            flex h-9 w-9 items-center justify-center rounded-full shadow-md
             transition-all duration-300 hover:scale-110 active:scale-95
             sm:right-2.5 sm:top-2.5 sm:h-8 sm:w-8
             ${wishlisted ? "bg-[#D4A437]" : "bg-white"}
@@ -145,7 +145,7 @@ export default function ProductCard({
             aria-label={`Add ${product.name} to cart`}
             className="
               absolute bottom-2 right-2 z-20
-              flex h-7 w-7 items-center justify-center rounded-full
+              flex h-9 w-9 items-center justify-center rounded-full
               bg-white shadow-md
               transition-all duration-300
               hover:scale-110 hover:bg-[#D4A437] hover:text-white
@@ -169,7 +169,7 @@ export default function ProductCard({
             <h3
               className={`
                 line-clamp-2 cursor-pointer
-                text-[13px] font-normal leading-5
+              text-[12px] font-normal leading-5
                 sm:text-[15px] sm:leading-6
                 ${
                   isHomepageCard
@@ -186,7 +186,7 @@ export default function ProductCard({
           <p
             className="
               shrink-0 whitespace-nowrap
-              text-[16px] font-medium
+              text-[14px] font-medium
               text-[#D59B23]
               sm:text-[20px]
             "
