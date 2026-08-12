@@ -120,7 +120,7 @@ export default function ProductCard({
           onClick={toggleWishlist}
           className={`
             absolute right-2 top-2 z-20
-            flex h-9 w-9 items-center justify-center rounded-full shadow-md
+            flex h-10 w-10 items-center justify-center rounded-full shadow-md
             transition-all duration-300 hover:scale-110 active:scale-95
             sm:right-2.5 sm:top-2.5 sm:h-8 sm:w-8
             ${wishlisted ? "bg-[#D4A437]" : "bg-white"}
@@ -131,7 +131,7 @@ export default function ProductCard({
             src="/assets/wishlist_icon.png"
             alt="Wishlist"
             className={`
-              h-4 w-4 object-contain transition-all duration-300
+              h-5 w-5 object-contain transition-all duration-300
               sm:h-[18px] sm:w-[18px]
               ${wishlisted ? "brightness-0 invert" : ""}
             `}

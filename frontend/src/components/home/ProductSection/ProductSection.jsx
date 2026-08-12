@@ -160,8 +160,8 @@ export default function ProductSection({
                   top-1/2
                   z-30
                   flex
-                  h-9
-                  w-9
+                  h-10
+                  w-10
                   -translate-y-1/2
                   items-center
                   justify-center
@@ -175,7 +175,7 @@ export default function ProductSection({
                 "
               >
                 <ArrowLeft
-                  size={17}
+                  size={18}
                   strokeWidth={1.8}
                   color="#D69E2E"
                 />
@@ -210,8 +210,8 @@ export default function ProductSection({
                   top-1/2
                   z-30
                   flex
-                  h-9
-                  w-9
+                  h-10
+                  w-10
                   -translate-y-1/2
                   items-center
                   justify-center
@@ -225,7 +225,7 @@ export default function ProductSection({
                 "
               >
                 <ArrowRight
-                  size={17}
+                  size={18}
                   strokeWidth={1.8}
                   color="#D69E2E"
                 />
@@ -250,8 +250,8 @@ export default function ProductSection({
                     top-1/2
                     z-30
                     flex
-                    h-9
-                    w-9
+                    h-10
+                    w-10
                     -translate-y-1/2
                     items-center
                     justify-center
@@ -265,7 +265,7 @@ export default function ProductSection({
                   "
                 >
                   <ArrowLeft
-                    size={17}
+                    size={18}
                     strokeWidth={1.8}
                     color="#D69E2E"
                   />
@@ -300,8 +300,8 @@ export default function ProductSection({
                     top-1/2
                     z-30
                     flex
-                    h-9
-                    w-9
+                    h-10
+                    w-10
                     -translate-y-1/2
                     items-center
                     justify-center
@@ -315,7 +315,7 @@ export default function ProductSection({
                   "
                 >
                   <ArrowRight
-                    size={17}
+                    size={18}
                     strokeWidth={1.8}
                     color="#D69E2E"
                   />
