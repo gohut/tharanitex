@@ -155,14 +155,14 @@ export default function Navbar() {
                 value={navbarSearch}
                 onChange={(event) => updateNavbarSearch(event.target.value)}
                 placeholder="Search sarees"
-                className="h-11 min-w-0 flex-1 rounded-full border border-[#CDBB9E] bg-white pl-10 pr-10 text-base text-[#2F2B27] outline-none focus:border-[#C79A2B]"
+                className="h-11 min-w-0 flex-1 border border-[#CDBB9E] bg-white pl-10 pr-10 text-base text-[#2F2B27] outline-none focus:border-[#C79A2B]"
               />
               {navbarSearch && <button type="button" aria-label="Clear search" onClick={() => updateNavbarSearch("")} className="absolute right-12 flex h-10 w-10 items-center justify-center text-[#2F2B27]"><X size={18} /></button>}
-              <button type="button" aria-label="Close search" onClick={closeSearchMode} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#2F2B27] transition hover:bg-[#F1E6D5]"><X size={22} /></button>
+              <button type="button" aria-label="Close search" onClick={closeSearchMode} className="flex h-11 w-11 shrink-0 items-center justify-center text-[#2F2B27] transition hover:bg-[#F1E6D5]"><X size={22} /></button>
               {searchMatches.length > 0 && (
-                <div className="absolute left-0 right-12 top-[calc(100%+8px)] max-h-[min(60vh,360px)] overflow-y-auto rounded-2xl border border-[#E8DCC8] bg-[#FFFDF9] p-2 shadow-xl">
+                <div className="absolute left-0 right-12 top-[calc(100%+8px)] max-h-[min(60vh,360px)] overflow-y-auto border border-[#E8DCC8] bg-[#FFFDF9] p-2 shadow-lg">
                   {searchMatches.map((product) => (
-                    <Link key={product.id} href={`/product/${product.slug || `product-${product.id}`}`} className="flex min-h-16 items-center gap-3 rounded-xl p-2 hover:bg-[#F8F2E8]">
+                    <Link key={product.id} href={`/product/${product.slug || `product-${product.id}`}`} className="flex min-h-16 items-center gap-3 border-b border-[#EEE4D5] p-2 last:border-b-0 hover:bg-[#F8F2E8]">
                       <img src={product.image} alt="" className="h-12 w-10 shrink-0 object-cover" />
                       <span className="min-w-0 flex-1"><span className="block truncate text-sm text-[#2F2B27]">{product.name}</span><span className="block truncate text-xs text-[#8A7A65]">{product.category}</span></span>
                       <span className="shrink-0 text-sm font-medium text-[#C79A2B]">{product.price}</span>
@@ -177,7 +177,7 @@ export default function Navbar() {
             <button
               aria-label="Search"
               onClick={() => { setIsSearchMode(true); router.push("/search"); }}
-              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
             >
               <Search
                 size={22}
@@ -257,7 +257,7 @@ export default function Navbar() {
                   value={sidebarSearch}
                   onChange={(event) => setSidebarSearch(event.target.value)}
                   placeholder="Search collections"
-                  className="h-12 w-full rounded-full border border-[#E8DCC8] bg-white pl-11 pr-4 text-sm text-[#2F2B27] outline-none transition focus:border-[#C79A2B]"
+                  className="h-12 w-full border border-[#E8DCC8] bg-white pl-11 pr-4 text-sm text-[#2F2B27] outline-none transition focus:border-[#C79A2B]"
                 />
               </label>
             </form>
