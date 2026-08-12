@@ -192,16 +192,21 @@ export default function ProductSection({
               ))}
             </div>
 
-            {/* Row 1 Arrow */}
-            {mobileRow1Products.length > mobileVisibleCount && (
+            {/* ROW 1 — LEFT ARROW */}
+            {row1CanGoLeft && (
               <button
                 type="button"
-                onClick={() => scrollMobileRow(mobileRow1Ref)}
-                aria-label="Next products in first row"
+                onClick={() =>
+                  mobileRow1Ref.current?.scrollBy({
+                    left: -mobileRow1Ref.current.clientWidth,
+                    behavior: "smooth",
+                  })
+                }
+                aria-label="Previous products in first row"
                 className="
                   absolute
-                  right-0
-                  top-[28%]
+                  left-0
+                  top-[110px]
                   z-30
                   flex
                   h-10
@@ -216,6 +221,49 @@ export default function ProductSection({
                   duration-200
                   hover:scale-105
                   active:scale-95
+                  sm:top-[120px]
+                  sm:h-10
+                  sm:w-10
+                "
+              >
+                <ArrowLeft
+                  size={18}
+                  strokeWidth={1.8}
+                  color="#D69E2E"
+                />
+              </button>
+            )}
+
+            {/* ROW 1 — RIGHT ARROW */}
+            {row1CanGoRight && (
+              <button
+                type="button"
+                onClick={() =>
+                  mobileRow1Ref.current?.scrollBy({
+                    left: mobileRow1Ref.current.clientWidth,
+                    behavior: "smooth",
+                  })
+                }
+                aria-label="Next products in first row"
+                className="
+                  absolute
+                  right-0
+                  top-[110px]
+                  z-30
+                  flex
+                  h-10
+                  w-10
+                  -translate-y-1/2
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-white
+                  shadow-md
+                  transition-transform
+                  duration-200
+                  hover:scale-105
+                  active:scale-95
+                  sm:top-[120px]
                   sm:h-10
                   sm:w-10
                 "
@@ -227,6 +275,7 @@ export default function ProductSection({
                 />
               </button>
             )}
+
           </div>
 
 
@@ -268,16 +317,21 @@ export default function ProductSection({
                 ))}
               </div>
 
-              {/* Row 2 Arrow */}
-              {mobileRow2Products.length > mobileVisibleCount && (
+              {/* ROW 2 — LEFT ARROW */}
+              {row2CanGoLeft && (
                 <button
                   type="button"
-                  onClick={() => scrollMobileRow(mobileRow2Ref)}
-                  aria-label="Next products in second row"
+                  onClick={() =>
+                    mobileRow2Ref.current?.scrollBy({
+                      left: -mobileRow2Ref.current.clientWidth,
+                      behavior: "smooth",
+                    })
+                  }
+                  aria-label="Previous products in second row"
                   className="
                     absolute
-                    right-0
-                    top-[28%]
+                    left-0
+                    top-[110px]
                     z-30
                     flex
                     h-10
@@ -292,6 +346,49 @@ export default function ProductSection({
                     duration-200
                     hover:scale-105
                     active:scale-95
+                    sm:top-[120px]
+                    sm:h-10
+                    sm:w-10
+                  "
+                >
+                  <ArrowLeft
+                    size={18}
+                    strokeWidth={1.8}
+                    color="#D69E2E"
+                  />
+                </button>
+              )}
+
+              {/* ROW 2 — RIGHT ARROW */}
+              {row2CanGoRight && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    mobileRow2Ref.current?.scrollBy({
+                      left: mobileRow2Ref.current.clientWidth,
+                      behavior: "smooth",
+                    })
+                  }
+                  aria-label="Next products in second row"
+                  className="
+                    absolute
+                    right-0
+                    top-[110px]
+                    z-30
+                    flex
+                    h-10
+                    w-10
+                    -translate-y-1/2
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white
+                    shadow-md
+                    transition-transform
+                    duration-200
+                    hover:scale-105
+                    active:scale-95
+                    sm:top-[120px]
                     sm:h-10
                     sm:w-10
                   "
@@ -303,6 +400,7 @@ export default function ProductSection({
                   />
                 </button>
               )}
+
             </div>
           )}
 
