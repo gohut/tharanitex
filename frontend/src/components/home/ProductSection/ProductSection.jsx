@@ -81,41 +81,61 @@ export default function ProductSection({
     mobileRow2Products.length;
 
   const handleMobileRow1Previous = () => {
-    if (row1CanGoLeft) {
-      setMobileRow1Index((prev) =>
-        Math.max(0, prev - mobileStep)
-      );
-    }
+    if (!row1CanGoLeft) return;
+
+    mobileRow1Ref.current?.scrollBy({
+      left: -mobileRow1Ref.current.clientWidth,
+      behavior: "smooth",
+    });
+
+    setMobileRow1Index((prev) =>
+      Math.max(0, prev - mobileStep)
+    );
   };
 
   const handleMobileRow1Next = () => {
-    if (row1CanGoRight) {
-      setMobileRow1Index((prev) =>
-        Math.min(
-          mobileRow1Products.length - mobileVisibleCount,
-          prev + mobileStep
-        )
-      );
-    }
+    if (!row1CanGoRight) return;
+
+    mobileRow1Ref.current?.scrollBy({
+      left: mobileRow1Ref.current.clientWidth,
+      behavior: "smooth",
+    });
+
+    setMobileRow1Index((prev) =>
+      Math.min(
+        mobileRow1Products.length - mobileVisibleCount,
+        prev + mobileStep
+      )
+    );
   };
 
   const handleMobileRow2Previous = () => {
-    if (row2CanGoLeft) {
-      setMobileRow2Index((prev) =>
-        Math.max(0, prev - mobileStep)
-      );
-    }
+    if (!row2CanGoLeft) return;
+
+    mobileRow2Ref.current?.scrollBy({
+      left: -mobileRow2Ref.current.clientWidth,
+      behavior: "smooth",
+    });
+
+    setMobileRow2Index((prev) =>
+      Math.max(0, prev - mobileStep)
+    );
   };
 
   const handleMobileRow2Next = () => {
-    if (row2CanGoRight) {
-      setMobileRow2Index((prev) =>
-        Math.min(
-          mobileRow2Products.length - mobileVisibleCount,
-          prev + mobileStep
-        )
-      );
-    }
+    if (!row2CanGoRight) return;
+
+    mobileRow2Ref.current?.scrollBy({
+      left: mobileRow2Ref.current.clientWidth,
+      behavior: "smooth",
+    });
+
+    setMobileRow2Index((prev) =>
+      Math.min(
+        mobileRow2Products.length - mobileVisibleCount,
+        prev + mobileStep
+      )
+    );
   };
 
   return (

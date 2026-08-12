@@ -92,7 +92,13 @@ export default function Navbar() {
   return (
     <>
       <header className="sticky top-0 z-50 min-h-16 w-full border-b border-[#E8DCC8] bg-[#F8F2E8]/95 backdrop-blur-md md:h-[78px]">
-        <div className={`mx-auto flex min-h-16 max-w-[1440px] items-center justify-between gap-2 px-3 md:grid md:h-full md:px-8 lg:px-10 ${isSearchMode ? "md:grid-cols-[minmax(0,1fr)_minmax(220px,440px)_minmax(0,1fr)] md:gap-5" : "md:grid-cols-[1fr_auto_1fr]"}`}>
+        <div
+          className={`mx-auto flex max-w-[1440px] flex-wrap items-center gap-2 px-3 md:grid md:h-full md:flex-nowrap md:px-8 lg:px-10 ${
+            isSearchMode
+              ? "min-h-[112px] md:min-h-0 md:grid-cols-[minmax(0,1fr)_minmax(220px,440px)_minmax(0,1fr)] md:gap-5"
+              : "min-h-16 md:min-h-0 md:grid-cols-[1fr_auto_1fr]"
+          }`}
+        >
 
           {isSearchMode ? (
             <>
@@ -115,7 +121,7 @@ export default function Navbar() {
                 </Link>
               </div>
 
-              <div className="order-3 relative w-full md:order-none md:col-start-2 md:row-start-1 md:mx-auto md:w-[min(36vw,440px)]">
+              <div className="order-3 basis-full relative w-full md:order-none md:col-start-2 md:row-start-1 md:mx-auto md:w-[min(36vw,440px)] md:basis-auto">
                 <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#2F2B27]" />
                 <input
                   type="search"
