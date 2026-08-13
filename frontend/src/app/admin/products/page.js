@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Search, Edit2, Trash2, Star, Package, Upload } from "lucide-react";
@@ -64,7 +64,7 @@ function CategoryBlock({ category, products, openEditCat, openDeleteCat }) {
               </div>
               <div className="p-3">
                 <p className="text-white text-sm font-medium truncate mb-1">{p.name}</p>
-                <p className="text-gold-500 font-semibold text-sm">₹{p.price.toLocaleString()}</p>
+                <p className="text-gold-500 font-semibold text-sm">â‚¹{p.price.toLocaleString()}</p>
               </div>
             </div>
           ))
@@ -167,7 +167,7 @@ export default function ProductsPage() {
     loadData();
   }, []);
 
-  // ── Filtered Products ──
+  // â”€â”€ Filtered Products â”€â”€
   const filtered = products.filter((p) => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.category.toLowerCase().includes(search.toLowerCase());
@@ -178,7 +178,7 @@ export default function ProductsPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  // ── Product CRUD ──
+  // â”€â”€ Product CRUD â”€â”€
   const openAdd = () => {
     setForm({ name: "", description: "", price: "", stock: "", category: categories[0]?.name || "", subcategory: "", status: "Active" });
     setIsAddingProduct(true);
@@ -205,7 +205,7 @@ export default function ProductsPage() {
     setModal(null);
   };
 
-  // ── Category CRUD ──
+  // â”€â”€ Category CRUD â”€â”€
   const openAddCat = () => {
     setCatError("");
     setCatForm({
@@ -406,7 +406,7 @@ export default function ProductsPage() {
                         </div>
                       </td>
                       <td className="px-5 py-3 text-green-300 text-xs hidden sm:table-cell">{p.category}</td>
-                      <td className="px-5 py-3 text-white text-xs font-semibold">₹{p.price.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-white text-xs font-semibold">â‚¹{p.price.toLocaleString()}</td>
                       <td className="px-5 py-3 text-green-300 text-xs">{p.stock}</td>
                       <td className="px-5 py-3"><StatusBadge status={p.status} /></td>
                       <td className="px-5 py-3">
@@ -446,7 +446,7 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* ── Modals ── */}
+      {/* â”€â”€ Modals â”€â”€ */}
 
       {/* Add/Edit Product */}
       <Modal open={modal === "add" || modal === "edit"} onClose={() => setModal(null)} title={modal === "add" ? "Add Product" : "Edit Product"} size="lg">
@@ -454,7 +454,7 @@ export default function ProductsPage() {
           <FormInput label="Product Name" id="name" value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter product name" required />
           <FormInput label="Category" id="category" type="select" value={form.category || ""} onChange={(e) => setForm({ ...form, category: e.target.value })} options={categories.map((c) => c.name)} />
           <FormInput label="Subcategory" id="subcategory" value={form.subcategory || ""} onChange={(e) => setForm({ ...form, subcategory: e.target.value })} placeholder="e.g. Silk, Bridal" />
-          <FormInput label="Price (₹)" id="price" type="number" value={form.price || ""} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0" required />
+          <FormInput label="Price (â‚¹)" id="price" type="number" value={form.price || ""} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0" required />
           <FormInput label="Stock Quantity" id="stock" type="number" value={form.stock || ""} onChange={(e) => setForm({ ...form, stock: e.target.value })} placeholder="0" required />
           <FormInput label="Status" id="status" type="select" value={form.status || "Active"} onChange={(e) => setForm({ ...form, status: e.target.value })} options={["Active", "Low Stock", "Out of Stock"]} />
           <div className="sm:col-span-2">
@@ -487,11 +487,11 @@ export default function ProductsPage() {
       </Modal>
 
       {/* Reviews Modal */}
-      <Modal open={modal === "reviews"} onClose={() => setModal(null)} title={`Reviews — ${selected?.name}`} size="lg">
+      <Modal open={modal === "reviews"} onClose={() => setModal(null)} title={`Reviews â€” ${selected?.name}`} size="lg">
         <div className="space-y-3">
           {selected?.reviews > 0 ? (
             <p className="text-green-400 text-sm">
-              {selected.reviews} reviews · Avg {selected.rating}★
+              {selected.reviews} reviews Â· Avg {selected.rating}â˜…
             </p>
           ) : (
             <p className="text-green-500 text-sm">
@@ -510,6 +510,7 @@ export default function ProductsPage() {
         <div className="space-y-4">
           <FormInput label="Category Name" id="catname" value={catForm.name || ""} onChange={(e) => setCatForm({ ...catForm, name: e.target.value })} placeholder="e.g. Sarees" required />
           <FormInput label="Slug" id="catslug" value={catForm.slug || ""} onChange={(e) => setCatForm({ ...catForm, slug: e.target.value })} placeholder="Generated from name if blank" />
+          <FormInput label="Subtitle" id="catsubtitle" value={catForm.subtitle || ""} onChange={(e) => setCatForm({ ...catForm, subtitle: e.target.value })} placeholder="e.g. SILKS" />
           <FormInput label="Description" id="catdesc" type="textarea" value={catForm.description || ""} onChange={(e) => setCatForm({ ...catForm, description: e.target.value })} rows={3} placeholder="Category description..." />
           <div>
             <label className="text-green-300 text-xs font-medium">Category Image</label>
@@ -546,3 +547,4 @@ export default function ProductsPage() {
     </div>
   );
 }
+
