@@ -3,7 +3,7 @@ import { getOrderById } from "@/lib/db/order";
 
 export async function GET(request, { params }) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
 
     const { id } = await params;
 

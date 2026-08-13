@@ -9,11 +9,28 @@ import Navbar from "@/components/home/Navbar/Navbar";
 import CustomerPageHeader from "@/components/orders/CustomerPageHeader";
 import OrderStatusPill from "@/components/orders/OrderStatusPill";
 import OrderTimeline from "@/components/orders/OrderTimeline";
-import { getOrderById } from "@/data/customerOrders";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getOrderById as getMockOrderById } from "@/data/customerOrders";
+import { getOrderById as getDatabaseOrderById } from "@/lib/db/order";
+
+export const dynamic = "force-dynamic";
 
 export default async function OrderDetailsPage({ params }) {
   const resolvedParams = await params;
-  const order = getOrderById(resolvedParams.id);
+  let databaseOrder = null;
+
+  try {
+    const { env } = await getCloudflareContext({ async: true });
+    databaseOrder = await getDatabaseOrderById(env.DB, resolvedParams.id, 1);
+  } catch (error) {
+    console.error("Order details error:", error);
+  }
+
+  // Retain the existing static order examples when an older demo order URL is
+  // opened, while newly created checkout orders come from the database.
+  const order = databaseOrder
+    ? mapDatabaseOrder(databaseOrder)
+    : getMockOrderById(resolvedParams.id);
 
   if (!order) {
     return (
@@ -126,6 +143,21 @@ export default async function OrderDetailsPage({ params }) {
                 <span>{order.shippingAddress.phone}</span>
               </div>
             </div>
+
+            {order.paymentMethod && (
+              <div className="grid gap-8 pt-10 md:grid-cols-[220px_1fr]">
+                <h3 className="text-[20px] font-semibold text-[#211D19]">
+                  Payment
+                </h3>
+
+                <div className="text-[18px] text-[#211D19]">
+                  <p>{order.paymentMethod}</p>
+                  <p className="mt-1 text-sm capitalize text-[#7D7267]">
+                    Payment status: {order.paymentStatus}
+                  </p>
+                </div>
+              </div>
+            )}
           </section>
 
           <section className="border border-[#DDCFBD] bg-[#FCF7EF] p-5 md:p-8">
@@ -184,6 +216,65 @@ export default async function OrderDetailsPage({ params }) {
       </section>
     </main>
   );
+}
+
+function mapDatabaseOrder(order) {
+  const firstItem = order.items?.[0] || {};
+  const createdAt = new Date(order.created_at);
+  const date = createdAt.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  const totalQuantity = order.items?.reduce(
+    (total, item) => total + Number(item.quantity),
+    0
+  ) || 0;
+  const status = order.order_status || "placed";
+
+  return {
+    image: firstItem.image,
+    productName: firstItem.name || "Order",
+    variant: order.items?.length > 1 ? `Includes ${order.items.length} items` : "",
+    quantity: totalQuantity,
+    itemPrice: formatPrice(firstItem.price),
+    placedOn: `Placed On ${date}`,
+    status: `${status.charAt(0).toUpperCase()}${status.slice(1)}`,
+    trackingSteps: buildTrackingSteps(status, date),
+    shippingAddress: {
+      lines: order.address_line1.split(/\n|,/).map((line) => line.trim()).filter(Boolean),
+      phone: order.phone,
+    },
+    summary: {
+      subtotal: formatPrice(order.total_amount),
+      shipping: "Free",
+      discount: "Rs. 0",
+      total: formatPrice(order.total_amount),
+    },
+    paymentMethod: order.payment_method || "COD",
+    paymentStatus: order.payment_status || "pending",
+  };
+}
+
+function buildTrackingSteps(status, date) {
+  const stages = ["placed", "processing", "shipped", "delivered"];
+  const completedIndex = status === "cancelled" ? 0 : Math.max(0, stages.indexOf(status));
+  const timelineStages = status === "cancelled" ? ["placed", "cancelled"] : stages;
+
+  return timelineStages.map((stage, index) => ({
+    id: stage,
+    title: stage === "placed" ? "Order Placed" : `${stage.charAt(0).toUpperCase()}${stage.slice(1)}`,
+    timestamp: index <= completedIndex ? date : "Pending",
+    complete: index <= completedIndex,
+  }));
+}
+
+function formatPrice(value) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
 }
 
 function SummaryRow({
