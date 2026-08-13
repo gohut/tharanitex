@@ -1,4 +1,4 @@
-export async function createOrder(db, userId, addressId) {
+export async function createOrder(db, checkout, legacyAddressId) {
   // Get cart items with current product prices
   const { results: cartItems } = await db
     .prepare(`
@@ -25,19 +25,47 @@ export async function createOrder(db, userId, addressId) {
     0
   );
 
-  // Create order
+  const isLegacyCheckout = typeof checkout === "number";
+  let userId = checkout?.userId;
+  let addressId = legacyAddressId;
+  let paymentMethod = "COD";
+
+  if (!isLegacyCheckout) {
+    const addressLines = checkout.deliveryAddress
+      .split(/\n|,/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const pincode = checkout.deliveryAddress.match(/\b\d{6}\b/)?.[0] || "000000";
+    const city = addressLines.at(-2) || "Not specified";
+    const state = addressLines.at(-1)?.replace(/\b\d{6}\b/, "").trim() || "Not specified";
+
+    const addressResult = await db
+      .prepare(`
+        INSERT INTO addresses (user_id, full_name, phone, address_line1, city, state, pincode, country)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'India')
+      `)
+      .bind(userId, checkout.customerName, checkout.phone, checkout.deliveryAddress, city, state, pincode)
+      .run();
+    addressId = addressResult.meta.last_row_id;
+    paymentMethod = checkout.paymentMethod;
+  } else {
+    userId = checkout;
+  }
+
+  // Existing status fields are retained; COD starts as unpaid and placed.
   const result = await db
     .prepare(`
       INSERT INTO orders (
         user_id,
         address_id,
         total_amount,
+        payment_method,
         payment_status,
         order_status
       )
-      VALUES (?, ?, ?, 'pending', 'placed')
+      VALUES (?, ?, ?, ?, 'pending', 'placed')
     `)
-    .bind(userId, addressId, totalAmount)
+    .bind(userId, addressId, totalAmount, paymentMethod)
     .run();
 
   const orderId = result.meta.last_row_id;
@@ -86,6 +114,7 @@ export async function getOrders(db, userId) {
       SELECT
         o.id,
         o.total_amount,
+        o.payment_method,
         o.payment_status,
         o.order_status,
         o.created_at,
@@ -140,6 +169,7 @@ export async function getOrderById(db, orderId, userId) {
       SELECT
         o.id,
         o.total_amount,
+        o.payment_method,
         o.payment_status,
         o.order_status,
         o.created_at,
