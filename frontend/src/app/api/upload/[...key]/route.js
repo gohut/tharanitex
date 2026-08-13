@@ -23,6 +23,7 @@ export async function GET(request, { params }) {
     const headers = new Headers();
     object.writeHttpMetadata(headers);
     headers.set("etag", object.httpEtag);
+    headers.set("Content-Length", String(object.size));
     // Enable browser caching for 1 year since product images are static
     headers.set("Cache-Control", "public, max-age=31536000, immutable");
 
