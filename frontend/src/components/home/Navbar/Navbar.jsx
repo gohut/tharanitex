@@ -240,6 +240,7 @@ export default function Navbar() {
               />
             </Link>
           </div>
+          
 
           {/* Right */}
           <div className="flex items-center justify-end gap-1 md:gap-5 lg:gap-7">
