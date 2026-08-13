@@ -1,10 +1,14 @@
 import { getDB } from "../database/db";
 
-export class ReviewRepository {
-  static async findByProductId(productId) {
-    const db = getDB();
+function resolveDB(db) {
+  return db || getDB();
+}
 
-    const { results } = await db
+export class ReviewRepository {
+  static async findByProductId(productId, db) {
+    const database = resolveDB(db);
+
+    const { results } = await database
       .prepare(`
         SELECT
           id,

@@ -33,7 +33,10 @@ export default async function ProductPage({ params }) {
    * Reviews are loaded directly from D1.
    * ReviewRepository only returns approved reviews.
    */
-  const dbReviews = await ReviewRepository.findByProductId(product.id);
+  const dbReviews = await ReviewRepository.findByProductId(
+  product.id,
+  env.DB
+);
 
   const reviews = (dbReviews || []).map((review) => ({
     id: review.id,
