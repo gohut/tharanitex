@@ -1,4 +1,5 @@
 const styles = {
+  Placed: "border-[#E4C98B] bg-[#FAF1DB] text-[#AE7C15]",
   Processing: "border-[#E4C98B] bg-[#FAF1DB] text-[#AE7C15]",
   Shipped: "border-[#C8D9E9] bg-[#EEF5FB] text-[#3E769D]",
   Delivered: "border-[#CFE4C8] bg-[#E6F3DE] text-[#64A15A]",

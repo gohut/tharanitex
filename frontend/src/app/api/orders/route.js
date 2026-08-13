@@ -3,10 +3,11 @@ import {
   createOrder,
   getOrders,
 } from "@/lib/db/order";
+import { validateCheckoutDetails } from "@/lib/checkout";
 
 export async function GET(request) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
 
     const { searchParams } = new URL(request.url);
     const userId = Number(searchParams.get("userId") || 1);
@@ -26,19 +27,35 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
 
     const body = await request.json();
-
-    // Temporary test values.
-    // Authentication + checkout will provide these later.
-    const userId = Number(body.userId || 1);
-    const addressId = Number(body.addressId || 1);
+    const details = {
+      name: body.customerName || "",
+      phone: body.phone || "",
+      otp: body.otp || "",
+      address: body.deliveryAddress || "",
+      paymentMethod: body.paymentMethod || "",
+    };
+    const errors = validateCheckoutDetails(details);
+    if (Object.keys(errors).length) {
+      return Response.json({ success: false, error: Object.values(errors)[0], errors }, { status: 400 });
+    }
+    if (details.paymentMethod !== "COD") {
+      return Response.json({ success: false, error: "Online payment is currently unavailable." }, { status: 400 });
+    }
 
     const order = await createOrder(
       env.DB,
-      userId,
-      addressId
+      {
+        // The cart and customer order pages currently use this test customer split:
+        // guest cart data is converted into orders visible to user 1.
+        userId: 1,
+        customerName: details.name.trim(),
+        phone: details.phone.trim(),
+        deliveryAddress: details.address.trim(),
+        paymentMethod: details.paymentMethod,
+      }
     );
 
     return Response.json(order, { status: 201 });

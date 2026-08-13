@@ -102,6 +102,7 @@ const formatPrice = (value) =>
                   shipping="Free"
                   tax="Included"
                   total={formatPrice(subtotal)}
+                  isCartEmpty={cartItems.length === 0}
               />
 
               <DeliveryCard />

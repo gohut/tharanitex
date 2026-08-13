@@ -1,4 +1,4 @@
-export async function createOrder(db, userId, addressId) {
+export async function createOrder(db, { userId, customerName, phone, deliveryAddress, paymentMethod }) {
   // Get cart items with current product prices
   const { results: cartItems } = await db
     .prepare(`
@@ -25,19 +25,39 @@ export async function createOrder(db, userId, addressId) {
     0
   );
 
-  // Create order
+  const addressLines = deliveryAddress
+    .split(/\n|,/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const pincode = deliveryAddress.match(/\b\d{6}\b/)?.[0] || "000000";
+  const city = addressLines.at(-2) || "Not specified";
+  const state = addressLines.at(-1)?.replace(/\b\d{6}\b/, "").trim() || "Not specified";
+
+  // Keep the complete customer-entered address in the existing address record.
+  // The derived city/state fields retain compatibility with the current schema.
+  const addressResult = await db
+    .prepare(`
+      INSERT INTO addresses (user_id, full_name, phone, address_line1, city, state, pincode, country)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'India')
+    `)
+    .bind(userId, customerName, phone, deliveryAddress, city, state, pincode)
+    .run();
+  const addressId = addressResult.meta.last_row_id;
+
+  // Create order using the existing order/status structure.
   const result = await db
     .prepare(`
       INSERT INTO orders (
         user_id,
         address_id,
         total_amount,
+        payment_method,
         payment_status,
         order_status
       )
-      VALUES (?, ?, ?, 'pending', 'placed')
+      VALUES (?, ?, ?, ?, 'pending', 'placed')
     `)
-    .bind(userId, addressId, totalAmount)
+    .bind(userId, addressId, totalAmount, paymentMethod)
     .run();
 
   const orderId = result.meta.last_row_id;
@@ -86,6 +106,7 @@ export async function getOrders(db, userId) {
       SELECT
         o.id,
         o.total_amount,
+        o.payment_method,
         o.payment_status,
         o.order_status,
         o.created_at,
@@ -140,6 +161,7 @@ export async function getOrderById(db, orderId, userId) {
       SELECT
         o.id,
         o.total_amount,
+        o.payment_method,
         o.payment_status,
         o.order_status,
         o.created_at,
