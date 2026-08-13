@@ -1,11 +1,18 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import CheckoutModal from "./CheckoutModal";
+
 export default function OrderSummary({
   subtotal = "₹5,730",
   shipping = "Free",
   tax = "Calculated at checkout",
   total = "₹5,730",
+  isCartEmpty = false,
 }) {
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const router = useRouter();
   return (
     <div className="relative overflow-hidden rounded-sm border border-[#E8DCCB] bg-[#FFF7E9] shadow-sm">
 
@@ -48,6 +55,9 @@ export default function OrderSummary({
         </div>
 
         <button
+          type="button"
+          onClick={() => setIsCheckoutOpen(true)}
+          disabled={isCartEmpty}
           className="
             w-full
             mt-5 sm:mt-6
@@ -59,7 +69,7 @@ export default function OrderSummary({
             text-lg
             transition-all
             duration-300
-            rounded-sm
+            rounded-sm disabled:cursor-not-allowed disabled:opacity-50
           "
         >
           Proceed to Checkout →
@@ -69,6 +79,12 @@ export default function OrderSummary({
           Taxes and shipping calculated at checkout.
         </p>
       </div>
+
+      <CheckoutModal
+        open={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        onOrderCreated={() => router.push("/orders")}
+      />
 
     </div>
   );
