@@ -6,11 +6,18 @@ import { Star } from "lucide-react";
 export default function ReviewSection({ reviews }) {
   const [visibleReviews, setVisibleReviews] = useState(4);
 
+  const safeReviews = Array.isArray(reviews) ? reviews : [];
+
   const average =
-    reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+    safeReviews.length > 0
+      ? safeReviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) /
+        safeReviews.length
+      : 0;
 
   const ratingCounts = [5, 4, 3, 2, 1].map(
-    (rating) => reviews.filter((review) => review.rating === rating).length
+    safeReviews.filter(
+      (review) => Number(review.rating) === rating
+    ).length
   );
 
   return (
@@ -37,14 +44,16 @@ export default function ReviewSection({ reviews }) {
           </div>
 
           <p className="mt-2 text-center text-xs text-[#B8A898]">
-            Based on {reviews.length} reviews
+            Based on {safeReviews.length} reviews
           </p>
 
           <div className="mt-7 space-y-3">
             {[5, 4, 3, 2, 1].map((rating, index) => {
               const count = ratingCounts[index];
               const width =
-                reviews.length === 0 ? 0 : (count / reviews.length) * 100;
+                safeReviews.length === 0
+                  ? 0
+                  : (count / safeReviews.length) * 100;
 
               return (
                 <div
@@ -80,7 +89,7 @@ export default function ReviewSection({ reviews }) {
 
         <div className="border border-[#ECDDC7] bg-[#FCF6EC] p-4 md:p-6">
           <div className="space-y-4">
-            {reviews.slice(0, visibleReviews).map((review) => (
+            {safeReviews.slice(0, visibleReviews).map((review) => (
               <div
                 key={review.id}
                 className="flex gap-4 border-b border-[#F0E4D4] pb-4 last:border-b-0"
@@ -123,7 +132,7 @@ export default function ReviewSection({ reviews }) {
             ))}
           </div>
 
-          {visibleReviews < reviews.length && (
+          {visibleReviews < safeReviews.length && (
             <button
               onClick={() => setVisibleReviews((prev) => prev + 4)}
               className="mx-auto mt-5 block text-sm text-[#D38E2E] transition hover:text-[#B77719]"

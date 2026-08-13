@@ -37,7 +37,7 @@ export default async function ProductPage({ params }) {
 
   const reviews = (dbReviews || []).map((review) => ({
     id: review.id,
-    name: review.user_name || "Verified Customer",
+    name: review.reviewer_name || "Verified Customer",
     rating: Number(review.rating) || 0,
     comment: review.comment || "",
     date: review.created_at
