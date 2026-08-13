@@ -191,7 +191,7 @@ export default function ProductCard({
               sm:text-[20px]
             "
           >
-            â‚¹{formattedPrice}
+            ₹{formattedPrice}
           </p>
         </div>
 
