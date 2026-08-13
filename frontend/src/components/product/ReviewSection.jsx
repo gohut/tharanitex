@@ -14,7 +14,7 @@ export default function ReviewSection({ reviews }) {
         safeReviews.length
       : 0;
 
-  const ratingCounts = [5, 4, 3, 2, 1].map(
+  const ratingCounts = [5, 4, 3, 2, 1].map((rating) =>
     safeReviews.filter(
       (review) => Number(review.rating) === rating
     ).length
