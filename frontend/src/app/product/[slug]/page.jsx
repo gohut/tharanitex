@@ -8,7 +8,6 @@ import { notFound } from "next/navigation";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 import { getProductBySlug } from "@/lib/db/product";
-import { ReviewRepository } from "@/repositories/ReviewRepository";
 
 import { productData } from "@/data/productData";
 
@@ -33,24 +32,7 @@ export default async function ProductPage({ params }) {
    * Reviews are loaded directly from D1.
    * ReviewRepository only returns approved reviews.
    */
-  const dbReviews = await ReviewRepository.findByProductId(
-  product.id,
-  env.DB
-);
-
-  const reviews = (dbReviews || []).map((review) => ({
-    id: review.id,
-    name: review.reviewer_name || "Verified Customer",
-    rating: Number(review.rating) || 0,
-    comment: review.comment || "",
-    date: review.created_at
-      ? new Date(review.created_at).toLocaleDateString("en-IN", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        })
-      : "",
-  }));
+  const reviews = [];
 
   return (
     <>
