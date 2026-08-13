@@ -1,5 +1,6 @@
 import Navbar from "@/components/home/Navbar/Navbar";
 import Hero from "@/components/home/Hero/Hero";
+import ConditionalFooter from "@/components/Footer/ConditionalFooter";
 import Categories from "@/components/home/Categories/Categories";
 import PromoBanner from "@/components/home/PromoBanner/PromoBanner";
 import ProductSection from "@/components/home/ProductSection/ProductSection";
@@ -101,10 +102,14 @@ export default async function HomePage() {
   };
 
   return (
-    <main className="bg-[#FBF5EA]">
-      <Navbar />
+    <>
+      <main className="bg-[#FBF5EA]">
+        <Navbar />
 
-      {sections.map(renderSection)}
-    </main>
+        {sections.map(renderSection)}
+      </main>
+
+      <ConditionalFooter />
+    </>
   );
 }
