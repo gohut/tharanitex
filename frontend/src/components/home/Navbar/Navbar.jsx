@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -93,7 +93,7 @@ export default function Navbar() {
     <>
       <header className="sticky top-0 z-50 min-h-16 w-full border-b border-[#E8DCC8] bg-[#F8F2E8]/95 backdrop-blur-md md:h-[78px]">
         <div
-          className={`mx-auto flex max-w-[1440px] flex-wrap items-center gap-2 px-3 md:grid md:h-full md:flex-nowrap md:px-8 lg:px-10 ${
+          className={`mx-auto grid max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center px-3 md:flex md:h-full md:flex-nowrap md:px-8 lg:px-10 ${
             isSearchMode
               ? "min-h-[112px] md:min-h-0 md:grid-cols-[minmax(0,1fr)_minmax(220px,440px)_minmax(0,1fr)] md:gap-5"
               : "min-h-16 md:min-h-0 md:grid-cols-[1fr_auto_1fr]"
@@ -164,8 +164,8 @@ export default function Navbar() {
           ) : (
             <>
 
-          {/* Left — Mobile menu/back, Desktop menu */}
-          <div className="relative z-10 flex shrink-0 items-center justify-start gap-1">
+          {/* Left â€” Mobile menu/back, Desktop menu */}
+          <div className="relative z-10 flex min-w-0 items-center justify-start gap-1">
             {/* Desktop: hamburger */}
             <button
               aria-label="Open Menu"
@@ -186,7 +186,7 @@ export default function Navbar() {
                 type="button"
                 aria-label="Go back"
                 onClick={() => router.back()}
-                className="absolute left-0 flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95 md:hidden"
+                className="absolute left-[44px] flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95 md:hidden"
               >
                 <ArrowLeft
                   size={24}
@@ -197,7 +197,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Logo — centered on mobile, normal desktop positioning */}
+          {/* Logo â€” centered on mobile, normal desktop positioning */}
           <div
             className="
               absolute
@@ -225,7 +225,7 @@ export default function Navbar() {
           </div>
 
           {/* Right */}
-          <div className="flex items-center justify-end gap-1 md:gap-5 lg:gap-7">
+          <div className="flex min-w-0 items-center justify-end gap-0.5 md:gap-5 lg:gap-7">
 
             <button
               aria-label="Search"
@@ -335,3 +335,5 @@ export default function Navbar() {
     </>
   );
 }
+
+

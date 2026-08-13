@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -34,7 +34,7 @@ export default function ProductSection({
   };
 
   // --------------------------------------------------
-  // MOBILE — TWO INDEPENDENT ROW SLIDERS
+  // MOBILE â€” TWO INDEPENDENT ROW SLIDERS
   // --------------------------------------------------
 
   const mobileVisibleCount = 2;
@@ -45,8 +45,8 @@ export default function ProductSection({
    *
    * Example with 8 products:
    *
-   * Row 1 → 1  2  3  4
-   * Row 2 → 5  6  7  8
+   * Row 1 â†’ 1  2  3  4
+   * Row 2 â†’ 5  6  7  8
    */
   const mobileRowSize = Math.ceil(products.length / 2);
 
@@ -59,12 +59,6 @@ export default function ProductSection({
   const mobileRow1Ref = useRef(null);
   const mobileRow2Ref = useRef(null);
 
-  const scrollMobileRow = (ref) => {
-    ref.current?.scrollBy({
-      left: ref.current.clientWidth,
-      behavior: "smooth",
-    });
-  };
 
   // Row 1 controls
   const row1CanGoLeft = mobileRow1Index > 0;
@@ -170,7 +164,7 @@ export default function ProductSection({
 
 
         {/* ================================================= */}
-        {/* MOBILE / TABLET — TWO INDEPENDENT SCROLLABLE ROWS */}
+        {/* MOBILE / TABLET â€” TWO INDEPENDENT SCROLLABLE ROWS */}
         {/* ================================================= */}
 
         <div className="mt-3 space-y-6 sm:mt-4 sm:space-y-8 lg:hidden">
@@ -212,7 +206,7 @@ export default function ProductSection({
               ))}
             </div>
 
-            {/* ROW 1 — LEFT ARROW */}
+            {/* ROW 1 â€” LEFT ARROW */}
             {row1CanGoLeft && (
               <button
                 type="button"
@@ -254,7 +248,7 @@ export default function ProductSection({
               </button>
             )}
 
-            {/* ROW 1 — RIGHT ARROW */}
+            {/* ROW 1 â€” RIGHT ARROW */}
             {row1CanGoRight && (
               <button
                 type="button"
@@ -337,7 +331,7 @@ export default function ProductSection({
                 ))}
               </div>
 
-              {/* ROW 2 — LEFT ARROW */}
+              {/* ROW 2 â€” LEFT ARROW */}
               {row2CanGoLeft && (
                 <button
                   type="button"
@@ -379,7 +373,7 @@ export default function ProductSection({
                 </button>
               )}
 
-              {/* ROW 2 — RIGHT ARROW */}
+              {/* ROW 2 â€” RIGHT ARROW */}
               {row2CanGoRight && (
                 <button
                   type="button"
@@ -427,7 +421,7 @@ export default function ProductSection({
         </div>
 
         {/* ================================================= */}
-        {/* DESKTOP SLIDER — LEAVE AS IT IS */}
+        {/* DESKTOP SLIDER â€” LEAVE AS IT IS */}
         {/* ================================================= */}
 
         <div className="relative mt-4 hidden lg:block md:mt-5 lg:mt-6">
@@ -523,3 +517,5 @@ export default function ProductSection({
     </section>
   );
 }
+
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -111,7 +111,7 @@ export default function ProductCard({
           <img
             src={product.image}
             alt={product.name}
-            className="aspect-[3/4] w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="aspect-[3/4] w-full object-contain bg-[#F8F3EA] transition-transform duration-700 group-hover:scale-105"
           />
         </Link>
 
@@ -120,9 +120,9 @@ export default function ProductCard({
           onClick={toggleWishlist}
           className={`
             absolute right-2 top-2 z-20
-            flex h-8 w-8 min-h-0 min-w-0 items-center justify-center rounded-full shadow-md
+            flex h-9 w-9 min-h-0 min-w-0 items-center justify-center rounded-full shadow-md
             transition-all duration-300 hover:scale-110 active:scale-95
-            sm:right-2.5 sm:top-2.5 sm:h-8 sm:w-8
+            sm:right-2.5 sm:top-2.5 sm:h-9 sm:w-9
             ${wishlisted ? "bg-[#D4A437]" : "bg-white"}
           `}
           aria-label={`Toggle wishlist for ${product.name}`}
@@ -150,7 +150,7 @@ export default function ProductCard({
               transition-all duration-300
               hover:scale-110 hover:bg-[#D4A437] hover:text-white
               active:scale-95
-              sm:bottom-2.5 sm:right-2.5 sm:h-8 sm:w-8
+              sm:bottom-2.5 sm:right-2.5 sm:h-9 sm:w-9
             "
           >
             <ShoppingBag size={14} strokeWidth={2} />
@@ -169,7 +169,7 @@ export default function ProductCard({
             <h3
               className={`
                 line-clamp-2 cursor-pointer
-              text-[12px] font-normal leading-5
+              text-[11px] font-normal leading-5
                 sm:text-[15px] sm:leading-6
                 ${
                   isHomepageCard
@@ -191,7 +191,7 @@ export default function ProductCard({
               sm:text-[20px]
             "
           >
-            ₹{formattedPrice}
+            â‚¹{formattedPrice}
           </p>
         </div>
 
@@ -214,3 +214,4 @@ export default function ProductCard({
     </div>
   );
 }
+
