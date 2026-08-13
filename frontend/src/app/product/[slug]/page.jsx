@@ -13,7 +13,11 @@ export const revalidate = 3600;
 
 export default async function ProductPage({ params }) {
   const { slug } = await params;
-  const { env } = await getCloudflareContext({ async: true });
+
+  const { env } = await getCloudflareContext({
+    async: true,
+  });
+
   const product = await getProductBySlug(env.DB, slug);
 
   if (!product) {
@@ -25,18 +29,24 @@ export default async function ProductPage({ params }) {
       <Navbar />
 
       <main className="bg-[#FBF5EA]">
+
+        {/* PRODUCT SECTION */}
         <section
           className="
             mx-auto
             w-full
             max-w-[430px]
-            px-0
-            pb-0
-            pt-0
+
+            px-4
+            pb-8
+            pt-4
+
             sm:px-5
             sm:pb-14
             sm:pt-5
+
             md:px-8
+
             lg:max-w-[1420px]
             lg:px-10
             lg:pt-6
@@ -46,21 +56,37 @@ export default async function ProductPage({ params }) {
             className="
               grid
               gap-7
+
               sm:gap-8
+
               lg:grid-cols-[minmax(0,720px)_minmax(320px,1fr)]
               lg:gap-10
+
               xl:gap-14
             "
           >
+
+            {/* PRODUCT GALLERY */}
             <ProductGallery images={product.images} />
 
-            <ProductDetails product={product} />
+            {/* PRODUCT DETAILS */}
+            <div className="w-full">
+              <ProductDetails product={product} />
+            </div>
+
           </div>
         </section>
 
-        <RelatedProducts products={productData.relatedProducts} />
+        {/* RELATED PRODUCTS */}
+        <RelatedProducts
+          products={productData.relatedProducts}
+        />
 
-        <ReviewSection reviews={productData.reviews} />
+        {/* REVIEWS */}
+        <ReviewSection
+          reviews={productData.reviews}
+        />
+
       </main>
     </>
   );
