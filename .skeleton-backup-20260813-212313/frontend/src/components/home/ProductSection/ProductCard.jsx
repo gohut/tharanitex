@@ -4,7 +4,6 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { ShoppingBag } from "lucide-react";
 import Link from "next/link";
-import ImageWithSkeleton from "@/components/ui/ImageWithSkeleton";
 
 export default function ProductCard({
   product,
@@ -109,13 +108,11 @@ export default function ProductCard({
       {/* Product Image */}
       <div className="relative overflow-hidden">
         <Link href={`/product/${product.slug}`} className="block">
-          <ImageWithSkeleton
+          <img
             src={product.image}
             alt={product.name}
-            wrapperClassName="aspect-[3/4] w-full"
-            skeletonClassName="bg-[#F0E6D5]"
-            className="h-full w-full object-contain bg-[#F8F3EA] transition-transform duration-700 group-hover:scale-105"
-/>
+            className="aspect-[3/4] w-full object-contain bg-[#F8F3EA] transition-transform duration-700 group-hover:scale-105"
+          />
         </Link>
 
         {/* Wishlist */}
@@ -217,5 +214,4 @@ export default function ProductCard({
     </div>
   );
 }
-
 

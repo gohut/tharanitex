@@ -1,4 +1,100 @@
-﻿import Skeleton, { SkeletonImage, SkeletonText } from "./Skeleton";
+$ErrorActionPreference = "Stop"
+
+# Run this from:
+# D:\Project Files\Tharani Tex\app\tharanitex
+
+$root = (Get-Location).Path
+$app = Join-Path $root "frontend\src\app"
+$ui = Join-Path $root "frontend\src\components\ui"
+$pc = Join-Path $root "frontend\src\components\home\ProductSection"
+
+if (!(Test-Path $app) -or !(Test-Path $ui)) {
+    throw "Run this script from the Tharani Tex repository root."
+}
+
+$backup = Join-Path $root (".skeleton-backup-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
+New-Item -ItemType Directory -Path $backup -Force | Out-Null
+
+function Backup-And-Write($relative, $content) {
+    $target = Join-Path $root $relative
+    if (Test-Path $target) {
+        $backupTarget = Join-Path $backup $relative
+        New-Item -ItemType Directory -Path (Split-Path $backupTarget) -Force | Out-Null
+        Copy-Item $target $backupTarget -Force
+    }
+    New-Item -ItemType Directory -Path (Split-Path $target) -Force | Out-Null
+    Set-Content -LiteralPath $target -Value $content -Encoding UTF8
+}
+
+# Shared skeleton primitive
+Backup-And-Write "frontend\src\components\ui\Skeleton.jsx" @'
+export default function Skeleton({ className = "", ...props }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`skeleton-shimmer ${className}`}
+      {...props}
+    />
+  );
+}
+
+export function SkeletonText({ className = "", ...props }) {
+  return <Skeleton className={`h-4 ${className}`} {...props} />;
+}
+
+export function SkeletonImage({ className = "", ...props }) {
+  return (
+    <Skeleton
+      className={`aspect-[3/4] w-full overflow-hidden ${className}`}
+      {...props}
+    />
+  );
+}
+'@
+
+# Image-level skeleton: remains visible until the real image has loaded.
+Backup-And-Write "frontend\src\components\ui\ImageWithSkeleton.jsx" @'
+"use client";
+
+import { useState } from "react";
+
+export default function ImageWithSkeleton({
+  src,
+  alt = "",
+  className = "",
+  skeletonClassName = "",
+  wrapperClassName = "",
+  ...props
+}) {
+  const [loaded, setLoaded] = useState(false);
+
+  return (
+    <div className={`relative overflow-hidden ${wrapperClassName}`}>
+      {!loaded && (
+        <div
+          aria-hidden="true"
+          className={`skeleton-shimmer absolute inset-0 z-0 ${skeletonClassName}`}
+        />
+      )}
+
+      <img
+        src={src}
+        alt={alt}
+        onLoad={() => setLoaded(true)}
+        onError={() => setLoaded(true)}
+        className={`relative z-10 transition-opacity duration-500 ${
+          loaded ? "opacity-100" : "opacity-0"
+        } ${className}`}
+        {...props}
+      />
+    </div>
+  );
+}
+'@
+
+# Page-specific skeletons
+Backup-And-Write "frontend\src\components\ui\PageSkeleton.jsx" @'
+import Skeleton, { SkeletonImage, SkeletonText } from "./Skeleton";
 
 const cream = "bg-[#FBF5EA]";
 
@@ -329,3 +425,220 @@ export function GlobalSkeleton() {
     </main>
   );
 }
+'@
+
+# Product-card image-level skeleton.
+$productCardPath = "frontend\src\components\home\ProductSection\ProductCard.jsx"
+$productCardFull = Join-Path $root $productCardPath
+if (Test-Path $productCardFull) {
+    $content = Get-Content -LiteralPath $productCardFull -Raw
+
+    if ($content -notmatch 'ImageWithSkeleton') {
+        $content = $content.Replace(
+            'import Link from "next/link";',
+            "import Link from `"next/link`";`r`nimport ImageWithSkeleton from `"@/components/ui/ImageWithSkeleton`";"
+        )
+
+        $pattern = '(?s)<img\s+src=\{product\.image\}\s+alt=\{product\.name\}\s+className="[^"]*"\s*/>'
+        $replacement = @'
+<ImageWithSkeleton
+            src={product.image}
+            alt={product.name}
+            wrapperClassName="aspect-[3/4] w-full"
+            skeletonClassName="bg-[#F0E6D5]"
+            className="h-full w-full object-contain bg-[#F8F3EA] transition-transform duration-700 group-hover:scale-105"
+/>
+'@
+
+        $updated = [regex]::Replace($content, $pattern, $replacement, 1)
+
+        if ($updated -eq $content) {
+            Write-Warning "ProductCard image block did not match. ProductCard was not modified."
+        } else {
+            Backup-And-Write $productCardPath $updated
+        }
+    }
+}
+
+# Footer is withheld during the browser's initial resource load.
+# On client-side navigation, it is immediately available.
+Backup-And-Write "frontend\src\components\Footer\ConditionalFooter.jsx" @'
+"use client";
+
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import Footer from "./Footer";
+
+export default function ConditionalFooter() {
+  const pathname = usePathname();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (document.readyState === "complete") {
+      setReady(true);
+      return;
+    }
+
+    const handleLoad = () => setReady(true);
+    window.addEventListener("load", handleLoad, { once: true });
+
+    return () => window.removeEventListener("load", handleLoad);
+  }, []);
+
+  if (pathname.startsWith("/admin")) return null;
+  if (!ready) return null;
+
+  return <Footer />;
+}
+'@
+
+# Route-specific loading boundaries.
+Backup-And-Write "frontend\src\app\loading.jsx" @'
+import { GlobalSkeleton } from "@/components/ui/PageSkeleton";
+
+export default function Loading() {
+  return <GlobalSkeleton />;
+}
+'@
+
+Backup-And-Write "frontend\src\app\home\loading.js" @'
+import { HomeSkeleton } from "@/components/ui/PageSkeleton";
+
+export default function Loading() {
+  return <HomeSkeleton />;
+}
+'@
+
+Backup-And-Write "frontend\src\app\products\loading.js" @'
+import { ShopSkeleton } from "@/components/ui/PageSkeleton";
+
+export default function Loading() {
+  return <ShopSkeleton />;
+}
+'@
+
+Backup-And-Write "frontend\src\app\collections\loading.js" @'
+import { ShopSkeleton } from "@/components/ui/PageSkeleton";
+
+export default function Loading() {
+  return <ShopSkeleton />;
+}
+'@
+
+Backup-And-Write "frontend\src\app\search\loading.js" @'
+import { SearchSkeleton } from "@/components/ui/PageSkeleton";
+
+export default function Loading() {
+  return <SearchSkeleton />;
+}
+'@
+
+Backup-And-Write "frontend\src\app\product\loading.js" @'
+import { ProductDetailSkeleton } from "@/components/ui/PageSkeleton";
+
+export default function Loading() {
+  return <ProductDetailSkeleton />;
+}
+'@
+
+Backup-And-Write "frontend\src\app\cart\loading.js" @'
+import { CartSkeleton } from "@/components/ui/PageSkeleton";
+
+export default function Loading() {
+  return <CartSkeleton />;
+}
+'@
+
+Backup-And-Write "frontend\src\app\orders\loading.js" @'
+import { OrdersSkeleton } from "@/components/ui/PageSkeleton";
+
+export default function Loading() {
+  return <OrdersSkeleton />;
+}
+'@
+
+Backup-And-Write "frontend\src\app\wishlist\loading.js" @'
+import { WishlistSkeleton } from "@/components/ui/PageSkeleton";
+
+export default function Loading() {
+  return <WishlistSkeleton />;
+}
+'@
+
+Backup-And-Write "frontend\src\app\profile\loading.js" @'
+import { ProfileSkeleton } from "@/components/ui/PageSkeleton";
+
+export default function Loading() {
+  return <ProfileSkeleton />;
+}
+'@
+
+Backup-And-Write "frontend\src\app\login\loading.js" @'
+import { LoginSkeleton } from "@/components/ui/PageSkeleton";
+
+export default function Loading() {
+  return <LoginSkeleton />;
+}
+'@
+
+Backup-And-Write "frontend\src\app\admin\loading.js" @'
+import { AdminSkeleton } from "@/components/ui/PageSkeleton";
+
+export default function Loading() {
+  return <AdminSkeleton />;
+}
+'@
+
+# Add the cream/gold shimmer once.
+$globalsPath = Join-Path $root "frontend\src\app\globals.css"
+$globals = Get-Content -LiteralPath $globalsPath -Raw
+
+if ($globals -notmatch '\.skeleton-shimmer') {
+    Add-Content -LiteralPath $globalsPath -Encoding UTF8 -Value @'
+
+/* =========================================================
+   THARANI PAGE SKELETONS
+   ========================================================= */
+
+@keyframes tharaniSkeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    100deg,
+    #eee3d1 20%,
+    #f8f1e5 38%,
+    #eee3d1 56%
+  );
+  background-size: 220% 100%;
+  animation: tharaniSkeletonShimmer 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+    background: #eee3d1;
+  }
+}
+'@
+}
+
+Write-Host ""
+Write-Host "Skeleton system applied successfully." -ForegroundColor Green
+Write-Host "Backup created at:" -ForegroundColor Cyan
+Write-Host "  $backup"
+Write-Host ""
+Write-Host "Next:" -ForegroundColor Yellow
+Write-Host "  cd frontend"
+Write-Host "  npm run build"
+Write-Host "  npm run dev"
+Write-Host ""
+Write-Host "Inspect git diff before committing." -ForegroundColor Yellow
