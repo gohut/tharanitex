@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -93,7 +93,7 @@ export default function Navbar() {
     <>
       <header className="sticky top-0 z-50 min-h-16 w-full border-b border-[#E8DCC8] bg-[#F8F2E8]/95 backdrop-blur-md md:h-[78px]">
         <div
-          className={`mx-auto flex max-w-[1440px] flex-wrap items-center gap-2 px-3 md:grid md:h-full md:flex-nowrap md:px-8 lg:px-10 ${
+          className={`relative mx-auto flex max-w-[1440px] flex-wrap items-center gap-2 px-3 md:grid md:h-full md:flex-nowrap md:px-8 lg:px-10 ${
             isSearchMode
               ? "min-h-[112px] md:min-h-0 md:grid-cols-[minmax(0,1fr)_minmax(220px,440px)_minmax(0,1fr)] md:gap-5"
               : "min-h-16 md:min-h-0 md:grid-cols-[1fr_auto_1fr]"
@@ -164,14 +164,47 @@ export default function Navbar() {
           ) : (
             <>
 
-          {/* Left — Mobile menu/back, Desktop menu */}
-          <div className="relative z-10 flex shrink-0 items-center justify-start gap-1">
+          {/* Left — Mobile menu / back button */}
+          <div className="relative z-10 flex shrink-0 items-center">
+            {/* Mobile: hamburger on home, back on inner pages */}
+            <div className="md:hidden">
+              {pathname === "/" || pathname === "/home" ? (
+                <button
+                  type="button"
+                  aria-label="Open Menu"
+                  aria-expanded={isSidebarOpen}
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95"
+                >
+                  <Menu
+                    size={24}
+                    strokeWidth={1.8}
+                    className="text-[#2F2B27]"
+                  />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  aria-label="Go back"
+                  onClick={() => router.back()}
+                  className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95"
+                >
+                  <ArrowLeft
+                    size={24}
+                    strokeWidth={1.8}
+                    className="text-[#2F2B27]"
+                  />
+                </button>
+              )}
+            </div>
+
             {/* Desktop: hamburger */}
             <button
+              type="button"
               aria-label="Open Menu"
               aria-expanded={isSidebarOpen}
               onClick={() => setIsSidebarOpen(true)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95"
+              className="hidden h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95 md:flex"
             >
               <Menu
                 size={24}
@@ -179,22 +212,6 @@ export default function Navbar() {
                 className="text-[#2F2B27]"
               />
             </button>
-
-            {/* Mobile: back button on inner pages */}
-            {pathname !== "/" && pathname !== "/home" && (
-              <button
-                type="button"
-                aria-label="Go back"
-                onClick={() => router.back()}
-                className="absolute left-0 flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] hover:scale-105 active:scale-95 md:hidden"
-              >
-                <ArrowLeft
-                  size={24}
-                  strokeWidth={1.8}
-                  className="text-[#2F2B27]"
-                />
-              </button>
-            )}
           </div>
 
           {/* Logo — centered on mobile, normal desktop positioning */}
@@ -218,7 +235,7 @@ export default function Navbar() {
               <img
                 src="/assets/logo.png"
                 alt="Tharani Textiles"
-                className="h-10 w-auto max-w-[150px] object-contain transition-transform duration-300 hover:scale-[1.02] md:h-[60px]"
+                className="h-9 w-auto max-w-[140px] object-contain transition-transform duration-300 hover:scale-[1.02] md:h-[60px]"
                 draggable={false}
               />
             </Link>
