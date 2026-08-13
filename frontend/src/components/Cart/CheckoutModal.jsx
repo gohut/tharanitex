@@ -27,20 +27,14 @@ export default function CheckoutModal({ open, onClose, onOrderCreated }) {
     const validationErrors = validateCheckoutDetails(details);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length) return;
-    if (details.paymentMethod !== "COD") {
-      setSubmitError("Online payment is coming soon. Please select Cash on Delivery to place this test order.");
-      return;
-    }
-
     setSubmitting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ customerName: details.name.trim(), phone: details.phone.trim(), otp: details.otp.trim(), deliveryAddress: details.address.trim(), paymentMethod: details.paymentMethod }),
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Unable to place your order.");
       onOrderCreated(data);
     } catch (error) {

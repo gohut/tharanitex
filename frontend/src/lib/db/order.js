@@ -1,13 +1,24 @@
+export class CheckoutError extends Error {
+  constructor(message, status = 400, context = {}) {
+    super(message);
+    this.name = "CheckoutError";
+    this.status = status;
+    this.context = context;
+  }
+}
+
 export async function createOrder(db, checkout, legacyAddressId) {
-  // Get cart items with current product prices
+  // Read every cart row first so a stale product or invalid quantity cannot
+  // silently produce a partial order.
   const { results: cartItems } = await db
     .prepare(`
       SELECT
         ci.product_id,
         ci.quantity,
-        p.price
+        p.price,
+        p.id AS resolved_product_id
       FROM cart_items ci
-      JOIN products p
+      LEFT JOIN products p
         ON p.id = ci.product_id
       WHERE ci.user_id = ?
     `)
@@ -15,10 +26,22 @@ export async function createOrder(db, checkout, legacyAddressId) {
     .all();
 
   if (!cartItems.length) {
-    throw new Error("Cart is empty");
+    throw new CheckoutError("Cart is empty", 409, { cartItemCount: 0 });
   }
 
-  // Calculate order total
+  for (const item of cartItems) {
+    if (!item.resolved_product_id) {
+      throw new CheckoutError("One of the products in your cart is no longer available.", 409, { cartItemCount: cartItems.length });
+    }
+    if (!Number.isInteger(Number(item.quantity)) || Number(item.quantity) <= 0) {
+      throw new CheckoutError("Your cart contains an invalid quantity. Please update it and try again.", 409, { cartItemCount: cartItems.length });
+    }
+    if (!Number.isFinite(Number(item.price)) || Number(item.price) < 0) {
+      throw new CheckoutError("A cart item has an invalid price. Please try again.", 409, { cartItemCount: cartItems.length });
+    }
+  }
+
+  // The total is always calculated from current D1 prices, never from client input.
   const totalAmount = cartItems.reduce(
     (total, item) =>
       total + Number(item.price) * Number(item.quantity),
@@ -29,8 +52,15 @@ export async function createOrder(db, checkout, legacyAddressId) {
   let userId = checkout?.userId;
   let addressId = legacyAddressId;
   let paymentMethod = "COD";
+  let createdAddressId = null;
 
   if (!isLegacyCheckout) {
+    if (!checkout || !Number.isInteger(Number(userId)) || Number(userId) <= 0) {
+      throw new CheckoutError("Invalid checkout request.", 400);
+    }
+    if (checkout.paymentMethod !== "COD") {
+      throw new CheckoutError("Only Cash on Delivery is currently available.", 400);
+    }
     const addressLines = checkout.deliveryAddress
       .split(/\n|,/)
       .map((line) => line.trim())
@@ -39,71 +69,79 @@ export async function createOrder(db, checkout, legacyAddressId) {
     const city = addressLines.at(-2) || "Not specified";
     const state = addressLines.at(-1)?.replace(/\b\d{6}\b/, "").trim() || "Not specified";
 
-    const addressResult = await db
+    const existingAddress = await db
       .prepare(`
-        INSERT INTO addresses (user_id, full_name, phone, address_line1, city, state, pincode, country)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 'India')
+        SELECT id FROM addresses
+        WHERE user_id = ? AND full_name = ? AND phone = ? AND address_line1 = ?
+        LIMIT 1
       `)
-      .bind(userId, checkout.customerName, checkout.phone, checkout.deliveryAddress, city, state, pincode)
-      .run();
-    addressId = addressResult.meta.last_row_id;
+      .bind(userId, checkout.customerName, checkout.phone, checkout.deliveryAddress)
+      .first();
+
+    if (existingAddress) {
+      addressId = existingAddress.id;
+    } else {
+      const addressResult = await db
+        .prepare(`
+          INSERT INTO addresses (user_id, full_name, phone, address_line1, city, state, pincode, country)
+          VALUES (?, ?, ?, ?, ?, ?, ?, 'India')
+        `)
+        .bind(userId, checkout.customerName, checkout.phone, checkout.deliveryAddress, city, state, pincode)
+        .run();
+      addressId = addressResult.meta.last_row_id;
+      createdAddressId = addressId;
+    }
     paymentMethod = checkout.paymentMethod;
   } else {
     userId = checkout;
+    if (!Number.isInteger(userId) || userId <= 0 || !Number.isInteger(addressId) || addressId <= 0) {
+      throw new CheckoutError("Invalid order request.", 400);
+    }
   }
 
-  // Existing status fields are retained; COD starts as unpaid and placed.
-  const result = await db
-    .prepare(`
-      INSERT INTO orders (
-        user_id,
-        address_id,
-        total_amount,
-        payment_method,
-        payment_status,
-        order_status
-      )
-      VALUES (?, ?, ?, ?, 'pending', 'placed')
-    `)
-    .bind(userId, addressId, totalAmount, paymentMethod)
-    .run();
-
-  const orderId = result.meta.last_row_id;
-
-  // Copy cart items into order_items
-  for (const item of cartItems) {
-    await db
+  let orderId;
+  try {
+    const result = await db
       .prepare(`
-        INSERT INTO order_items (
-          order_id,
-          product_id,
-          quantity,
-          price
-        )
-        VALUES (?, ?, ?, ?)
+        INSERT INTO orders (user_id, address_id, total_amount, payment_method, payment_status, order_status)
+        VALUES (?, ?, ?, ?, 'pending', 'placed')
       `)
-      .bind(
-        orderId,
-        item.product_id,
-        item.quantity,
-        item.price
-      )
+      .bind(userId, addressId, totalAmount, paymentMethod)
       .run();
-  }
+    orderId = result.meta.last_row_id;
 
-  // Clear cart after order creation
-  await db
-    .prepare(`
-      DELETE FROM cart_items
-      WHERE user_id = ?
-    `)
-    .bind("guest")
-    .run();
+    // D1 batch commits all line items and the cart clear together. If an item
+    // insert fails, the cart is retained and cleanup below removes this order.
+    await db.batch([
+      ...cartItems.map((item) => db
+        .prepare(`INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)`)
+        .bind(orderId, item.product_id, item.quantity, item.price)),
+      db.prepare(`DELETE FROM cart_items WHERE user_id = ?`).bind("guest"),
+    ]);
+  } catch (error) {
+    if (orderId) {
+      await db.batch([
+        db.prepare(`DELETE FROM order_items WHERE order_id = ?`).bind(orderId),
+        db.prepare(`DELETE FROM orders WHERE id = ?`).bind(orderId),
+        ...(createdAddressId ? [db.prepare(`DELETE FROM addresses WHERE id = ?`).bind(createdAddressId)] : []),
+      ]).catch((cleanupError) => console.error("Checkout cleanup failed", {
+        message: cleanupError?.message,
+        orderId,
+      }));
+    } else if (createdAddressId) {
+      await db.prepare(`DELETE FROM addresses WHERE id = ?`).bind(createdAddressId).run()
+        .catch((cleanupError) => console.error("Checkout address cleanup failed", { message: cleanupError?.message }));
+    }
+    throw error;
+  }
 
   return {
     success: true,
     orderId,
     totalAmount,
+    orderStatus: "placed",
+    paymentMethod,
+    paymentStatus: "pending",
   };
 }
 

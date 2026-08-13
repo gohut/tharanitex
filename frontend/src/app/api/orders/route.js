@@ -1,6 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
   createOrder,
+  CheckoutError,
   getOrders,
 } from "@/lib/db/order";
 import { validateCheckoutDetails } from "@/lib/checkout";
@@ -28,8 +29,15 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const { env } = await getCloudflareContext({ async: true });
-
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      throw new CheckoutError("Invalid checkout request.", 400);
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      throw new CheckoutError("Invalid checkout request.", 400);
+    }
 
     // Preserve the former addressId contract for existing callers, while the
     // cart checkout submits verified customer details for COD orders.
@@ -50,10 +58,6 @@ export async function POST(request) {
     if (Object.keys(errors).length) {
       return Response.json({ success: false, error: Object.values(errors)[0], errors }, { status: 400 });
     }
-    if (details.paymentMethod !== "COD") {
-      return Response.json({ success: false, error: "Online payment is currently unavailable." }, { status: 400 });
-    }
-
     const order = await createOrder(
       env.DB,
       {
@@ -68,20 +72,27 @@ export async function POST(request) {
 
     return Response.json(order, { status: 201 });
   } catch (error) {
-    console.error("CREATE order error:", error);
+    const context = error?.context || {};
+    console.error("CREATE order error", {
+      endpoint: "/api/orders",
+      message: error?.message,
+      stack: error?.stack,
+      cartItemCount: context.cartItemCount,
+      orderId: context.orderId,
+    });
     const message = error.message || "";
     const isMissingPaymentMethodColumn = /payment_method|no such column/i.test(message);
 
     return Response.json(
       {
         success: false,
-        error: error.message === "Cart is empty"
+        error: error instanceof CheckoutError
           ? error.message
           : isMissingPaymentMethodColumn
             ? "Checkout is temporarily unavailable. The COD database update has not been applied yet."
             : "Unable to create the order. Please try again.",
       },
-      { status: 400 }
+      { status: error instanceof CheckoutError ? error.status : 500 }
     );
   }
 }
