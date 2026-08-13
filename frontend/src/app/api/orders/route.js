@@ -69,11 +69,17 @@ export async function POST(request) {
     return Response.json(order, { status: 201 });
   } catch (error) {
     console.error("CREATE order error:", error);
+    const message = error.message || "";
+    const isMissingPaymentMethodColumn = /payment_method|no such column/i.test(message);
 
     return Response.json(
       {
         success: false,
-        error: error.message === "Cart is empty" ? error.message : "Unable to create the order. Please try again.",
+        error: error.message === "Cart is empty"
+          ? error.message
+          : isMissingPaymentMethodColumn
+            ? "Checkout is temporarily unavailable. The COD database update has not been applied yet."
+            : "Unable to create the order. Please try again.",
       },
       { status: 400 }
     );
