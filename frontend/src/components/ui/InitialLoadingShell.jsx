@@ -16,7 +16,8 @@ import {
   GlobalSkeleton,
 } from "./PageSkeleton";
 
-const MIN_LOADING_TIME = 1200;
+const LOGO_SCREEN_TIME = 1400;
+const SKELETON_MIN_TIME = 500;
 
 function getSkeleton(pathname) {
   if (pathname === "/" || pathname === "/home") {
@@ -61,51 +62,75 @@ function getSkeleton(pathname) {
 export default function InitialLoadingShell() {
   const pathname = usePathname();
 
-  const [visible, setVisible] = useState(true);
+  const [stage, setStage] = useState("logo");
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    let minimumTimePassed = false;
-    let pageLoaded = false;
+    setStage("logo");
+    setFadeOut(false);
 
-    const hideLoader = () => {
-      if (!minimumTimePassed || !pageLoaded) return;
-
-      setFadeOut(true);
-
-      setTimeout(() => {
-        setVisible(false);
-      }, 350);
-    };
-
-    const minimumTimer = setTimeout(() => {
-      minimumTimePassed = true;
-      hideLoader();
-    }, MIN_LOADING_TIME);
-
-    if (document.readyState === "complete") {
-      pageLoaded = true;
-      hideLoader();
-    } else {
-      const handleLoad = () => {
-        pageLoaded = true;
-        hideLoader();
-      };
-
-      window.addEventListener("load", handleLoad, { once: true });
-
-      return () => {
-        clearTimeout(minimumTimer);
-        window.removeEventListener("load", handleLoad);
-      };
-    }
+    const logoTimer = setTimeout(() => {
+      setStage("skeleton");
+    }, LOGO_SCREEN_TIME);
 
     return () => {
-      clearTimeout(minimumTimer);
+      clearTimeout(logoTimer);
     };
   }, [pathname]);
 
-  if (!visible) return null;
+  useEffect(() => {
+    if (stage !== "skeleton") return;
+
+    let loaded = document.readyState === "complete";
+
+    const handleLoad = () => {
+      loaded = true;
+    };
+
+    if (!loaded) {
+      window.addEventListener("load", handleLoad, { once: true });
+    }
+
+    const minimumTimer = setTimeout(() => {
+      if (loaded || document.readyState === "complete") {
+        setFadeOut(true);
+
+        setTimeout(() => {
+          setStage("done");
+        }, 350);
+      }
+    }, SKELETON_MIN_TIME);
+
+    return () => {
+      clearTimeout(minimumTimer);
+      window.removeEventListener("load", handleLoad);
+    };
+  }, [stage]);
+
+  if (stage === "done") return null;
+
+  if (stage === "logo") {
+    return (
+      <div
+        className="
+          fixed inset-0 z-[99999]
+          flex items-center justify-center
+          bg-[#FBF5EA]
+        "
+      >
+        <img
+          src="/assets/logo.png"
+          alt="Tharani Textiles"
+          className="
+            w-[220px]
+            max-w-[65vw]
+            object-contain
+            animate-pulse
+          "
+        />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -114,7 +139,11 @@ export default function InitialLoadingShell() {
         overflow-y-auto
         bg-[#FBF5EA]
         transition-opacity duration-350
-        ${fadeOut ? "pointer-events-none opacity-0" : "opacity-100"}
+        ${
+          fadeOut
+            ? "pointer-events-none opacity-0"
+            : "opacity-100"
+        }
       `}
     >
       {getSkeleton(pathname)}
