@@ -3,9 +3,12 @@ import RelatedProducts from "@/components/product/RelatedProducts";
 import ProductGallery from "@/components/product/ProductGallery";
 import ProductDetails from "@/components/product/ProductDetails";
 import ReviewSection from "@/components/product/ReviewSection";
+
 import { notFound } from "next/navigation";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+
 import { getProductBySlug } from "@/lib/db/product";
+import { ReviewRepository } from "@/repositories/ReviewRepository";
 
 import { productData } from "@/data/productData";
 
@@ -24,19 +27,40 @@ export default async function ProductPage({ params }) {
     notFound();
   }
 
+  /*
+   * REAL REVIEWS
+   *
+   * Reviews are loaded directly from D1.
+   * ReviewRepository only returns approved reviews.
+   */
+  const dbReviews = await ReviewRepository.findByProductId(product.id);
+
+  const reviews = (dbReviews || []).map((review) => ({
+    id: review.id,
+    name: review.user_name || "Verified Customer",
+    rating: Number(review.rating) || 0,
+    comment: review.comment || "",
+    date: review.created_at
+      ? new Date(review.created_at).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : "",
+  }));
+
   return (
     <>
       <Navbar />
 
       <main className="bg-[#FBF5EA]">
 
-        {/* PRODUCT SECTION */}
+        {/* PRODUCT */}
         <section
           className="
             mx-auto
             w-full
             max-w-[430px]
-
             px-4
             pb-8
             pt-4
@@ -65,15 +89,11 @@ export default async function ProductPage({ params }) {
               xl:gap-14
             "
           >
-
-            {/* PRODUCT GALLERY */}
             <ProductGallery images={product.images} />
 
-            {/* PRODUCT DETAILS */}
             <div className="w-full">
               <ProductDetails product={product} />
             </div>
-
           </div>
         </section>
 
@@ -82,9 +102,10 @@ export default async function ProductPage({ params }) {
           products={productData.relatedProducts}
         />
 
-        {/* REVIEWS */}
+        {/* REAL D1 REVIEWS */}
         <ReviewSection
-          reviews={productData.reviews}
+          product={product}
+          reviews={reviews}
         />
 
       </main>
