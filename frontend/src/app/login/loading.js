@@ -1,2 +1,5 @@
-import LoadingScreen from "../../components/ui/LoadingScreen";
-export default function Loading() { return <LoadingScreen />; }
+﻿import { LoginSkeleton } from "@/components/ui/PageSkeleton";
+
+export default function Loading() {
+  return <LoginSkeleton />;
+}

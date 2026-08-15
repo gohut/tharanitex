@@ -336,3 +336,35 @@ a {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+/* =========================================================
+   THARANI PAGE SKELETONS
+   ========================================================= */
+
+@keyframes tharaniSkeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    100deg,
+    #eee3d1 20%,
+    #f8f1e5 38%,
+    #eee3d1 56%
+  );
+  background-size: 220% 100%;
+  animation: tharaniSkeletonShimmer 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+    background: #eee3d1;
+  }
+}
