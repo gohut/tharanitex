@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { Minus, Plus } from "lucide-react";
 import ProductAccordion from "./ProductAccordion";
 import toast from "react-hot-toast";
+import CheckoutModal from "@/components/Cart/CheckoutModal";
 
 export default function ProductDetails({ product }) {
   const [qty, setQty] = useState(1);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const router = useRouter();
 
   async function addToCart() {
@@ -90,9 +92,17 @@ export default function ProductDetails({ product }) {
         </button>
       </div>
 
-      <button className="mt-3 h-11 w-full border-2 border-[#5A1F2F] bg-[#5A1F2F] text-sm font-semibold tracking-[0.06em] text-white transition hover:bg-[#471825] sm:h-[50px]">
+      <button onClick={() => setIsCheckoutOpen(true)} className="mt-3 h-11 w-full border-2 border-[#5A1F2F] bg-[#5A1F2F] text-sm font-semibold tracking-[0.06em] text-white transition hover:bg-[#471825] sm:h-[50px]">
         BUY NOW
       </button>
+
+      <CheckoutModal
+        open={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        checkoutType="BUY_NOW"
+        buyNowItem={{ productId: product.id, quantity: qty }}
+        onOrderCreated={(order) => router.push(`/orders/${order.orderId}`)}
+      />
 
       <div className="mt-5">
         <ProductAccordion />

@@ -61,6 +61,8 @@ export default async function OrderDetailsPage({ params }) {
     );
   }
 
+  const displayItems = order.items || [{ id: order.productName, image: order.image, name: order.productName, quantity: order.quantity, price: order.itemPrice, slug: "" }];
+
   return (
     <main className="min-h-screen bg-[#FBF5EA]">
       <Navbar />
@@ -83,31 +85,12 @@ export default async function OrderDetailsPage({ params }) {
               />
             </div>
 
-            <div className="mt-8 grid gap-6 border-b border-[#DDCFBD] pb-8 md:grid-cols-[140px_1fr_auto] md:items-center">
-              <img
-                src={order.image}
-                alt={order.productName}
-                className="h-[154px] w-[122px] object-cover"
-              />
-
-              <div>
-                <h3 className="text-[26px] font-semibold text-[#211D19]">
-                  {order.productName}
-                </h3>
-                <p className="mt-2 text-[18px] font-semibold text-[#6C6258]">
-                  {order.variant}
-                </p>
-
-                <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-[#8A8175]">
-                  <span>Qty : {order.quantity}</span>
-                  <span>{order.itemPrice}</span>
-                </div>
-              </div>
-
-              <button className="inline-flex items-center justify-center gap-3 border border-[#CDBCA2] px-6 py-4 text-[17px] font-semibold text-[#231F1A] transition hover:border-[#E0A22E] hover:text-[#E0A22E]">
-                <ShoppingBag size={20} />
-                <span>Buy Again</span>
-              </button>
+            <div className="mt-8 space-y-6 border-b border-[#DDCFBD] pb-8">
+              {displayItems.map((item) => <div key={item.id} className="grid gap-6 md:grid-cols-[140px_1fr_auto] md:items-center">
+                <img src={item.image} alt={item.name} className="h-[154px] w-[122px] object-cover" />
+                <div><h3 className="text-[26px] font-semibold text-[#211D19]">{item.name}</h3><div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-[#8A8175]"><span>Qty : {item.quantity}</span><span>{typeof item.price === "number" ? formatPrice(item.price) : item.price}</span></div></div>
+                {item.slug ? <Link href={`/product/${item.slug}`} className="inline-flex items-center justify-center gap-3 border border-[#CDBCA2] px-6 py-4 text-[17px] font-semibold text-[#231F1A] transition hover:border-[#E0A22E] hover:text-[#E0A22E]"><ShoppingBag size={20} /><span>Buy Again</span></Link> : null}
+              </div>)}
             </div>
 
             <div className="mx-auto mt-10 max-w-[430px]">
@@ -167,7 +150,7 @@ export default async function OrderDetailsPage({ params }) {
 
             <div className="mt-6 space-y-6">
               <SummaryRow
-                label="Subtotal(1 Item)"
+                label={`Subtotal (${displayItems.length} Item${displayItems.length === 1 ? "" : "s"})`}
                 value={order.summary.subtotal}
               />
               <SummaryRow
@@ -219,25 +202,16 @@ export default async function OrderDetailsPage({ params }) {
 }
 
 function mapDatabaseOrder(order) {
-  const firstItem = order.items?.[0] || {};
   const createdAt = new Date(order.created_at);
   const date = createdAt.toLocaleDateString("en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
-  const totalQuantity = order.items?.reduce(
-    (total, item) => total + Number(item.quantity),
-    0
-  ) || 0;
   const status = order.order_status || "placed";
 
   return {
-    image: firstItem.image,
-    productName: firstItem.name || "Order",
-    variant: order.items?.length > 1 ? `Includes ${order.items.length} items` : "",
-    quantity: totalQuantity,
-    itemPrice: formatPrice(firstItem.price),
+    items: (order.items || []).map((item) => ({ ...item, id: item.id || item.product_id })),
     placedOn: `Placed On ${date}`,
     status: `${status.charAt(0).toUpperCase()}${status.slice(1)}`,
     trackingSteps: buildTrackingSteps(status, date),

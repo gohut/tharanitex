@@ -13,8 +13,8 @@ export function validateCheckoutDetails({ name, phone, otp, address, paymentMeth
   if (address.trim().length < 15) {
     errors.address = "Please enter a complete delivery address.";
   }
-  if (paymentMethod !== "COD") {
-    errors.paymentMethod = "Only Cash on Delivery is currently available.";
+  if (!["COD", "UPI", "CARD"].includes(paymentMethod)) {
+    errors.paymentMethod = "Choose a payment method.";
   }
 
   return errors;
