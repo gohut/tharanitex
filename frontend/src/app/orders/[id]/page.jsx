@@ -12,6 +12,9 @@ import OrderTimeline from "@/components/orders/OrderTimeline";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getOrderById as getMockOrderById } from "@/data/customerOrders";
 import { getOrderById as getDatabaseOrderById } from "@/lib/db/order";
+import { validateSession } from "@/lib/auth";
+import { SESSION_COOKIE_NAME } from "@/types/auth";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +24,9 @@ export default async function OrderDetailsPage({ params }) {
 
   try {
     const { env } = await getCloudflareContext({ async: true });
-    databaseOrder = await getDatabaseOrderById(env.DB, resolvedParams.id, 1);
+    const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value || "";
+    const user = await validateSession(token, env);
+    if (user?.userType === "customer") databaseOrder = await getDatabaseOrderById(env.DB, resolvedParams.id, String(user.userId));
   } catch (error) {
     console.error("Order details error:", error);
   }

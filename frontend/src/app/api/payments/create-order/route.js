@@ -2,6 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { CheckoutError, prepareOnlineCheckout } from "@/lib/db/order";
 import { validateCheckoutDetails } from "@/lib/checkout";
 import { createRazorpayOrder, getRazorpayKeyId } from "@/lib/razorpay";
+import { requireCustomer } from "@/lib/checkout-auth";
 
 export async function POST(request) {
   try {
@@ -15,7 +16,7 @@ export async function POST(request) {
     const checkoutType = body.checkoutType === "BUY_NOW" ? "BUY_NOW" : body.checkoutType === "CART" ? "CART" : null;
     if (!checkoutType) throw new CheckoutError("Invalid checkout type.");
     const payment = await prepareOnlineCheckout(env.DB, {
-      userId: 1, checkoutType, productId: body.productId, quantity: body.quantity, paymentMethod: details.paymentMethod,
+      userId: await requireCustomer(request, env), checkoutType, productId: body.productId, quantity: body.quantity, paymentMethod: details.paymentMethod,
       customerName: details.name.trim(), phone: details.phone.trim(), deliveryAddress: details.address.trim(), idempotencyKey: body.idempotencyKey,
     }, (input) => createRazorpayOrder(env, input), getRazorpayKeyId(env));
     return Response.json(payment, { status: 201 });

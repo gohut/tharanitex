@@ -28,7 +28,7 @@ export default function OrdersPage() {
         setLoading(true);
         setError("");
 
-        const res = await fetch("/api/orders?userId=1", {
+        const res = await fetch("/api/orders", {
           cache: "no-store",
         });
 

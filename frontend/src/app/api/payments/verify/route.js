@@ -1,6 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { CheckoutError, claimVerifiedPayment } from "@/lib/db/order";
 import { getRazorpayPayment, verifyRazorpaySignature } from "@/lib/razorpay";
+import { requireCustomer } from "@/lib/checkout-auth";
 
 export async function POST(request) {
   try {
@@ -17,7 +18,7 @@ export async function POST(request) {
     if (payment.order_id !== orderId || Number(payment.amount) !== Number(session.amount_paise) || payment.status !== "captured") {
       throw new CheckoutError("Payment could not be confirmed.", 400);
     }
-    const result = await claimVerifiedPayment(env.DB, { razorpayOrderId: orderId, razorpayPaymentId: paymentId, razorpaySignature: signature });
+    const result = await claimVerifiedPayment(env.DB, { razorpayOrderId: orderId, razorpayPaymentId: paymentId, razorpaySignature: signature, userId: await requireCustomer(request, env) });
     return Response.json({ success: true, orderId: result.orderId, paymentStatus: "paid", duplicate: result.duplicate });
   } catch (error) {
     console.error("VERIFY Razorpay payment error", { message: error?.message });

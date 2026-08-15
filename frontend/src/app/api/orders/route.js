@@ -1,11 +1,12 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { createCodOrder, CheckoutError, getOrders } from "@/lib/db/order";
 import { validateCheckoutDetails } from "@/lib/checkout";
+import { requireCustomer } from "@/lib/checkout-auth";
 
 export async function GET(request) {
   try {
     const { env } = await getCloudflareContext({ async: true });
-    const userId = Number(new URL(request.url).searchParams.get("userId") || 1);
+    const userId = await requireCustomer(request, env);
     return Response.json(await getOrders(env.DB, userId));
   } catch (error) {
     console.error("GET orders error:", error);
@@ -25,7 +26,7 @@ export async function POST(request) {
     const checkoutType = body.checkoutType === "BUY_NOW" ? "BUY_NOW" : body.checkoutType === "CART" || !body.checkoutType ? "CART" : null;
     if (!checkoutType) throw new CheckoutError("Invalid checkout type.");
     const order = await createCodOrder(env.DB, {
-      userId: 1, checkoutType, productId: body.productId, quantity: body.quantity,
+      userId: await requireCustomer(request, env), checkoutType, productId: body.productId, quantity: body.quantity,
       customerName: details.name.trim(), phone: details.phone.trim(), deliveryAddress: details.address.trim(),
     });
     return Response.json(order, { status: 201 });

@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getOrderById } from "@/lib/db/order";
+import { requireCustomer } from "@/lib/checkout-auth";
 
 export async function GET(request, { params }) {
   try {
@@ -7,8 +8,7 @@ export async function GET(request, { params }) {
 
     const { id } = await params;
 
-    const { searchParams } = new URL(request.url);
-    const userId = Number(searchParams.get("userId") || 1);
+    const userId = await requireCustomer(request, env);
 
     const order = await getOrderById(
       env.DB,

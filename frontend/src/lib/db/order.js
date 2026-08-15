@@ -7,13 +7,12 @@ export class CheckoutError extends Error {
   }
 }
 
-const GUEST_CART_USER = "guest";
 
 function validQuantity(value) {
   return Number.isInteger(Number(value)) && Number(value) > 0 && Number(value) <= 99;
 }
 
-async function trustedItems(db, checkoutType, productId, quantity) {
+async function trustedItems(db, checkoutType, productId, quantity, cartUserId) {
   if (checkoutType === "BUY_NOW") {
     if (!validQuantity(quantity) || !Number.isInteger(Number(productId)) || Number(productId) <= 0) {
       throw new CheckoutError("Choose a valid product and quantity.");
@@ -31,7 +30,7 @@ async function trustedItems(db, checkoutType, productId, quantity) {
   const { results } = await db.prepare(`
     SELECT ci.product_id, ci.quantity, p.id AS resolved_product_id, p.price, p.stock, p.is_active
     FROM cart_items ci LEFT JOIN products p ON p.id = ci.product_id WHERE ci.user_id = ?
-  `).bind(GUEST_CART_USER).all();
+  `).bind(cartUserId).all();
   if (!results.length) throw new CheckoutError("Cart is empty", 409);
   return results.map((item) => {
     if (!item.resolved_product_id || Number(item.is_active) !== 1) throw new CheckoutError("One of the products in your cart is no longer available.", 409);
@@ -70,15 +69,15 @@ async function insertOrder(db, { userId, addressId, items, paymentMethod, paymen
 }
 
 export async function createCodOrder(db, checkout) {
-  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.quantity);
+  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.quantity, checkout.userId);
   const addressId = await findOrCreateAddress(db, checkout);
   const orderId = await insertOrder(db, { userId: checkout.userId, addressId, items, paymentMethod: "COD", paymentStatus: "pending" });
-  if (checkout.checkoutType === "CART") await db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind(GUEST_CART_USER).run();
+  if (checkout.checkoutType === "CART") await db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind(checkout.userId).run();
   return { success: true, orderId, totalAmount: total(items), orderStatus: "placed", paymentMethod: "COD", paymentStatus: "pending" };
 }
 
 export async function prepareOnlineCheckout(db, checkout, razorpayOrder, publicKey) {
-  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.quantity);
+  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.quantity, checkout.userId);
   const addressId = await findOrCreateAddress(db, checkout);
   const amountPaise = Math.round(total(items) * 100);
   const sessionId = crypto.randomUUID();
@@ -98,9 +97,10 @@ export async function prepareOnlineCheckout(db, checkout, razorpayOrder, publicK
   }
 }
 
-export async function claimVerifiedPayment(db, { razorpayOrderId, razorpayPaymentId, razorpaySignature }) {
+export async function claimVerifiedPayment(db, { razorpayOrderId, razorpayPaymentId, razorpaySignature, userId }) {
   const session = await db.prepare("SELECT * FROM checkout_sessions WHERE razorpay_order_id = ? LIMIT 1").bind(razorpayOrderId).first();
   if (!session) throw new CheckoutError("Payment session not found.", 404);
+  if (String(session.user_id) !== String(userId)) throw new CheckoutError("Payment session not found.", 404);
   // Recover safely if a prior request completed the order insert but was
   // interrupted before it could mark the checkout session completed.
   const existingOrder = await db.prepare("SELECT id FROM orders WHERE razorpay_order_id = ? LIMIT 1").bind(razorpayOrderId).first();
@@ -118,7 +118,7 @@ export async function claimVerifiedPayment(db, { razorpayOrderId, razorpayPaymen
       paymentStatus: "paid", razorpay: { orderId: razorpayOrderId, paymentId: razorpayPaymentId, signature: razorpaySignature },
     });
     const statements = [db.prepare("UPDATE checkout_sessions SET status = 'completed', completed_order_id = ? WHERE id = ?").bind(orderId, session.id)];
-    if (session.checkout_type === "CART") statements.push(db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind(GUEST_CART_USER));
+    if (session.checkout_type === "CART") statements.push(db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind(session.user_id));
     await db.batch(statements);
     return { orderId, duplicate: false };
   } catch (error) {

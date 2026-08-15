@@ -4,11 +4,18 @@ import OrderSummary from "@/components/Cart/OrderSummary";
 import DeliveryCard from "@/components/Cart/DeliveryCard";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getCart } from "@/lib/db/cart";
+import { validateSession } from "@/lib/auth";
+import { SESSION_COOKIE_NAME } from "@/types/auth";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 export default async function CartPage() {
   const { env } = await getCloudflareContext({ async: true });
-  const cartItems = await getCart(env.DB, "guest");
+  const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value || "";
+  const user = await validateSession(token, env);
+  if (!user || user.userType !== "customer") redirect("/login");
+  const cartItems = await getCart(env.DB, String(user.userId));
 
   const subtotal = cartItems.reduce(
   (sum, item) => sum + item.price * item.quantity,
