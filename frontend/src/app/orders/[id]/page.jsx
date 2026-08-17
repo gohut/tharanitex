@@ -14,6 +14,7 @@ import { getOrderById as getMockOrderById } from "@/data/customerOrders";
 import { getOrderById as getDatabaseOrderById } from "@/lib/db/order";
 import { validateSession } from "@/lib/auth";
 import { SESSION_COOKIE_NAME } from "@/types/auth";
+import { verifyJWT } from "@/utils/jwt";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -24,10 +25,31 @@ export default async function OrderDetailsPage({ params }) {
 
   try {
     const { env } = await getCloudflareContext({ async: true });
-    const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value || "";
-    const user = await validateSession(token, env);
-    const userId = user?.userType === "customer" ? String(user.userId) : "1";
-    databaseOrder = await getDatabaseOrderById(env.DB, resolvedParams.id, userId);
+    const cookieStore = await cookies();
+    let userId = null;
+
+    // 1. Try JWT authentication (auth_token or token)
+    const jwtToken = cookieStore.get("auth_token")?.value || cookieStore.get("token")?.value;
+    if (jwtToken) {
+      const secret = process.env.JWT_SECRET || "tharanitex_super_secret_key_123!";
+      const payload = await verifyJWT(jwtToken, secret);
+      if (payload && (payload.role === "customer" || !payload.role) && payload.id) {
+        userId = String(payload.id);
+      }
+    }
+
+    // 2. Fall back to session authentication (tharanitex_session)
+    if (!userId) {
+      const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value || "";
+      if (sessionToken) {
+        const user = await validateSession(sessionToken, env);
+        if (user?.userType === "customer" && user.userId) {
+          userId = String(user.userId);
+        }
+      }
+    }
+
+    databaseOrder = await getDatabaseOrderById(env.DB, resolvedParams.id, userId || "1");
   } catch (error) {
     console.error("Order details error:", error);
   }

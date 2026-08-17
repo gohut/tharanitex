@@ -15,16 +15,21 @@ export async function authenticate(request) {
 
   // 2. Parse Cookies
   if (!token) {
-    const cookieHeader = request.headers.get("cookie");
-    if (cookieHeader) {
-      const cookies = Object.fromEntries(
-        cookieHeader.split(";").map((cookie) => {
-          const parts = cookie.split("=");
-          return [parts[0].trim(), parts[1] ? decodeURIComponent(parts[1].trim()) : ""];
-        })
-      );
-      // Accept either 'token' or 'admin_token'
-      token = cookies.token || cookies.admin_token;
+    token = request.cookies?.get?.("auth_token")?.value ||
+            request.cookies?.get?.("token")?.value ||
+            request.cookies?.get?.("admin_token")?.value;
+
+    if (!token) {
+      const cookieHeader = request.headers?.get?.("cookie");
+      if (cookieHeader) {
+        const cookies = Object.fromEntries(
+          cookieHeader.split(";").map((cookie) => {
+            const parts = cookie.split("=");
+            return [parts[0].trim(), parts[1] ? decodeURIComponent(parts[1].trim()) : ""];
+          })
+        );
+        token = cookies.auth_token || cookies.token || cookies.admin_token;
+      }
     }
   }
 

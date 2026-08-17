@@ -93,11 +93,18 @@ export default function LoginPage() {
     }
   }, [router]);
 
-  const handleSignIn = (e) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
 
     // Check for admin
     if (loginEmail === "admin@tharanitextiles.com") {
+      try {
+        await fetch("/api/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+        });
+      } catch (err) {}
       localStorage.setItem("currentUser", JSON.stringify({
         name: "Admin User",
         email: "admin@tharanitextiles.com",
@@ -109,7 +116,48 @@ export default function LoginPage() {
       return;
     }
 
-    // Normal customer login
+    // Normal customer login via API to establish HTTP token cookie
+    try {
+      let res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      });
+
+      // If user is not yet in server DB, attempt to auto-register local demo user
+      if (!res.ok) {
+        const savedUsers = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
+        const localUser = savedUsers.find(
+          (u) => u.email.toLowerCase() === loginEmail.toLowerCase() && u.password === loginPassword
+        );
+        if (localUser) {
+          res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: localUser.name || "Customer",
+              email: localUser.email,
+              password: localUser.password,
+              phone: localUser.contact || "0000000000",
+            }),
+          });
+        }
+      }
+
+      if (res.ok) {
+        const json = await res.json().catch(() => ({}));
+        const user = json.data || { name: "Customer", email: loginEmail };
+        localStorage.setItem("currentUser", JSON.stringify(user));
+        window.dispatchEvent(new Event("auth-change"));
+        toast.success(`Welcome back, ${user.name || "Customer"}!`);
+        router.push("/profile");
+        return;
+      }
+    } catch (err) {
+      console.error("Login request error:", err);
+    }
+
+    // Fallback to local user session if API unreachable
     const savedUsers = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
     const user = savedUsers.find(
       (u) => u.email.toLowerCase() === loginEmail.toLowerCase() && u.password === loginPassword
@@ -125,7 +173,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
 
     if (!name || !email || !password || !contact || !address || !pincode) {
@@ -150,6 +198,17 @@ export default function LoginPage() {
       pincode,
       joinedDate: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
     };
+
+    // Register via server API to set HTTP token cookie
+    try {
+      await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, phone: contact }),
+      });
+    } catch (err) {
+      console.error("Register request error:", err);
+    }
 
     const updatedUsers = [...savedUsers, newUser];
     localStorage.setItem("registeredUsers", JSON.stringify(updatedUsers));

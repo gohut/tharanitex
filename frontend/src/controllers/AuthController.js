@@ -3,6 +3,11 @@ import { Validators } from "../validators/validators";
 import { ApiResponse } from "../utils/ApiResponse";
 import { authenticate } from "../middleware/auth";
 
+const isProd = process.env.NODE_ENV === "production";
+const secureFlag = isProd ? "; Secure" : "";
+const cookieOptions = `; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax${secureFlag}`;
+const expireCookieOptions = `; Path=/; HttpOnly; Max-Age=0; SameSite=Lax${secureFlag}`;
+
 export class AuthController {
   static async register(request) {
     try {
@@ -17,7 +22,7 @@ export class AuthController {
       const response = ApiResponse.success(user, "User registered successfully", 201);
       response.headers.set(
         "Set-Cookie",
-        `token=${token}; Path=/; HttpOnly; Max-Age=86400; SameSite=Strict; Secure`
+        `token=${token}${cookieOptions}`
       );
       return response;
     } catch (error) {
@@ -38,7 +43,7 @@ export class AuthController {
       const response = ApiResponse.success(user, "Login successful");
       response.headers.set(
         "Set-Cookie",
-        `token=${token}; Path=/; HttpOnly; Max-Age=86400; SameSite=Strict; Secure`
+        `token=${token}${cookieOptions}`
       );
       return response;
     } catch (error) {
@@ -51,7 +56,7 @@ export class AuthController {
       const response = ApiResponse.success(null, "Logged out successfully");
       response.headers.set(
         "Set-Cookie",
-        "token=; Path=/; HttpOnly; Max-Age=0; SameSite=Strict; Secure"
+        `token=${expireCookieOptions}`
       );
       return response;
     } catch (error) {
@@ -72,7 +77,7 @@ export class AuthController {
       const response = ApiResponse.success(user, "Admin login successful");
       response.headers.set(
         "Set-Cookie",
-        `admin_token=${token}; Path=/; HttpOnly; Max-Age=86400; SameSite=Strict; Secure`
+        `admin_token=${token}${cookieOptions}`
       );
       return response;
     } catch (error) {
@@ -85,7 +90,7 @@ export class AuthController {
       const response = ApiResponse.success(null, "Admin logged out successfully");
       response.headers.set(
         "Set-Cookie",
-        "admin_token=; Path=/; HttpOnly; Max-Age=0; SameSite=Strict; Secure"
+        `admin_token=${expireCookieOptions}`
       );
       return response;
     } catch (error) {
