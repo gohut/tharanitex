@@ -113,4 +113,23 @@ To avoid breaking the integration or getting into conflict hell during future gi
 
 4. DATABASE SCHEMA MODIFICATIONS:
    If modifying SQLite database columns, do not change existing tables directly. Write migrations scripts inside `frontend/migrations/` and apply them to D1 database instances to avoid breaking production tables.
+
+6. AUTHENTICATION & CHECKOUT PAYMENT SECURITY INTEGRATION
+--------------------------------------------------------
+Date Updated: August 17, 2026
+
+Changes Implemented:
+1. Server-Authoritative Authentication (frontend/src/app/login/page.js):
+   - Configured `handleSignIn` and `handleSignUp` to issue requests directly to `POST /api/auth/login` and `POST /api/auth/register`.
+   - Removed client-side `localStorage` fallbacks that previously allowed fake/unauthenticated login states when server login failed.
+   - Enforced that `localStorage` UI state is only updated after receiving `response.ok` (HTTP 200/201) with valid response data.
+
+2. Secure Cookie Configuration (frontend/src/controllers/AuthController.js):
+   - Updated `Set-Cookie` header attributes to `SameSite=Lax; HttpOnly; Path=/`.
+   - Made `; Secure` conditional (`process.env.NODE_ENV === "production"`), enabling cookie storage on plain HTTP (`http://localhost:3000`) during development while retaining strict HTTPS transport security in production.
+
+3. Dual-Channel Customer Authorization (frontend/src/lib/checkout-auth.js & middleware/auth.js):
+   - Unified `requireCustomer()` and `getCustomerId()` to support both JWT token cookies (`token`, `auth_token`) and D1 session cookies (`tharanitex_session`).
+   - Retained HMAC-SHA256 signature verification (`verifyJWT`) and D1 database session lookup (`validateSession`), preventing unauthenticated payment creation.
+   - Preserved server-side price validation, Razorpay HMAC signature checks, duplicate transaction protection, and COD/Buy Now compatibility.
 ========================================================================
