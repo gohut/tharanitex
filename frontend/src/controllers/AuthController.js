@@ -9,7 +9,7 @@ const cookieOptions = `; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax${secureFl
 const expireCookieOptions = `; Path=/; HttpOnly; Max-Age=0; SameSite=Lax${secureFlag}`;
 
 export class AuthController {
-  static async register(request) {
+  static async register(request, env) {
     try {
       const body = await request.json();
       const valErrors = Validators.validateRegister(body);
@@ -17,20 +17,23 @@ export class AuthController {
         return ApiResponse.badRequest("Validation failed", valErrors);
       }
 
-      const { user, token } = await AuthService.register(body);
+      const { user, token } = await AuthService.register(body, env);
 
       const response = ApiResponse.success(user, "User registered successfully", 201);
       response.headers.set(
         "Set-Cookie",
         `token=${token}${cookieOptions}`
       );
+      if (process.env.NODE_ENV !== "production") {
+        console.info("AUTH LOGIN DEBUG", { status: 201, setCookie: true, cookieName: "token", cookieAttributes: cookieOptions });
+      }
       return response;
     } catch (error) {
       return ApiResponse.error(error.message, 400);
     }
   }
 
-  static async login(request) {
+  static async login(request, env) {
     try {
       const body = await request.json();
       const valErrors = Validators.validateLogin(body);
@@ -38,13 +41,16 @@ export class AuthController {
         return ApiResponse.badRequest("Validation failed", valErrors);
       }
 
-      const { user, token } = await AuthService.login(body.email, body.password);
+      const { user, token } = await AuthService.login(body.email, body.password, env);
 
       const response = ApiResponse.success(user, "Login successful");
       response.headers.set(
         "Set-Cookie",
         `token=${token}${cookieOptions}`
       );
+      if (process.env.NODE_ENV !== "production") {
+        console.info("AUTH LOGIN DEBUG", { status: 200, setCookie: true, cookieName: "token", cookieAttributes: cookieOptions });
+      }
       return response;
     } catch (error) {
       return ApiResponse.error(error.message, 401);
@@ -64,7 +70,7 @@ export class AuthController {
     }
   }
 
-  static async adminLogin(request) {
+  static async adminLogin(request, env) {
     try {
       const body = await request.json();
       const valErrors = Validators.validateLogin(body);
@@ -72,7 +78,7 @@ export class AuthController {
         return ApiResponse.badRequest("Validation failed", valErrors);
       }
 
-      const { user, token } = await AuthService.adminLogin(body.email, body.password);
+      const { user, token } = await AuthService.adminLogin(body.email, body.password, env);
 
       const response = ApiResponse.success(user, "Admin login successful");
       response.headers.set(
@@ -98,9 +104,9 @@ export class AuthController {
     }
   }
 
-  static async getProfile(request) {
+  static async getProfile(request, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -112,9 +118,9 @@ export class AuthController {
     }
   }
 
-  static async updateProfile(request) {
+  static async updateProfile(request, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }

@@ -14,11 +14,13 @@ export async function requireCustomer(request, env) {
 export async function getCustomerId(request, env) {
   // 1. Try existing JWT authentication (from login / auth_token / token cookies & Bearer header)
   try {
-    const payload = await authenticate(request);
+    const payload = await authenticate(request, env);
+    if (process.env.NODE_ENV !== "production") console.info("CUSTOMER DEBUG", { jwtPayloadExists: Boolean(payload), payloadIdExists: Boolean(payload?.id), payloadRole: payload?.role || null, customerIdResolved: Boolean(payload && (payload.role === "customer" || !payload.role) && payload.id) });
     if (payload && (payload.role === "customer" || !payload.role) && payload.id) {
       return String(payload.id);
     }
   } catch (error) {
+    if (process.env.NODE_ENV !== "production") console.info("CUSTOMER DEBUG", { jwtPayloadExists: false, payloadIdExists: false, payloadRole: null, customerIdResolved: false, failureReason: error?.message || "JWT lookup failed." });
     // Ignore JWT failure and try session lookup
   }
 

@@ -26,10 +26,16 @@ export default function LoginPage() {
 
   // Redirect if already logged in or process incoming Google hash redirect
   useEffect(() => {
-    // Check local session
+    // Local storage only drives UI state; require a server-verified cookie
+    // before treating the browser as signed in.
     const loggedInUser = localStorage.getItem("currentUser");
     if (loggedInUser) {
-      router.push("/profile");
+      fetch("/api/auth/profile")
+        .then((response) => {
+          if (response.ok) router.push("/profile");
+          else localStorage.removeItem("currentUser");
+        })
+        .catch(() => localStorage.removeItem("currentUser"));
       return;
     }
 
