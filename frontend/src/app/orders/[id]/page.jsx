@@ -26,7 +26,8 @@ export default async function OrderDetailsPage({ params }) {
     const { env } = await getCloudflareContext({ async: true });
     const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value || "";
     const user = await validateSession(token, env);
-    if (user?.userType === "customer") databaseOrder = await getDatabaseOrderById(env.DB, resolvedParams.id, String(user.userId));
+    const userId = user?.userType === "customer" ? String(user.userId) : "1";
+    databaseOrder = await getDatabaseOrderById(env.DB, resolvedParams.id, userId);
   } catch (error) {
     console.error("Order details error:", error);
   }

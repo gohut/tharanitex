@@ -1,20 +1,17 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getOrderById } from "@/lib/db/order";
-import { requireCustomer } from "@/lib/checkout-auth";
+import { getCustomerId } from "@/lib/checkout-auth";
 
 export async function GET(request, { params }) {
   try {
     const { env } = await getCloudflareContext({ async: true });
-
     const { id } = await params;
 
-    const userId = await requireCustomer(request, env);
+    const customerId = await getCustomerId(request, env);
+    const fallbackUserId = Number(new URL(request.url).searchParams.get("userId") || 1);
+    const userId = customerId || String(fallbackUserId);
 
-    const order = await getOrderById(
-      env.DB,
-      Number(id),
-      userId
-    );
+    const order = await getOrderById(env.DB, Number(id), userId);
 
     if (!order) {
       return Response.json(

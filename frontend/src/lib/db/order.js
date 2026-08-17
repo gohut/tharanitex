@@ -68,16 +68,37 @@ async function insertOrder(db, { userId, addressId, items, paymentMethod, paymen
   return orderId;
 }
 
+// Backward-compatible contract used by existing main flow:
+// create from guest cart + explicit addressId.
+export async function createOrder(db, userId, addressId) {
+  const normalizedUserId = Number(userId || 1);
+  const normalizedAddressId = Number(addressId);
+  if (!Number.isInteger(normalizedAddressId) || normalizedAddressId <= 0) {
+    throw new CheckoutError("Invalid address selected.");
+  }
+  const items = await trustedItems(db, "CART", null, null, "guest");
+  const orderId = await insertOrder(db, {
+    userId: normalizedUserId,
+    addressId: normalizedAddressId,
+    items,
+    paymentMethod: "COD",
+    paymentStatus: "pending",
+  });
+  await db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind("guest").run();
+  return { success: true, orderId, totalAmount: total(items) };
+}
+
 export async function createCodOrder(db, checkout) {
-  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.quantity, checkout.userId);
+  const cartUserId = checkout.cartUserId || checkout.userId;
+  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.quantity, cartUserId);
   const addressId = await findOrCreateAddress(db, checkout);
   const orderId = await insertOrder(db, { userId: checkout.userId, addressId, items, paymentMethod: "COD", paymentStatus: "pending" });
-  if (checkout.checkoutType === "CART") await db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind(checkout.userId).run();
+  if (checkout.checkoutType === "CART") await db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind(cartUserId).run();
   return { success: true, orderId, totalAmount: total(items), orderStatus: "placed", paymentMethod: "COD", paymentStatus: "pending" };
 }
 
 export async function prepareOnlineCheckout(db, checkout, razorpayOrder, publicKey) {
-  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.quantity, checkout.userId);
+  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.quantity, checkout.cartUserId || checkout.userId);
   const addressId = await findOrCreateAddress(db, checkout);
   const amountPaise = Math.round(total(items) * 100);
   const sessionId = crypto.randomUUID();
@@ -118,7 +139,11 @@ export async function claimVerifiedPayment(db, { razorpayOrderId, razorpayPaymen
       paymentStatus: "paid", razorpay: { orderId: razorpayOrderId, paymentId: razorpayPaymentId, signature: razorpaySignature },
     });
     const statements = [db.prepare("UPDATE checkout_sessions SET status = 'completed', completed_order_id = ? WHERE id = ?").bind(orderId, session.id)];
-    if (session.checkout_type === "CART") statements.push(db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind(session.user_id));
+    if (session.checkout_type === "CART") {
+      // Keep compatibility with the existing storefront guest-cart model.
+      statements.push(db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind("guest"));
+      statements.push(db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind(session.user_id));
+    }
     await db.batch(statements);
     return { orderId, duplicate: false };
   } catch (error) {

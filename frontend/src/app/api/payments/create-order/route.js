@@ -15,9 +15,18 @@ export async function POST(request) {
     if (!["UPI", "CARD"].includes(details.paymentMethod)) throw new CheckoutError("Choose UPI or Card for online payment.");
     const checkoutType = body.checkoutType === "BUY_NOW" ? "BUY_NOW" : body.checkoutType === "CART" ? "CART" : null;
     if (!checkoutType) throw new CheckoutError("Invalid checkout type.");
+    const userId = await requireCustomer(request, env);
     const payment = await prepareOnlineCheckout(env.DB, {
-      userId: await requireCustomer(request, env), checkoutType, productId: body.productId, quantity: body.quantity, paymentMethod: details.paymentMethod,
-      customerName: details.name.trim(), phone: details.phone.trim(), deliveryAddress: details.address.trim(), idempotencyKey: body.idempotencyKey,
+      userId,
+      cartUserId: checkoutType === "CART" ? "guest" : userId,
+      checkoutType,
+      productId: body.productId,
+      quantity: body.quantity,
+      paymentMethod: details.paymentMethod,
+      customerName: details.name.trim(),
+      phone: details.phone.trim(),
+      deliveryAddress: details.address.trim(),
+      idempotencyKey: body.idempotencyKey,
     }, (input) => createRazorpayOrder(env, input), getRazorpayKeyId(env));
     return Response.json(payment, { status: 201 });
   } catch (error) {
