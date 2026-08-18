@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function ImageWithSkeleton({
   src,
@@ -11,6 +11,15 @@ export default function ImageWithSkeleton({
   ...props
 }) {
   const [loaded, setLoaded] = useState(false);
+  const imageRef = useRef(null);
+
+  useEffect(() => {
+    const img = imageRef.current;
+
+    if (img?.complete) {
+      setLoaded(true);
+    }
+  }, [src]);
 
   return (
     <div className={`relative overflow-hidden ${wrapperClassName}`}>
@@ -22,6 +31,7 @@ export default function ImageWithSkeleton({
       )}
 
       <img
+        ref={imageRef}
         src={src}
         alt={alt}
         onLoad={() => setLoaded(true)}
