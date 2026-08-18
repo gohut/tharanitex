@@ -81,6 +81,47 @@ export default function InitialLoadingShell() {
   useEffect(() => {
     if (stage !== "skeleton") return;
 
+    let minimumTimePassed = false;
+    let pageLoaded = document.readyState === "complete";
+    let finished = false;
+
+    const finishLoading = () => {
+      if (finished || !minimumTimePassed || !pageLoaded) return;
+
+      finished = true;
+      setFadeOut(true);
+
+      setTimeout(() => {
+        setStage("done");
+      }, 350);
+    };
+
+    const handleLoad = () => {
+      pageLoaded = true;
+      finishLoading();
+    };
+
+    // If the page is not loaded yet, wait for it.
+    if (!pageLoaded) {
+      window.addEventListener("load", handleLoad, { once: true });
+    }
+
+    // Keep the skeleton visible for at least 500ms.
+    const minimumTimer = setTimeout(() => {
+      minimumTimePassed = true;
+
+      // Check again in case the page loaded during the 500ms.
+      pageLoaded = document.readyState === "complete";
+
+      finishLoading();
+    }, SKELETON_MIN_TIME);
+
+    return () => {
+      clearTimeout(minimumTimer);
+      window.removeEventListener("load", handleLoad);
+    };
+  }, [stage]);
+
     let loaded = document.readyState === "complete";
 
     const handleLoad = () => {
