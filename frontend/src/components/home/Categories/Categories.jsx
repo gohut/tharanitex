@@ -115,11 +115,11 @@ export default function Categories({ categories }) {
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="aspect-[3/4] w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="aspect-[3/4] w-full object-cover transition-transform duration-700 group-hover:scale-105 md:h-[360px] md:aspect-auto lg:h-[400px]"
                   />
                 </div>
 
-                <div className="flex flex-col items-center justify-start px-2 pb-1 pt-3 sm:pt-4 lg:pt-5">
+                <div className="flex flex-1 flex-col items-center justify-start px-2 pb-1 pt-3 sm:pt-4 lg:pt-5">
                   <h3 className="font-cormorant-garamond text-center text-[22px] font-medium uppercase leading-tight tracking-[0.04em] text-[#4A433C] sm:text-[24px] lg:text-[27px]">
                     {item.name}
                   </h3>
@@ -151,7 +151,7 @@ export default function Categories({ categories }) {
                 </div>
               </div>
 
-              <div className="flex items-start justify-center px-2 pb-1 pt-3 sm:pt-4 lg:pt-5">
+              <div className="flex flex-1 items-start justify-center px-2 pb-1 pt-3 sm:pt-4 lg:pt-5">
                 <h3 className="font-cormorant-garamond text-center text-[22px] font-medium uppercase leading-tight tracking-[0.04em] text-[#4A433C] sm:text-[24px] lg:text-[27px]">
                   View More
                 </h3>
