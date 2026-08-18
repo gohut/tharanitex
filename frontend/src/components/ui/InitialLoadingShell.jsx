@@ -86,7 +86,9 @@ export default function InitialLoadingShell() {
     let finished = false;
 
     const finishLoading = () => {
-      if (finished || !minimumTimePassed || !pageLoaded) return;
+      if (finished || !minimumTimePassed || !pageLoaded) {
+        return;
+      }
 
       finished = true;
       setFadeOut(true);
@@ -101,45 +103,14 @@ export default function InitialLoadingShell() {
       finishLoading();
     };
 
-    // If the page is not loaded yet, wait for it.
     if (!pageLoaded) {
       window.addEventListener("load", handleLoad, { once: true });
     }
 
-    // Keep the skeleton visible for at least 500ms.
     const minimumTimer = setTimeout(() => {
       minimumTimePassed = true;
-
-      // Check again in case the page loaded during the 500ms.
       pageLoaded = document.readyState === "complete";
-
       finishLoading();
-    }, SKELETON_MIN_TIME);
-
-    return () => {
-      clearTimeout(minimumTimer);
-      window.removeEventListener("load", handleLoad);
-    };
-  }, [stage]);
-
-    let loaded = document.readyState === "complete";
-
-    const handleLoad = () => {
-      loaded = true;
-    };
-
-    if (!loaded) {
-      window.addEventListener("load", handleLoad, { once: true });
-    }
-
-    const minimumTimer = setTimeout(() => {
-      if (loaded || document.readyState === "complete") {
-        setFadeOut(true);
-
-        setTimeout(() => {
-          setStage("done");
-        }, 350);
-      }
     }, SKELETON_MIN_TIME);
 
     return () => {
@@ -180,11 +151,7 @@ export default function InitialLoadingShell() {
         overflow-y-auto
         bg-[#FBF5EA]
         transition-opacity duration-350
-        ${
-          fadeOut
-            ? "pointer-events-none opacity-0"
-            : "opacity-100"
-        }
+        ${fadeOut ? "pointer-events-none opacity-0" : "opacity-100"}
       `}
     >
       {getSkeleton(pathname)}
