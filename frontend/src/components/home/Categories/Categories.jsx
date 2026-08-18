@@ -119,7 +119,7 @@ export default function Categories({ categories }) {
                   />
                 </div>
 
-                <div className="flex flex-1 flex-col items-center justify-start px-2 pb-1 pt-3 sm:pt-4 lg:pt-5">
+                <div className="flex flex-col items-center justify-start px-2 pb-1 pt-3 sm:pt-4 lg:pt-5">
                   <h3 className="font-cormorant-garamond text-center text-[22px] font-medium uppercase leading-tight tracking-[0.04em] text-[#4A433C] sm:text-[24px] lg:text-[27px]">
                     {item.name}
                   </h3>
@@ -151,7 +151,7 @@ export default function Categories({ categories }) {
                 </div>
               </div>
 
-              <div className="flex flex-1 items-start justify-center px-2 pb-1 pt-3 sm:pt-4 lg:pt-5">
+              <div className="flex items-start justify-center px-2 pb-1 pt-3 sm:pt-4 lg:pt-5">
                 <h3 className="font-cormorant-garamond text-center text-[22px] font-medium uppercase leading-tight tracking-[0.04em] text-[#4A433C] sm:text-[24px] lg:text-[27px]">
                   View More
                 </h3>
