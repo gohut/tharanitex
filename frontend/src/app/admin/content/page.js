@@ -1836,6 +1836,23 @@ async function addHomepageSection() {
             </div>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <FormInput
+              label="Rows"
+              id="showcaseRows"
+              type="number"
+              min={1}
+              max={6}
+              value={showcaseForm.rowCount ?? 1}
+              onChange={(e) =>
+                setShowcaseForm((prev) => ({
+                  ...prev,
+                  rowCount: Math.max(
+                    1,
+                    Math.min(6, Number(e.target.value) || 1)
+                  ),
+                }))
+              }
+            />
             <FormInput label="Display Order" id="showcaseOrder" type="number" value={showcaseForm.sortOrder} onChange={(e) => setShowcaseForm({ ...showcaseForm, sortOrder: Number(e.target.value) })} />
             <div><label className="mb-2 block text-xs font-medium text-green-300">Background Color</label><input type="color" value={showcaseForm.backgroundColor || "#FBF5EA"} onChange={(e) => setShowcaseForm({ ...showcaseForm, backgroundColor: e.target.value })} className="h-10 w-full rounded-xl border border-green-700 bg-green-950 p-1" /><p className="mt-1 text-xs text-green-500">The homepage default is used until a color is selected.</p></div>
           </div>
