@@ -1,12 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { enforceAdminPermission } from '../../../../lib/auth';
-import { ApiResponse, Role, RolePermission } from '../../../../types/auth';
 
 /**
  * GET /api/admin/roles
  * List all roles and their full permission matrix across all 8 modules (Requires module 'Users & Roles', action 'view')
  */
-export async function GET(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function GET(request) {
   try {
     const auth = await enforceAdminPermission(request, 'Users & Roles', 'view');
     if (!auth.authorized) {
@@ -28,13 +27,13 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
     // Fetch all roles
     const rolesResult = await db
       .prepare(`SELECT id, name, created_at FROM roles ORDER BY id ASC`)
-      .all<Role>();
+      .all();
     const roles = rolesResult.results || [];
 
     // Fetch all role permissions
     const permsResult = await db
       .prepare(`SELECT id, role_id, module, can_view, can_create, can_edit, can_delete FROM role_permissions`)
-      .all<RolePermission>();
+      .all();
     const allPermissions = permsResult.results || [];
 
     // Group permissions by role_id
@@ -63,7 +62,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
       message: 'Roles and permission matrix retrieved successfully.',
       data: rolesWithPermissions,
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
@@ -74,5 +73,3 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
     );
   }
 }
-
-

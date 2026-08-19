@@ -1,9 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { enforceAdminPermission } from '../../../../lib/auth';
-import { ApiResponse } from '../../../../types/auth';
-import { SettingsCategory, UpdateSettingsRequest } from '../../../../types/settings';
 
-const VALID_CATEGORIES: SettingsCategory[] = ['general', 'contact', 'branding'];
+const VALID_CATEGORIES = ['general', 'contact', 'branding'];
 
 const COLOR_KEYS = [
   'primary_background',
@@ -36,7 +34,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * Retrieve key-value settings map for a specific category.
  * Requires module 'Settings', action 'view'.
  */
-export async function GET(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function GET(request) {
   try {
     const auth = await enforceAdminPermission(request, 'Settings', 'view');
     if (!auth.authorized) {
@@ -47,7 +45,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
     }
 
     const { searchParams } = new URL(request.url);
-    const categoryParam = (searchParams.get('category') || 'general').toLowerCase() as SettingsCategory;
+    const categoryParam = (searchParams.get('category') || 'general').toLowerCase();
 
     if (!VALID_CATEGORIES.includes(categoryParam)) {
       return NextResponse.json(
@@ -72,9 +70,9 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
     const rows = await db
       .prepare(`SELECT key, value FROM store_settings WHERE category = ?`)
       .bind(categoryParam)
-      .all<{ key: string; value: string | null }>();
+      .all();
 
-    const settingsMap: Record<string, string | null> = {};
+    const settingsMap = {};
     for (const r of rows.results || []) {
       settingsMap[r.key] = r.value;
     }
@@ -84,7 +82,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
       message: `Settings for category '${categoryParam}' retrieved successfully.`,
       data: settingsMap,
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
@@ -101,7 +99,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
  * Upsert category settings and log audit records for every changed key.
  * Requires module 'Settings', action 'edit'.
  */
-export async function PUT(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function PUT(request) {
   try {
     const auth = await enforceAdminPermission(request, 'Settings', 'edit');
     if (!auth.authorized) {
@@ -111,7 +109,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
       );
     }
 
-    const body = (await request.json().catch(() => null)) as UpdateSettingsRequest;
+    const body = await request.json().catch(() => null);
 
     if (!body || !body.category || !body.values || typeof body.values !== 'object') {
       return NextResponse.json(
@@ -124,7 +122,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
       );
     }
 
-    const category = body.category.toLowerCase() as SettingsCategory;
+    const category = body.category.toLowerCase();
 
     if (!VALID_CATEGORIES.includes(category)) {
       return NextResponse.json(
@@ -188,7 +186,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
       const existing = await db
         .prepare(`SELECT value FROM store_settings WHERE category = ? AND key = ?`)
         .bind(category, key)
-        .first<{ value: string | null }>();
+        .first();
 
       const oldValue = existing ? existing.value : null;
 
@@ -221,9 +219,9 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
     const rows = await db
       .prepare(`SELECT key, value FROM store_settings WHERE category = ?`)
       .bind(category)
-      .all<{ key: string; value: string | null }>();
+      .all();
 
-    const updatedMap: Record<string, string | null> = {};
+    const updatedMap = {};
     for (const r of rows.results || []) {
       updatedMap[r.key] = r.value;
     }
@@ -233,7 +231,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
       message: `Settings for '${category}' updated successfully.`,
       data: updatedMap,
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
@@ -244,5 +242,3 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
     );
   }
 }
-
-

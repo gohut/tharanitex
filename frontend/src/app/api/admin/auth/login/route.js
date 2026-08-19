@@ -1,16 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { adminLogin, buildSessionCookieHeader } from '../../../../../lib/auth';
-import { AdminLoginRequest, ApiResponse } from '../../../../../types/auth';
 
 /**
  * POST /api/admin/auth/login
  * Authenticate staff account via email & password, issue session cookie
  */
-export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function POST(request) {
   try {
-    let body: AdminLoginRequest;
+    let body;
     try {
-      body = (await request.json()) as AdminLoginRequest;
+      body = await request.json();
     } catch {
       return NextResponse.json(
         {
@@ -52,7 +51,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     response.headers.append('Set-Cookie', cookieHeader);
     return response;
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,

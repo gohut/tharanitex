@@ -1,15 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { validateSession, getDB } from '../../../../../../lib/auth';
-import { SESSION_COOKIE_NAME, ApiResponse } from '../../../../../../types/auth';
+import { SESSION_COOKIE_NAME } from '../../../../../../types/auth';
 
 /**
  * PUT /api/admin/notifications/:id/read
  * Mark notification as read (Part 3)
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse<ApiResponse>> {
+export async function PUT(request, { params }) {
   try {
     const sessionToken =
       request.cookies.get(SESSION_COOKIE_NAME)?.value ||
@@ -78,7 +75,7 @@ export async function PUT(
       success: true,
       message: `Notification ID ${notificationId} marked as read.`,
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,

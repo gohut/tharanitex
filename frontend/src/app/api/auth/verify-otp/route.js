@@ -1,11 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { verifyOtpAndLogin, buildSessionCookieHeader } from '../../../../lib/auth';
-import { VerifyOtpRequest, ApiResponse } from '../../../../types/auth';
 
-
-export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function POST(request) {
   try {
-    const body = (await request.json()) as VerifyOtpRequest;
+    const body = await request.json();
 
     if (!body || !body.fullName || !body.phoneNumber || !body.otp) {
       return NextResponse.json(
@@ -42,7 +40,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     response.headers.append('Set-Cookie', cookieHeader);
     return response;
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,

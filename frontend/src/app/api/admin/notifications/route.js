@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { validateSession, getDB } from '../../../../lib/auth';
-import { SESSION_COOKIE_NAME, ApiResponse, NotificationRecord } from '../../../../types/auth';
+import { SESSION_COOKIE_NAME } from '../../../../types/auth';
 
 /**
  * GET /api/admin/notifications
  * List notifications relevant for current user's role or all roles (Part 3)
  */
-export async function GET(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function GET(request) {
   try {
     const sessionToken =
       request.cookies.get(SESSION_COOKIE_NAME)?.value ||
@@ -60,14 +60,14 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
       ? db.prepare(query).bind(roleName)
       : db.prepare(query);
 
-    const result = await stmt.all<NotificationRecord>();
+    const result = await stmt.all();
 
     return NextResponse.json({
       success: true,
       message: 'Notifications retrieved successfully.',
       data: result.results || [],
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,

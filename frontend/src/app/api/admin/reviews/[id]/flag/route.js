@@ -1,7 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { enforceAdminPermission, createNotification } from '../../../../../../lib/auth';
-import { ApiResponse } from '../../../../../../types/auth';
-import { Review, FlagReviewRequest } from '../../../../../../types/reviews';
 
 /**
  * PUT /api/admin/reviews/:id/flag
@@ -9,10 +7,7 @@ import { Review, FlagReviewRequest } from '../../../../../../types/reviews';
  * Body: { reason?: string }
  * Auto-notifies Super Admin role with type = 'review' (Part 4).
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse<ApiResponse>> {
+export async function PUT(request, { params }) {
   try {
     const auth = await enforceAdminPermission(request, 'Reviews', 'edit');
     if (!auth.authorized) {
@@ -31,7 +26,7 @@ export async function PUT(
       );
     }
 
-    const body = (await request.json().catch(() => ({}))) as FlagReviewRequest;
+    const body = await request.json().catch(() => ({}));
     const reason = body?.reason ? body.reason.trim() : null;
 
     const { db, user } = auth;
@@ -45,7 +40,7 @@ export async function PUT(
     const existing = await db
       .prepare(`SELECT * FROM reviews WHERE id = ?`)
       .bind(reviewId)
-      .first<Review>();
+      .first();
 
     if (!existing) {
       return NextResponse.json(
@@ -78,14 +73,14 @@ export async function PUT(
     const updatedReview = await db
       .prepare(`SELECT * FROM reviews WHERE id = ?`)
       .bind(reviewId)
-      .first<Review>();
+      .first();
 
     return NextResponse.json({
       success: true,
       message: `Review ID ${reviewId} has been flagged.`,
       data: updatedReview,
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
@@ -96,5 +91,3 @@ export async function PUT(
     );
   }
 }
-
-

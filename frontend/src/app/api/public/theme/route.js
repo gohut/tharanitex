@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getDB } from '../../../../lib/auth';
-import { ApiResponse } from '../../../../types/auth';
 
 /**
  * GET /api/public/theme
  * Public unauthenticated endpoint for storefront to fetch live branding colors, logos, and social links.
  */
-export async function GET(): Promise<NextResponse<ApiResponse>> {
+export async function GET() {
   try {
     const db = await getDB();
 
@@ -20,9 +19,9 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
 
     const rows = await db
       .prepare(`SELECT key, value FROM store_settings WHERE category = 'branding'`)
-      .all<{ key: string; value: string | null }>();
+      .all();
 
-    const themeMap: Record<string, string | null> = {};
+    const themeMap = {};
     for (const r of rows.results || []) {
       themeMap[r.key] = r.value;
     }
@@ -32,7 +31,7 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
       message: 'Live branding theme retrieved successfully.',
       data: themeMap,
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,

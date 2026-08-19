@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { validateSession } from '../../../../lib/auth';
-import { SESSION_COOKIE_NAME, ApiResponse } from '../../../../types/auth';
+import { SESSION_COOKIE_NAME } from '../../../../types/auth';
 
-
-export async function GET(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function GET(request) {
   try {
     const sessionToken =
       request.cookies.get(SESSION_COOKIE_NAME)?.value ||
@@ -40,7 +39,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
         user: userData,
       },
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,

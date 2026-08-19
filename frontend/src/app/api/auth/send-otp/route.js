@@ -1,11 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { requestOtp } from '../../../../lib/auth';
-import { SendOtpRequest, ApiResponse } from '../../../../types/auth';
 
-
-export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function POST(request) {
   try {
-    const body = (await request.json()) as SendOtpRequest;
+    const body = await request.json();
 
     if (!body || !body.fullName || !body.phoneNumber) {
       return NextResponse.json(
@@ -28,7 +26,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
         expiresInMinutes: result.expiresInMinutes,
       },
     });
-  } catch (err: any) {
+  } catch (err) {
     const isValidationError =
       err.message?.includes('Validation') ||
       err.message?.includes('Invalid') ||

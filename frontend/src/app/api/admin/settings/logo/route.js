@@ -1,7 +1,5 @@
-import type { R2Bucket } from '@cloudflare/workers-types';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { enforceAdminPermission } from '../../../../../lib/auth';
-import { ApiResponse } from '../../../../../types/auth';
 
 /**
  * POST /api/admin/settings/logo
@@ -9,7 +7,7 @@ import { ApiResponse } from '../../../../../types/auth';
  * Stores in Cloudflare R2 bucket (binding IMAGES), updates store_settings, and logs audit record.
  * Requires module 'Settings', action 'edit'.
  */
-export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function POST(request) {
   try {
     const auth = await enforceAdminPermission(request, 'Settings', 'edit');
     if (!auth.authorized) {
@@ -32,8 +30,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       );
     }
 
-    const file = (formData.get('file') || formData.get('logo')) as File | null;
-    const keyName = (formData.get('target') as string) === 'favicon' ? 'favicon_url' : 'logo_url';
+    const file = formData.get('file') || formData.get('logo');
+    const keyName = formData.get('target') === 'favicon' ? 'favicon_url' : 'logo_url';
 
     if (!file || typeof file === 'string') {
       return NextResponse.json(
@@ -70,7 +68,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     try {
       const { getCloudflareContext } = await import('@opennextjs/cloudflare');
       const ctx = await getCloudflareContext();
-      const imagesBucket = (ctx?.env as unknown as { tharani_product_images?: R2Bucket })?.tharani_product_images;
+      const imagesBucket = ctx?.env?.tharani_product_images;
 
       if (imagesBucket) {
         await imagesBucket.put(r2Key, arrayBuffer, {
@@ -97,7 +95,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     const existing = await db
       .prepare(`SELECT value FROM store_settings WHERE category = 'branding' AND key = ?`)
       .bind(keyName)
-      .first<{ value: string | null }>();
+      .first();
 
     const oldValue = existing ? existing.value : null;
 
@@ -132,7 +130,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
         r2_key: r2Key,
       },
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
@@ -143,9 +141,3 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     );
   }
 }
-
-
-
-
-
-

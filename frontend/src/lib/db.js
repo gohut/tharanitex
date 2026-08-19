@@ -1,12 +1,12 @@
-import { CloudflareEnv, UserRecord, OtpVerificationRecord, UserSessionRecord } from '../types/auth';
-
 /**
  * In-Memory Mock KV Namespace for local next dev environment
  */
 class MockKVNamespace {
-  private store = new Map<string, { value: string; expiresAt?: number }>();
+  constructor() {
+    this.store = new Map();
+  }
 
-  async get(key: string, type?: string): Promise<any> {
+  async get(key, type) {
     const entry = this.store.get(key);
     if (!entry) return null;
 
@@ -25,12 +25,8 @@ class MockKVNamespace {
     return entry.value;
   }
 
-  async put(
-    key: string,
-    value: string | number,
-    options?: { expiration?: number; expirationTtl?: number }
-  ): Promise<void> {
-    let expiresAt: number | undefined;
+  async put(key, value, options) {
+    let expiresAt;
     if (options?.expiration) {
       expiresAt = options.expiration * 1000;
     } else if (options?.expirationTtl) {
@@ -39,13 +35,13 @@ class MockKVNamespace {
     this.store.set(key, { value: String(value), expiresAt });
   }
 
-  async delete(key: string): Promise<void> {
+  async delete(key) {
     this.store.delete(key);
   }
 
-  async list(options?: { prefix?: string }): Promise<any> {
+  async list(options) {
     const prefix = options?.prefix || '';
-    const keys: { name: string }[] = [];
+    const keys = [];
     const now = Date.now();
     for (const [k, v] of this.store.entries()) {
       if (v.expiresAt && now > v.expiresAt) {
@@ -62,14 +58,14 @@ class MockKVNamespace {
 
 // Global reference for dev fallback
 const globalMockKvSymbol = Symbol.for('tharanitex_mock_kv_namespace');
-if (!(globalThis as any)[globalMockKvSymbol]) {
-  (globalThis as any)[globalMockKvSymbol] = new MockKVNamespace();
+if (!globalThis[globalMockKvSymbol]) {
+  globalThis[globalMockKvSymbol] = new MockKVNamespace();
 }
 
 /**
  * Retrieve Cloudflare KV binding or dev fallback
  */
-export async function getKV(requestEnv?: CloudflareEnv): Promise<KVNamespace> {
+export async function getKV(requestEnv) {
   if (requestEnv && requestEnv.KV) {
     return requestEnv.KV;
   }
@@ -77,21 +73,21 @@ export async function getKV(requestEnv?: CloudflareEnv): Promise<KVNamespace> {
   try {
     const { getCloudflareContext } = await import('@opennextjs/cloudflare');
     const ctx = await getCloudflareContext();
-    if (ctx && ctx.env && (ctx.env as unknown as { KV?: KVNamespace; DB?: D1Database }).KV) {
-      return (ctx.env as unknown as { KV?: KVNamespace; DB?: D1Database }).KV;
+    if (ctx && ctx.env && ctx.env.KV) {
+      return ctx.env.KV;
     }
   } catch (e) {
     // OpenNext context unavailable (e.g. static build time or dev fallback)
   }
 
   // Fallback to in-memory Mock KV Namespace for local next dev testing
-  return (globalThis as any)[globalMockKvSymbol] as unknown as KVNamespace;
+  return globalThis[globalMockKvSymbol];
 }
 
 /**
  * Retrieve Cloudflare D1 Database binding (env.DB)
  */
-export async function getDB(requestEnv?: CloudflareEnv): Promise<D1Database | null> {
+export async function getDB(requestEnv) {
   if (requestEnv && requestEnv.DB) {
     return requestEnv.DB;
   }
@@ -99,8 +95,8 @@ export async function getDB(requestEnv?: CloudflareEnv): Promise<D1Database | nu
   try {
     const { getCloudflareContext } = await import('@opennextjs/cloudflare');
     const ctx = await getCloudflareContext();
-    if (ctx && ctx.env && (ctx.env as unknown as { KV?: KVNamespace; DB?: D1Database }).DB) {
-      return (ctx.env as unknown as { KV?: KVNamespace; DB?: D1Database }).DB || null;
+    if (ctx && ctx.env && ctx.env.DB) {
+      return ctx.env.DB || null;
     }
   } catch (e) {
     // OpenNext context unavailable
@@ -114,7 +110,7 @@ export async function getDB(requestEnv?: CloudflareEnv): Promise<D1Database | nu
 /**
  * Generate sequential customer ID (e.g., TXN000001, TXN000002) using customer_counter in KV
  */
-export async function getNextCustomerId(kv: KVNamespace): Promise<string> {
+export async function getNextCustomerId(kv) {
   const counterKey = 'customer_counter';
   let currentCount = 0;
   const val = await kv.get(counterKey);
@@ -129,27 +125,22 @@ export async function getNextCustomerId(kv: KVNamespace): Promise<string> {
 
 // ==================== User KV Operations ====================
 
-export async function findUserByPhone(kv: KVNamespace, phoneNumber: string): Promise<UserRecord | null> {
+export async function findUserByPhone(kv, phoneNumber) {
   const key = `user:phone:${phoneNumber}`;
-  const user = await kv.get<UserRecord>(key, 'json');
+  const user = await kv.get(key, 'json');
   return user || null;
 }
 
-export async function findUserById(kv: KVNamespace, userId: string): Promise<UserRecord | null> {
+export async function findUserById(kv, userId) {
   const key = `user:id:${userId}`;
-  const user = await kv.get<UserRecord>(key, 'json');
+  const user = await kv.get(key, 'json');
   return user || null;
 }
 
-export async function createUser(
-  kv: KVNamespace,
-  id: string,
-  fullName: string,
-  phoneNumber: string
-): Promise<UserRecord> {
+export async function createUser(kv, id, fullName, phoneNumber) {
   const customerId = await getNextCustomerId(kv);
   const now = new Date().toISOString();
-  const newUser: UserRecord = {
+  const newUser = {
     id,
     customerId,
     fullName,
@@ -168,7 +159,7 @@ export async function createUser(
   return newUser;
 }
 
-export async function updateUserLastLogin(kv: KVNamespace, userId: string): Promise<UserRecord | null> {
+export async function updateUserLastLogin(kv, userId) {
   const user = await findUserById(kv, userId);
   if (user) {
     const now = new Date().toISOString();
@@ -186,23 +177,12 @@ export async function updateUserLastLogin(kv: KVNamespace, userId: string): Prom
 
 // ==================== OTP KV Operations ====================
 
-/**
- * Save OTP record to KV in plain text for development & testing.
- * NOTE: Storing plain-text OTP is intended only for dev/testing environments.
- * For production environments, hash the OTP (e.g. SHA-256) before storing in KV for security.
- */
-export async function saveOtpRecord(
-  kv: KVNamespace,
-  id: string,
-  phoneNumber: string,
-  otpCode: string,
-  expiresAtIso: string
-): Promise<void> {
+export async function saveOtpRecord(kv, id, phoneNumber, otpCode, expiresAtIso) {
   const now = new Date().toISOString();
-  const otpRecord: OtpVerificationRecord = {
+  const otpRecord = {
     id,
     phoneNumber,
-    otpCode, // Plain text stored for dev/testing
+    otpCode,
     expiresAt: expiresAtIso,
     isUsed: false,
     attempts: 0,
@@ -213,12 +193,9 @@ export async function saveOtpRecord(
   await kv.put(`otp:${phoneNumber}`, JSON.stringify(otpRecord), { expirationTtl: ttlSeconds });
 }
 
-export async function getLatestActiveOtp(
-  kv: KVNamespace,
-  phoneNumber: string
-): Promise<OtpVerificationRecord | null> {
+export async function getLatestActiveOtp(kv, phoneNumber) {
   const key = `otp:${phoneNumber}`;
-  const otp = await kv.get<OtpVerificationRecord>(key, 'json');
+  const otp = await kv.get(key, 'json');
 
   if (!otp) return null;
   if (otp.isUsed) return null;
@@ -227,13 +204,9 @@ export async function getLatestActiveOtp(
   return otp;
 }
 
-export async function incrementOtpAttempts(
-  kv: KVNamespace,
-  otpId: string,
-  phoneNumber: string
-): Promise<void> {
+export async function incrementOtpAttempts(kv, otpId, phoneNumber) {
   const key = `otp:${phoneNumber}`;
-  const otp = await kv.get<OtpVerificationRecord>(key, 'json');
+  const otp = await kv.get(key, 'json');
 
   if (otp) {
     otp.attempts += 1;
@@ -242,27 +215,23 @@ export async function incrementOtpAttempts(
   }
 }
 
-export async function markOtpAsUsed(
-  kv: KVNamespace,
-  otpId: string,
-  phoneNumber: string
-): Promise<void> {
+export async function markOtpAsUsed(kv, otpId, phoneNumber) {
   await kv.delete(`otp:${phoneNumber}`);
 }
 
 // ==================== Session KV Operations ====================
 
 export async function createSessionRecord(
-  kv: KVNamespace,
-  id: string,
-  userId: string,
-  sessionToken: string,
-  expiresAtIso: string,
-  userAgent: string | null,
-  ipAddress: string | null
-): Promise<UserSessionRecord> {
+  kv,
+  id,
+  userId,
+  sessionToken,
+  expiresAtIso,
+  userAgent,
+  ipAddress
+) {
   const now = new Date().toISOString();
-  const session: UserSessionRecord = {
+  const session = {
     id,
     userId,
     sessionToken,
@@ -279,12 +248,9 @@ export async function createSessionRecord(
   return session;
 }
 
-export async function findSessionByToken(
-  kv: KVNamespace,
-  sessionToken: string
-): Promise<UserSessionRecord | null> {
+export async function findSessionByToken(kv, sessionToken) {
   const key = `session:${sessionToken}`;
-  const session = await kv.get<UserSessionRecord>(key, 'json');
+  const session = await kv.get(key, 'json');
 
   if (!session) return null;
   if (new Date(session.expiresAt).getTime() <= Date.now()) return null;
@@ -292,11 +258,10 @@ export async function findSessionByToken(
   return session;
 }
 
-export async function deleteSessionByToken(kv: KVNamespace, sessionToken: string): Promise<void> {
+export async function deleteSessionByToken(kv, sessionToken) {
   await kv.delete(`session:${sessionToken}`);
 }
 
-export async function deleteUserSessions(kv: KVNamespace, userId: string): Promise<void> {
+export async function deleteUserSessions(kv, userId) {
   // Utility for clearing user sessions if needed
 }
-

@@ -1,16 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   enforceAdminPermission,
   hashPassword,
   createNotification,
 } from '../../../../lib/auth';
-import { CreateStaffRequest, ApiResponse, StaffUser } from '../../../../types/auth';
 
 /**
  * GET /api/admin/staff
  * List all staff accounts with role names (Requires module 'Users & Roles', action 'view')
  */
-export async function GET(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function GET(request) {
   try {
     const auth = await enforceAdminPermission(request, 'Users & Roles', 'view');
     if (!auth.authorized) {
@@ -36,14 +35,14 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
          JOIN roles r ON u.role_id = r.id
          ORDER BY u.id ASC`
       )
-      .all<StaffUser>();
+      .all();
 
     return NextResponse.json({
       success: true,
       message: 'Staff accounts retrieved successfully.',
       data: staffList.results || [],
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
@@ -59,7 +58,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
  * POST /api/admin/staff
  * Create a new staff account (Requires module 'Users & Roles', action 'create')
  */
-export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function POST(request) {
   try {
     const auth = await enforceAdminPermission(request, 'Users & Roles', 'create');
     if (!auth.authorized) {
@@ -69,9 +68,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       );
     }
 
-    let body: CreateStaffRequest;
+    let body;
     try {
-      body = (await request.json()) as CreateStaffRequest;
+      body = await request.json();
     } catch {
       return NextResponse.json(
         {
@@ -188,7 +187,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
          WHERE u.id = ?`
       )
       .bind(newStaffId)
-      .first<StaffUser>();
+      .first();
 
     return NextResponse.json(
       {
@@ -198,7 +197,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       },
       { status: 201 }
     );
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
@@ -209,5 +208,3 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     );
   }
 }
-
-

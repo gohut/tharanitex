@@ -1,20 +1,8 @@
-import { CloudflareEnv } from '../types/auth';
-
-export interface SmsSendResult {
-  success: boolean;
-  messageId?: string;
-  error?: string;
-}
-
-export interface ISmsProvider {
-  sendOtp(phoneNumber: string, otp: string): Promise<SmsSendResult>;
-}
-
 /**
  * Mock SMS Provider for local development & testing
  */
-export class MockSmsProvider implements ISmsProvider {
-  async sendOtp(phoneNumber: string, otp: string): Promise<SmsSendResult> {
+export class MockSmsProvider {
+  async sendOtp(phoneNumber, otp) {
     console.log(`[MOCK SMS] OTP for ${phoneNumber} is ${otp}`);
     return {
       success: true,
@@ -26,18 +14,14 @@ export class MockSmsProvider implements ISmsProvider {
 /**
  * Twilio SMS Provider Implementation
  */
-export class TwilioSmsProvider implements ISmsProvider {
-  private accountSid: string;
-  private authToken: string;
-  private fromPhone: string;
-
-  constructor(accountSid: string, authToken: string, fromPhone: string) {
+export class TwilioSmsProvider {
+  constructor(accountSid, authToken, fromPhone) {
     this.accountSid = accountSid;
     this.authToken = authToken;
     this.fromPhone = fromPhone;
   }
 
-  async sendOtp(phoneNumber: string, otp: string): Promise<SmsSendResult> {
+  async sendOtp(phoneNumber, otp) {
     try {
       const url = `https://api.twilio.com/2010-04-01/Accounts/${this.accountSid}/Messages.json`;
       const body = new URLSearchParams({
@@ -55,14 +39,14 @@ export class TwilioSmsProvider implements ISmsProvider {
         body: body.toString(),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         return { success: false, error: data.message || 'Twilio SMS send failed' };
       }
 
       return { success: true, messageId: data.sid };
-    } catch (err: any) {
+    } catch (err) {
       return { success: false, error: err.message || 'Twilio network error' };
     }
   }
@@ -71,16 +55,13 @@ export class TwilioSmsProvider implements ISmsProvider {
 /**
  * MSG91 SMS Provider Implementation
  */
-export class Msg91SmsProvider implements ISmsProvider {
-  private authKey: string;
-  private templateId: string;
-
-  constructor(authKey: string, templateId: string) {
+export class Msg91SmsProvider {
+  constructor(authKey, templateId) {
     this.authKey = authKey;
     this.templateId = templateId;
   }
 
-  async sendOtp(phoneNumber: string, otp: string): Promise<SmsSendResult> {
+  async sendOtp(phoneNumber, otp) {
     try {
       const formattedPhone = phoneNumber.replace(/[^0-9]/g, '');
       const url = `https://control.msg91.com/api/v5/otp?template_id=${this.templateId}&mobile=${formattedPhone}&otp=${otp}`;
@@ -93,14 +74,14 @@ export class Msg91SmsProvider implements ISmsProvider {
         },
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json().catch(() => ({}));
 
       if (data.type !== 'success') {
         return { success: false, error: data.message || 'MSG91 SMS send failed' };
       }
 
       return { success: true, messageId: data.request_id };
-    } catch (err: any) {
+    } catch (err) {
       return { success: false, error: err.message || 'MSG91 network error' };
     }
   }
@@ -109,16 +90,13 @@ export class Msg91SmsProvider implements ISmsProvider {
 /**
  * Textlocal SMS Provider Implementation
  */
-export class TextlocalSmsProvider implements ISmsProvider {
-  private apiKey: string;
-  private sender: string;
-
-  constructor(apiKey: string, sender = 'TXTLCL') {
+export class TextlocalSmsProvider {
+  constructor(apiKey, sender = 'TXTLCL') {
     this.apiKey = apiKey;
     this.sender = sender;
   }
 
-  async sendOtp(phoneNumber: string, otp: string): Promise<SmsSendResult> {
+  async sendOtp(phoneNumber, otp) {
     try {
       const url = 'https://api.textlocal.in/send/';
       const body = new URLSearchParams({
@@ -134,14 +112,14 @@ export class TextlocalSmsProvider implements ISmsProvider {
         body: body.toString(),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json().catch(() => ({}));
 
       if (data.status !== 'success') {
         return { success: false, error: data.errors?.[0]?.message || 'Textlocal SMS send failed' };
       }
 
       return { success: true, messageId: String(data.batch_id) };
-    } catch (err: any) {
+    } catch (err) {
       return { success: false, error: err.message || 'Textlocal network error' };
     }
   }
@@ -150,7 +128,7 @@ export class TextlocalSmsProvider implements ISmsProvider {
 /**
  * Factory function to instantiate the active SMS provider based on environment variables
  */
-export function getSmsProvider(env?: CloudflareEnv): ISmsProvider {
+export function getSmsProvider(env) {
   const provider = env?.SMS_PROVIDER || process.env.SMS_PROVIDER || 'mock';
 
   switch (provider) {

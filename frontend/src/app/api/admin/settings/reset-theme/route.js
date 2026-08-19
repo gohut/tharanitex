@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { enforceAdminPermission } from '../../../../../lib/auth';
-import { ApiResponse } from '../../../../../types/auth';
 
-const DEFAULT_THEME_COLORS: Record<string, string> = {
+const DEFAULT_THEME_COLORS = {
   primary_background: '#0F172A',
   secondary_background: '#1E293B',
   surface_color: '#1E293B',
@@ -30,7 +29,7 @@ const DEFAULT_THEME_COLORS: Record<string, string> = {
  * Revert all 22 branding theme colors to last saved values from settings_audit_log or defaults.
  * Requires module 'Settings', action 'edit'.
  */
-export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function POST(request) {
   try {
     const auth = await enforceAdminPermission(request, 'Settings', 'edit');
     if (!auth.authorized) {
@@ -56,7 +55,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       const current = await db
         .prepare(`SELECT value FROM store_settings WHERE category = 'branding' AND key = ?`)
         .bind(key)
-        .first<{ value: string | null }>();
+        .first();
 
       const currentValue = current ? current.value : null;
 
@@ -68,7 +67,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
            ORDER BY changed_at DESC LIMIT 1`
         )
         .bind(key)
-        .first<{ old_value: string }>();
+        .first();
 
       const targetValue = lastAudit?.old_value || defaultVal;
 
@@ -98,9 +97,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     // Fetch updated branding settings map
     const rows = await db
       .prepare(`SELECT key, value FROM store_settings WHERE category = 'branding'`)
-      .all<{ key: string; value: string | null }>();
+      .all();
 
-    const updatedBranding: Record<string, string | null> = {};
+    const updatedBranding = {};
     for (const r of rows.results || []) {
       updatedBranding[r.key] = r.value;
     }
@@ -110,7 +109,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       message: 'Branding theme colors reset successfully.',
       data: updatedBranding,
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
@@ -121,5 +120,3 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     );
   }
 }
-
-

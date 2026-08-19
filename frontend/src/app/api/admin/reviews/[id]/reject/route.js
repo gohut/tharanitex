@@ -1,16 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { enforceAdminPermission } from '../../../../../../lib/auth';
-import { ApiResponse } from '../../../../../../types/auth';
-import { Review } from '../../../../../../types/reviews';
 
 /**
  * PUT /api/admin/reviews/:id/reject
  * Reject a review (Requires module 'Reviews', action 'edit')
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse<ApiResponse>> {
+export async function PUT(request, { params }) {
   try {
     const auth = await enforceAdminPermission(request, 'Reviews', 'edit');
     if (!auth.authorized) {
@@ -63,14 +58,14 @@ export async function PUT(
     const updatedReview = await db
       .prepare(`SELECT * FROM reviews WHERE id = ?`)
       .bind(reviewId)
-      .first<Review>();
+      .first();
 
     return NextResponse.json({
       success: true,
       message: `Review ID ${reviewId} has been rejected.`,
       data: updatedReview,
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
@@ -81,5 +76,3 @@ export async function PUT(
     );
   }
 }
-
-

@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getDB } from '../../../../lib/auth';
-import { ApiResponse } from '../../../../types/auth';
-import { Product } from '../../../../types/products';
 
 /**
  * GET /api/public/products
  * Public unauthenticated storefront route fetching published products live from Cloudflare D1.
  */
-export async function GET(): Promise<NextResponse<ApiResponse>> {
+export async function GET() {
   try {
     const db = await getDB();
 
@@ -21,14 +19,14 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
 
     const products = await db
       .prepare(`SELECT * FROM products WHERE is_published = 1 ORDER BY updated_at DESC, id DESC`)
-      .all<Product>();
+      .all();
 
     return NextResponse.json({
       success: true,
       message: 'Published products retrieved successfully.',
       data: products.results || [],
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,

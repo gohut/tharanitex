@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   validateSession,
   revokeSessionsForUser,
   buildClearCookieHeader,
 } from '../../../../../lib/auth';
-import { SESSION_COOKIE_NAME, ApiResponse } from '../../../../../types/auth';
+import { SESSION_COOKIE_NAME } from '../../../../../types/auth';
 
 /**
  * POST /api/admin/auth/logout-all
  * Log out of all active devices / sessions for current staff user (Part 4)
  */
-export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+export async function POST(request) {
   try {
     const sessionToken =
       request.cookies.get(SESSION_COOKIE_NAME)?.value ||
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     response.headers.append('Set-Cookie', buildClearCookieHeader());
     return response;
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,

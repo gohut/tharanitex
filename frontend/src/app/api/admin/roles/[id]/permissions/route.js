@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { enforceAdminPermission, createNotification } from '../../../../../../lib/auth';
-import { ApiResponse, ModulePermissionInput, ModuleName } from '../../../../../../types/auth';
 
-const VALID_MODULES: ModuleName[] = [
+const VALID_MODULES = [
   'Products',
   'Orders',
   'Customers',
@@ -18,10 +17,7 @@ const VALID_MODULES: ModuleName[] = [
  * Update a role's permission matrix (Requires module 'Users & Roles', action 'edit')
  * Body: Array of { module, can_view, can_create, can_edit, can_delete } or { permissions: [...] }
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse<ApiResponse>> {
+export async function PUT(request, { params }) {
   try {
     const auth = await enforceAdminPermission(request, 'Users & Roles', 'edit');
     if (!auth.authorized) {
@@ -40,8 +36,8 @@ export async function PUT(
       );
     }
 
-    const body: any = await request.json();
-    const permissionsArray: ModulePermissionInput[] = Array.isArray(body)
+    const body = await request.json();
+    const permissionsArray = Array.isArray(body)
       ? body
       : Array.isArray(body?.permissions)
       ? body.permissions
@@ -70,7 +66,7 @@ export async function PUT(
     const role = await db
       .prepare(`SELECT id, name FROM roles WHERE id = ?`)
       .bind(roleId)
-      .first<{ id: number; name: string }>();
+      .first();
 
     if (!role) {
       return NextResponse.json(
@@ -134,7 +130,7 @@ export async function PUT(
       .bind(roleId)
       .all();
 
-    const formattedPerms = (updatedPerms.results || []).map((p: any) => ({
+    const formattedPerms = (updatedPerms.results || []).map((p) => ({
       id: p.id,
       module: p.module,
       can_view: Boolean(p.can_view),
@@ -152,7 +148,7 @@ export async function PUT(
         permissions: formattedPerms,
       },
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
@@ -163,5 +159,3 @@ export async function PUT(
     );
   }
 }
-
-

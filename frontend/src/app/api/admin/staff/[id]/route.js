@@ -1,21 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   enforceAdminPermission,
   hashPassword,
   revokeSessionsForUser,
   createNotification,
 } from '../../../../../lib/auth';
-import { UpdateStaffRequest, ApiResponse, StaffUser } from '../../../../../types/auth';
 
 /**
  * PUT /api/admin/staff/:id
  * Update staff account details (Requires module 'Users & Roles', action 'edit')
  * Automatically revokes active sessions if password, role, or status changes (Part 4).
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse<ApiResponse>> {
+export async function PUT(request, { params }) {
   try {
     const auth = await enforceAdminPermission(request, 'Users & Roles', 'edit');
     if (!auth.authorized) {
@@ -34,7 +30,7 @@ export async function PUT(
       );
     }
 
-    const body = (await request.json()) as UpdateStaffRequest;
+    const body = await request.json();
     const { db } = auth;
 
     if (!db) {
@@ -48,7 +44,7 @@ export async function PUT(
     const existing = await db
       .prepare(`SELECT * FROM staff_users WHERE id = ?`)
       .bind(staffId)
-      .first<StaffUser>();
+      .first();
 
     if (!existing) {
       return NextResponse.json(
@@ -161,14 +157,14 @@ export async function PUT(
          WHERE u.id = ?`
       )
       .bind(staffId)
-      .first<StaffUser>();
+      .first();
 
     return NextResponse.json({
       success: true,
       message: 'Staff account updated successfully.',
       data: updatedStaff,
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
@@ -185,10 +181,7 @@ export async function PUT(
  * Delete staff account (Requires module 'Users & Roles', action 'delete')
  * Automatically revokes all active sessions for this account (Part 4).
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse<ApiResponse>> {
+export async function DELETE(request, { params }) {
   try {
     const auth = await enforceAdminPermission(request, 'Users & Roles', 'delete');
     if (!auth.authorized) {
@@ -230,7 +223,7 @@ export async function DELETE(
     const existing = await db
       .prepare(`SELECT name, email FROM staff_users WHERE id = ?`)
       .bind(staffId)
-      .first<{ name: string; email: string }>();
+      .first();
 
     if (!existing) {
       return NextResponse.json(
@@ -257,7 +250,7 @@ export async function DELETE(
       success: true,
       message: `Staff account ID ${staffId} deleted successfully.`,
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
@@ -268,5 +261,3 @@ export async function DELETE(
     );
   }
 }
-
-

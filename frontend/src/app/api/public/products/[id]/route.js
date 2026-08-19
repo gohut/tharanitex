@@ -1,16 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getDB } from '../../../../../lib/auth';
-import { ApiResponse } from '../../../../../types/auth';
-import { Product } from '../../../../../types/products';
 
 /**
  * GET /api/public/products/:id
  * Public unauthenticated storefront route fetching a single published product details.
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse<ApiResponse>> {
+export async function GET(request, { params }) {
   try {
     const { id: paramId } = await params;
     const productId = parseInt(paramId, 10);
@@ -33,7 +28,7 @@ export async function GET(
     const product = await db
       .prepare(`SELECT * FROM products WHERE id = ? AND is_published = 1`)
       .bind(productId)
-      .first<Product>();
+      .first();
 
     if (!product) {
       return NextResponse.json(
@@ -51,7 +46,7 @@ export async function GET(
       message: 'Product retrieved successfully.',
       data: product,
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
