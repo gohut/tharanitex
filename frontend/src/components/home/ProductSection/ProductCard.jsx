@@ -112,10 +112,10 @@ export default function ProductCard({
           <ImageWithSkeleton
             src={product.image}
             alt={product.name}
-            wrapperClassName="aspect-[3/4] w-full"
+            wrapperClassName="aspect-[3/4] w-full overflow-hidden bg-[#F8F3EA]"
             skeletonClassName="bg-[#F0E6D5]"
-            className="h-full w-full object-contain bg-[#F8F3EA] transition-transform duration-700 group-hover:scale-105"
-/>
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
         </Link>
 
         {/* Wishlist */}
