@@ -189,6 +189,7 @@ export default async function OrderDetailsPage({ params }) {
             rawStatus={order.rawStatus}
             cancellationStatus={order.cancellationStatus}
             cancellationReason={order.cancellationReason}
+            refundStatus={order.refundStatus}
           />
 
           <section className="border border-[#DDCFBD] bg-[#FCF7EF] p-5 md:p-8">
@@ -263,6 +264,7 @@ function mapDatabaseOrder(order) {
     rawStatus: status,
     cancellationStatus: order.cancellation_status || "NONE",
     cancellationReason: order.cancellation_reason || "",
+    refundStatus: order.refund_status || "NOT_REQUESTED",
     items: (order.items || []).map((item) => ({ ...item, id: item.id || item.product_id })),
     placedOn: `Placed On ${date}`,
     status: `${status.charAt(0).toUpperCase()}${status.slice(1)}`,

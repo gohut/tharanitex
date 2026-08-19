@@ -23,8 +23,9 @@ async function request(env, path, options = {}) {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    console.error("Razorpay API error", { path, status: response.status, code: data?.error?.code });
-    throw new Error("Unable to initialize online payment.");
+    console.error("Razorpay API error", { path, status: response.status, code: data?.error?.code, description: data?.error?.description });
+    const message = data?.error?.description || data?.error?.code || "Online payment API request failed.";
+    throw new Error(message);
   }
   return data;
 }
@@ -41,6 +42,18 @@ export async function createRazorpayOrder(env, { amount, receipt }) {
 
 export async function getRazorpayPayment(env, paymentId) {
   return request(env, `/payments/${encodeURIComponent(paymentId)}`);
+}
+
+export async function refundRazorpayPayment(env, paymentId, { amount, notes } = {}) {
+  const body = {};
+  if (amount) body.amount = amount;
+  if (notes) body.notes = notes;
+
+  return request(env, `/payments/${encodeURIComponent(paymentId)}/refund`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 }
 
 export async function verifyRazorpaySignature(env, orderId, paymentId, signature) {

@@ -140,6 +140,12 @@ async function ensureCancellationColumns(db) {
     "ALTER TABLE orders ADD COLUMN cancelled_at TEXT",
     "ALTER TABLE orders ADD COLUMN delivered_at TEXT",
     "ALTER TABLE orders ADD COLUMN invoice_number TEXT",
+    "ALTER TABLE orders ADD COLUMN refund_status TEXT NOT NULL DEFAULT 'NOT_REQUESTED'",
+    "ALTER TABLE orders ADD COLUMN refund_id TEXT",
+    "ALTER TABLE orders ADD COLUMN refund_amount REAL",
+    "ALTER TABLE orders ADD COLUMN refund_requested_at TEXT",
+    "ALTER TABLE orders ADD COLUMN refund_completed_at TEXT",
+    "ALTER TABLE orders ADD COLUMN refund_failure_reason TEXT",
   ];
   for (const stmt of alterStatements) {
     try {
@@ -154,11 +160,11 @@ export async function getOrders(db, userId) {
   await ensureCancellationColumns(db);
   let orders = [];
   try {
-    const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.cancellation_status, a.full_name, a.city, a.state FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.user_id = ? ORDER BY o.created_at DESC`).bind(userId).all();
+    const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.cancellation_status, o.refund_status, a.full_name, a.city, a.state FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.user_id = ? ORDER BY o.created_at DESC`).bind(userId).all();
     orders = res.results || [];
   } catch (err) {
     const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, a.full_name, a.city, a.state FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.user_id = ? ORDER BY o.created_at DESC`).bind(userId).all();
-    orders = (res.results || []).map(o => ({ ...o, cancellation_status: 'NONE' }));
+    orders = (res.results || []).map(o => ({ ...o, cancellation_status: 'NONE', refund_status: 'NOT_REQUESTED' }));
   }
 
   for (const order of orders) {
@@ -172,13 +178,14 @@ export async function getOrderById(db, orderId, userId) {
   await ensureCancellationColumns(db);
   let order = null;
   try {
-    order = await db.prepare(`SELECT o.id, o.user_id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.razorpay_order_id, o.razorpay_payment_id, o.paid_at, o.cancellation_status, o.cancellation_reason, o.cancellation_requested_at, o.cancellation_decided_at, o.cancelled_at, o.delivered_at, o.invoice_number, a.full_name, a.phone, a.address_line1, a.address_line2, a.city, a.state, a.pincode, a.country FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.id = ? AND o.user_id = ? LIMIT 1`).bind(orderId, userId).first();
+    order = await db.prepare(`SELECT o.id, o.user_id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.razorpay_order_id, o.razorpay_payment_id, o.paid_at, o.cancellation_status, o.cancellation_reason, o.cancellation_requested_at, o.cancellation_decided_at, o.cancelled_at, o.delivered_at, o.invoice_number, o.refund_status, o.refund_id, o.refund_amount, o.refund_requested_at, o.refund_completed_at, o.refund_failure_reason, a.full_name, a.phone, a.address_line1, a.address_line2, a.city, a.state, a.pincode, a.country FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.id = ? AND o.user_id = ? LIMIT 1`).bind(orderId, userId).first();
   } catch (err) {
     order = await db.prepare(`SELECT o.id, o.user_id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.razorpay_order_id, o.razorpay_payment_id, o.paid_at, a.full_name, a.phone, a.address_line1, a.address_line2, a.city, a.state, a.pincode, a.country FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.id = ? AND o.user_id = ? LIMIT 1`).bind(orderId, userId).first();
     if (order) {
       order.cancellation_status = 'NONE';
       order.cancellation_reason = null;
       order.cancellation_requested_at = null;
+      order.refund_status = 'NOT_REQUESTED';
     }
   }
   if (!order) return null;
@@ -191,13 +198,14 @@ export async function getAdminOrderById(db, orderId) {
   await ensureCancellationColumns(db);
   let order = null;
   try {
-    order = await db.prepare(`SELECT o.id, o.user_id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.cancellation_status, o.cancellation_reason, o.cancellation_requested_at, o.cancellation_decided_at, o.cancelled_at, o.delivered_at, o.invoice_number, a.full_name, a.phone, a.address_line1, a.address_line2, a.city, a.state, a.pincode, a.country FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.id = ? LIMIT 1`).bind(orderId).first();
+    order = await db.prepare(`SELECT o.id, o.user_id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.razorpay_order_id, o.razorpay_payment_id, o.paid_at, o.cancellation_status, o.cancellation_reason, o.cancellation_requested_at, o.cancellation_decided_at, o.cancelled_at, o.delivered_at, o.invoice_number, o.refund_status, o.refund_id, o.refund_amount, o.refund_requested_at, o.refund_completed_at, o.refund_failure_reason, a.full_name, a.phone, a.address_line1, a.address_line2, a.city, a.state, a.pincode, a.country FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.id = ? LIMIT 1`).bind(orderId).first();
   } catch (err) {
     order = await db.prepare(`SELECT o.id, o.user_id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, a.full_name, a.phone, a.address_line1, a.address_line2, a.city, a.state, a.pincode, a.country FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.id = ? LIMIT 1`).bind(orderId).first();
     if (order) {
       order.cancellation_status = 'NONE';
       order.cancellation_reason = null;
       order.cancellation_requested_at = null;
+      order.refund_status = 'NOT_REQUESTED';
     }
   }
   if (!order) return null;
@@ -210,11 +218,11 @@ export async function getAdminOrders(db) {
   await ensureCancellationColumns(db);
   let results = [];
   try {
-    const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.cancellation_status, a.full_name, a.phone FROM orders o JOIN addresses a ON a.id = o.address_id ORDER BY o.created_at DESC`).all();
+    const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.cancellation_status, o.refund_status, a.full_name, a.phone FROM orders o JOIN addresses a ON a.id = o.address_id ORDER BY o.created_at DESC`).all();
     results = res.results || [];
   } catch (err) {
     const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, a.full_name, a.phone FROM orders o JOIN addresses a ON a.id = o.address_id ORDER BY o.created_at DESC`).all();
-    results = (res.results || []).map(o => ({ ...o, cancellation_status: 'NONE' }));
+    results = (res.results || []).map(o => ({ ...o, cancellation_status: 'NONE', refund_status: 'NOT_REQUESTED' }));
   }
 
   for (const order of results) {

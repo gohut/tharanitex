@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Download, AlertCircle, MessageCircle, XCircle } from "lucide-react";
 
-export default function CustomerOrderActions({ orderId, rawStatus, cancellationStatus, cancellationReason }) {
+export default function CustomerOrderActions({ orderId, rawStatus, cancellationStatus, cancellationReason, refundStatus }) {
   const status = (rawStatus || "").toLowerCase();
   const canCancel = ["placed", "confirmed"].includes(status) && (!cancellationStatus || cancellationStatus === "NONE");
   const isDelivered = status === "delivered";
@@ -48,7 +48,7 @@ export default function CustomerOrderActions({ orderId, rawStatus, cancellationS
     window.open(`/api/orders/${orderId}/invoice`, "_blank");
   };
 
-  if (!isDelivered && !canCancel && currentStatus === "NONE") {
+  if (!isDelivered && !canCancel && currentStatus === "NONE" && currentStatus !== "APPROVED") {
     return null;
   }
 
@@ -137,6 +137,22 @@ export default function CustomerOrderActions({ orderId, rawStatus, cancellationS
                   <MessageCircle size={16} /> Contact Support on WhatsApp
                 </a>
               )}
+            </div>
+          )}
+
+          {currentStatus === "APPROVED" && (
+            <div className="border border-[#CDBCA2] bg-[#F7F2E8] p-4 text-[#211D19]">
+              <div className="flex items-center gap-2 font-semibold text-[16px] text-[#5A1F2F]">
+                <XCircle size={18} /> Order Cancelled
+              </div>
+              <p className="mt-1 text-sm text-[#585046]">
+                This order has been cancelled.
+                {refundStatus === "COMPLETED" && (
+                  <span className="block mt-1 font-semibold text-[#0B3D2E]">
+                    Payment Refund Status: Refunded to original payment method.
+                  </span>
+                )}
+              </p>
             </div>
           )}
 

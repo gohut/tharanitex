@@ -94,6 +94,16 @@ export default function OrderDetailPage() {
   };
 
   const handleCancellationAction = async (action) => {
+    const isApprove = action === "approve" || action === "APPROVED";
+    if (
+      isApprove &&
+      !window.confirm(
+        `Approve cancellation and refund Rs. ${Number(order?.total_amount || 0).toLocaleString()} to customer's original payment method?`
+      )
+    ) {
+      return;
+    }
+
     setUpdating(true);
     setError("");
     try {
@@ -101,7 +111,8 @@ export default function OrderDetailPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          cancellationAction: action,
+          action: "cancellation",
+          decision: isApprove ? "APPROVED" : "REJECTED",
           cancellationReason: cancellationReason.trim() || undefined,
         }),
       });
@@ -361,6 +372,13 @@ export default function OrderDetailPage() {
               <div className="mt-3 text-sm text-green-200 space-y-1 bg-green-950/40 p-3 rounded-xl border border-green-800">
                 {order.cancellation_reason && <p><strong className="text-white">Customer Reason:</strong> {order.cancellation_reason}</p>}
                 {order.cancellation_requested_at && <p className="text-xs text-green-400">Requested At: {new Date(order.cancellation_requested_at).toLocaleString("en-IN")}</p>}
+                {order.refund_status && order.refund_status !== "NOT_REQUESTED" && (
+                  <div className="mt-2 pt-2 border-t border-green-800 text-xs space-y-1">
+                    <p><strong className="text-white">Refund Status:</strong> <span className="text-gold-400 font-semibold">{order.refund_status}</span></p>
+                    {order.refund_id && <p className="text-green-300">Refund ID: {order.refund_id}</p>}
+                    {order.refund_failure_reason && <p className="text-red-400 mt-1 font-mono text-[11px]">Error: {order.refund_failure_reason}</p>}
+                  </div>
+                )}
               </div>
 
               {order.cancellation_status === "REQUESTED" && (
