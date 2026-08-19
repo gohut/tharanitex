@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight, Search, RefreshCw } from "lucide-react";
 import Pagination from "../../../components/ui/Pagination";
 import StatusBadge from "../../../components/ui/StatusBadge";
 
-const TABS = ["All", "Placed", "Confirmed", "Packed", "Shipped", "Delivered", "Cancelled"];
+const TABS = ["All", "Placed", "Processing", "Shipped", "Delivered", "Cancelled"];
 const PAGE_SIZE = 8;
 
 export default function OrdersPage() {
@@ -18,7 +18,7 @@ export default function OrdersPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -34,10 +34,35 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchOrders();
+    let ignore = false;
+
+    async function load() {
+      try {
+        const res = await fetch("/api/admin/orders");
+        if (!res.ok) {
+          const json = await res.json().catch(() => ({}));
+          throw new Error(json.error || "Failed to load orders");
+        }
+        const data = await res.json();
+        if (!ignore) {
+          setOrders(data);
+          setError("");
+        }
+      } catch (err) {
+        if (!ignore) setError(err.message || "Failed to load orders");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const normalizedOrders = orders.map((o) => ({

@@ -9,7 +9,7 @@ export async function POST(request) {
     const { env } = await getCloudflareContext({ async: true });
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== "object") throw new CheckoutError("Invalid checkout request.");
-    const details = { name: body.customerName || "", phone: body.phone || "", otp: body.otp || "", address: body.deliveryAddress || "", paymentMethod: body.paymentMethod || "" };
+    const details = { name: body.customerName || "", phone: body.phone || "", address: body.deliveryAddress || "", paymentMethod: body.paymentMethod || "" };
     const errors = validateCheckoutDetails(details);
     if (Object.keys(errors).length) throw new CheckoutError(Object.values(errors)[0]);
     if (!["UPI", "CARD"].includes(details.paymentMethod)) throw new CheckoutError("Choose UPI or Card for online payment.");

@@ -20,12 +20,16 @@ export class AuthController {
       const { user, token } = await AuthService.register(body, env);
 
       const response = ApiResponse.success(user, "User registered successfully", 201);
-      response.headers.set(
+      response.headers.append(
         "Set-Cookie",
         `token=${token}${cookieOptions}`
       );
+      response.headers.append(
+        "Set-Cookie",
+        `auth_token=${token}${cookieOptions}`
+      );
       if (process.env.NODE_ENV !== "production") {
-        console.info("AUTH LOGIN DEBUG", { status: 201, setCookie: true, cookieName: "token", cookieAttributes: cookieOptions });
+        console.info("AUTH LOGIN DEBUG", { status: 201, setCookie: true, cookieName: "token & auth_token", cookieAttributes: cookieOptions });
       }
       return response;
     } catch (error) {
@@ -44,12 +48,16 @@ export class AuthController {
       const { user, token } = await AuthService.login(body.email, body.password, env);
 
       const response = ApiResponse.success(user, "Login successful");
-      response.headers.set(
+      response.headers.append(
         "Set-Cookie",
         `token=${token}${cookieOptions}`
       );
+      response.headers.append(
+        "Set-Cookie",
+        `auth_token=${token}${cookieOptions}`
+      );
       if (process.env.NODE_ENV !== "production") {
-        console.info("AUTH LOGIN DEBUG", { status: 200, setCookie: true, cookieName: "token", cookieAttributes: cookieOptions });
+        console.info("AUTH LOGIN DEBUG", { status: 200, setCookie: true, cookieName: "token & auth_token", cookieAttributes: cookieOptions });
       }
       return response;
     } catch (error) {
@@ -60,10 +68,9 @@ export class AuthController {
   static async logout(request) {
     try {
       const response = ApiResponse.success(null, "Logged out successfully");
-      response.headers.set(
-        "Set-Cookie",
-        `token=${expireCookieOptions}`
-      );
+      response.headers.append("Set-Cookie", `token=${expireCookieOptions}`);
+      response.headers.append("Set-Cookie", `auth_token=${expireCookieOptions}`);
+      response.headers.append("Set-Cookie", `tharanitex_session=${expireCookieOptions}`);
       return response;
     } catch (error) {
       return ApiResponse.error(error.message);
@@ -90,7 +97,6 @@ export class AuthController {
       return ApiResponse.error(error.message, 401);
     }
   }
-
   static async adminLogout(request) {
     try {
       const response = ApiResponse.success(null, "Admin logged out successfully");

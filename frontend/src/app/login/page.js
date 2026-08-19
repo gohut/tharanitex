@@ -170,6 +170,7 @@ export default function LoginPage() {
         window.dispatchEvent(new Event("auth-change"));
         toast.success(`Welcome back, ${user.name || "Customer"}!`);
         router.push("/profile");
+        router.refresh();
         return;
       } else {
         const json = await res.json().catch(() => ({}));
@@ -220,6 +221,7 @@ export default function LoginPage() {
         window.dispatchEvent(new Event("auth-change"));
         toast.success("Account created successfully!");
         router.push("/profile");
+        router.refresh();
         return;
       } else {
         const json = await res.json().catch(() => ({}));

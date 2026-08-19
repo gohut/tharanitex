@@ -19,6 +19,7 @@ export default function ProductDetails({ product }) {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           productId: product.id,
           quantity: qty,

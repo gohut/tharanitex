@@ -10,8 +10,15 @@ import { getHomeData } from "@/lib/db/home-data";
   
 export const dynamic = "force-dynamic";
 export default async function HomePage() {
-  const { env } = await getCloudflareContext({ async: true });
-  const data = await getHomeData(env.DB);
+  let db = null;
+  try {
+    const { env } = await getCloudflareContext({ async: true });
+    db = env?.DB || null;
+  } catch (e) {
+    console.error("HomePage getCloudflareContext error:", e);
+  }
+
+  const data = await getHomeData(db);
 
   // Only render active sections, in the order chosen by admin.
   const sections = (data.homepageSections || [])

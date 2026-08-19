@@ -3,7 +3,7 @@ import { CheckoutError, getAdminOrderById } from "@/lib/db/order";
 import { requireAdmin, errorResponse } from "@/lib/order-access";
 import { refundRazorpayPayment } from "@/lib/razorpay";
 
-const FLOW = ["placed", "confirmed", "packed", "shipped", "delivered"];
+const FLOW = ["placed", "processing", "shipped", "delivered"];
 
 export async function GET(request, { params }) {
   try {
@@ -62,47 +62,84 @@ export async function PATCH(request, { params }) {
             refundStatus = "COMPLETED";
           } catch (refundErr) {
             console.error("Razorpay refund processing failed:", refundErr);
-            await env.DB.prepare(
-              "UPDATE orders SET refund_status = 'FAILED', refund_failure_reason = ? WHERE id = ?"
-            )
-              .bind(refundErr.message || "Razorpay API refund failure", id)
-              .run()
-              .catch(() => {});
+            const errMsg = String(refundErr.message || "").toLowerCase();
+            const isAlreadyRefunded =
+              errMsg.includes("fully refunded") ||
+              errMsg.includes("already refunded") ||
+              errMsg.includes("already been refunded");
 
-            throw new CheckoutError(
-              `Cancellation could not be completed because the refund failed: ${refundErr.message}`,
-              400
-            );
+            if (isAlreadyRefunded) {
+              refundStatus = "COMPLETED";
+            } else {
+              await env.DB.prepare(
+                "UPDATE orders SET refund_status = 'FAILED', refund_failure_reason = ? WHERE id = ?"
+              )
+                .bind(refundErr.message || "Razorpay API refund failure", id)
+                .run()
+                .catch(() => {});
+
+              throw new CheckoutError(
+                `Cancellation could not be completed because the refund failed: ${refundErr.message}`,
+                400
+              );
+            }
           }
         } else if (!isOnlinePaid) {
           refundStatus = "NOT_APPLICABLE";
         }
 
-        await env.DB.prepare(`
-          UPDATE orders SET 
-            cancellation_status = 'APPROVED',
-            cancellation_decided_at = datetime('now'),
-            cancelled_at = datetime('now'),
-            cancelled_by = ?,
-            order_status = 'cancelled',
-            payment_status = CASE WHEN ? = 'COMPLETED' THEN 'refunded' ELSE payment_status END,
-            refund_status = ?,
-            refund_id = COALESCE(?, refund_id),
-            refund_amount = CASE WHEN ? = 'COMPLETED' THEN ? ELSE refund_amount END,
-            refund_completed_at = CASE WHEN ? = 'COMPLETED' THEN datetime('now') ELSE refund_completed_at END
-          WHERE id = ?
-        `)
-          .bind(
-            String(admin.userId),
-            refundStatus,
-            refundStatus,
-            refundId,
-            refundStatus,
-            Number(order.total_amount),
-            refundStatus,
-            id
-          )
-          .run();
+        try {
+          await env.DB.prepare(`
+            UPDATE orders SET 
+              cancellation_status = 'APPROVED',
+              cancellation_decided_at = datetime('now'),
+              cancelled_at = datetime('now'),
+              cancelled_by = ?,
+              order_status = 'cancelled',
+              payment_status = CASE WHEN ? = 'COMPLETED' THEN 'refunded' ELSE payment_status END,
+              refund_status = ?,
+              refund_id = COALESCE(?, refund_id),
+              refund_amount = CASE WHEN ? = 'COMPLETED' THEN ? ELSE refund_amount END,
+              refund_completed_at = CASE WHEN ? = 'COMPLETED' THEN datetime('now') ELSE refund_completed_at END
+            WHERE id = ?
+          `)
+            .bind(
+              String(admin.userId),
+              refundStatus,
+              refundStatus,
+              refundId,
+              refundStatus,
+              Number(order.total_amount),
+              refundStatus,
+              id
+            )
+            .run();
+        } catch (dbErr) {
+          // Fallback update query if cancelled_by column is missing on unmigrated D1
+          await env.DB.prepare(`
+            UPDATE orders SET 
+              cancellation_status = 'APPROVED',
+              cancellation_decided_at = datetime('now'),
+              cancelled_at = datetime('now'),
+              order_status = 'cancelled',
+              payment_status = CASE WHEN ? = 'COMPLETED' THEN 'refunded' ELSE payment_status END,
+              refund_status = ?,
+              refund_id = COALESCE(?, refund_id),
+              refund_amount = CASE WHEN ? = 'COMPLETED' THEN ? ELSE refund_amount END,
+              refund_completed_at = CASE WHEN ? = 'COMPLETED' THEN datetime('now') ELSE refund_completed_at END
+            WHERE id = ?
+          `)
+            .bind(
+              refundStatus,
+              refundStatus,
+              refundId,
+              refundStatus,
+              Number(order.total_amount),
+              refundStatus,
+              id
+            )
+            .run();
+        }
       } else {
         await env.DB.prepare(
           "UPDATE orders SET cancellation_status = 'REJECTED', cancellation_decided_at = datetime('now') WHERE id = ?"
@@ -112,12 +149,12 @@ export async function PATCH(request, { params }) {
       }
     } else {
       const status = String(body.status || "").toLowerCase();
-      const current =
-        String(order.order_status).toLowerCase() === "processing"
-          ? "confirmed"
-          : String(order.order_status).toLowerCase();
+      let current = String(order.order_status).toLowerCase();
+      if (current === "confirmed" || current === "packed") {
+        current = "processing";
+      }
       if (!FLOW.includes(status)) throw new CheckoutError("Invalid order status.");
-      if (current === "cancelled" || FLOW.indexOf(status) !== FLOW.indexOf(current) + 1)
+      if (current === "cancelled" || FLOW.indexOf(status) <= FLOW.indexOf(current))
         throw new CheckoutError("Invalid order status transition.", 409);
       await env.DB.prepare(
         "UPDATE orders SET order_status = ?, delivered_at = CASE WHEN ? = 'delivered' THEN datetime('now') ELSE delivered_at END WHERE id = ?"

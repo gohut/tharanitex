@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -20,12 +20,11 @@ import {
 import Button from "../../../../components/ui/Button";
 import StatusBadge from "../../../../components/ui/StatusBadge";
 
-const PROCESS_STEPS = ["Placed", "Confirmed", "Packed", "Shipped", "Delivered"];
+const PROCESS_STEPS = ["Placed", "Processing", "Shipped", "Delivered"];
 
 const stepIcons = {
   Placed: Package,
-  Confirmed: Check,
-  Packed: Package,
+  Processing: RefreshCw,
   Shipped: Truck,
   Delivered: Check,
   Cancelled: XCircle,
@@ -51,7 +50,7 @@ export default function OrderDetailPage() {
   const [error, setError] = useState("");
   const [cancellationReason, setCancellationReason] = useState("");
 
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
     if (!orderId) return;
     setLoading(true);
     setError("");
@@ -68,10 +67,36 @@ export default function OrderDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId]);
 
   useEffect(() => {
-    fetchOrder();
+    if (!orderId) return;
+    let ignore = false;
+
+    async function load() {
+      try {
+        const res = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}`);
+        if (!res.ok) {
+          const json = await res.json().catch(() => ({}));
+          throw new Error(json.error || "Order not found");
+        }
+        const data = await res.json();
+        if (!ignore) {
+          setOrder(data);
+          setError("");
+        }
+      } catch (err) {
+        if (!ignore) setError(err.message || "Failed to load order");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      ignore = true;
+    };
   }, [orderId]);
 
   const handleStatusUpdate = async (nextStatus) => {
@@ -278,25 +303,16 @@ export default function OrderDetailPage() {
 
               {!isClosed && (
                 <div className="flex flex-wrap gap-2">
-                  {currentStatus === "placed" && (
+                  {(currentStatus === "placed" || currentStatus === "confirmed") && (
                     <button
-                      onClick={() => handleStatusUpdate("confirmed")}
+                      onClick={() => handleStatusUpdate("processing")}
                       disabled={updating}
                       className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold transition disabled:opacity-50"
                     >
-                      Confirm Order
+                      Process Order
                     </button>
                   )}
-                  {currentStatus === "confirmed" && (
-                    <button
-                      onClick={() => handleStatusUpdate("packed")}
-                      disabled={updating}
-                      className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-500 text-white rounded-lg text-xs font-semibold transition disabled:opacity-50"
-                    >
-                      Pack Order
-                    </button>
-                  )}
-                  {currentStatus === "packed" && (
+                  {(currentStatus === "processing" || currentStatus === "packed") && (
                     <button
                       onClick={() => handleStatusUpdate("shipped")}
                       disabled={updating}
@@ -318,15 +334,20 @@ export default function OrderDetailPage() {
               )}
             </div>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-5">
+            <div className="mt-5 grid gap-3 sm:grid-cols-4">
               {PROCESS_STEPS.map((step) => {
                 const Icon = stepIcons[step] || Package;
                 const stepLower = step.toLowerCase();
-                const stages = ["placed", "confirmed", "packed", "shipped", "delivered"];
-                const currentIdx = stages.indexOf(currentStatus);
+                const stages = ["placed", "processing", "shipped", "delivered"];
+                // Handle legacy confirmed/packed status values if present in older DB rows
+                let effectiveStatus = currentStatus;
+                if (effectiveStatus === "confirmed" || effectiveStatus === "packed") {
+                  effectiveStatus = "processing";
+                }
+                const currentIdx = stages.indexOf(effectiveStatus);
                 const stepIdx = stages.indexOf(stepLower);
                 const done = currentStatus !== "cancelled" && stepIdx <= currentIdx;
-                const current = currentStatus === stepLower;
+                const current = effectiveStatus === stepLower;
 
                 return (
                   <div

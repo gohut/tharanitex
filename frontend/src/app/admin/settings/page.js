@@ -98,13 +98,7 @@ export default function SettingsPage() {
     address: "42, Commercial Street, Bangalore, Karnataka 560001",
     gstin: "29AABCT1234F1Z5",
   });
-  const [branding, setBranding] = useState(DEFAULT_BRANDING_THEME);
-
-  useEffect(() => {
-    const savedBranding = getSavedBrandingTheme();
-    setBranding(savedBranding);
-    applyBrandingTheme(savedBranding);
-  }, []);
+  const [branding, setBranding] = useState(() => getSavedBrandingTheme());
 
   useEffect(() => {
     applyBrandingTheme(branding);

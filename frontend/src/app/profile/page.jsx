@@ -19,27 +19,33 @@ export default function ProfilePage() {
   const [pincode, setPincode] = useState("");
 
   useEffect(() => {
-    setIsMounted(true);
+    let ignore = false;
     const checkUser = () => {
-      const userStr = localStorage.getItem("currentUser");
+      const userStr = typeof window !== "undefined" ? localStorage.getItem("currentUser") : null;
       if (userStr) {
         try {
           const userObj = JSON.parse(userStr);
-          setCurrentUser(userObj);
-          setName(userObj.name || "");
-          setContact(userObj.contact || "");
-          setAddress(userObj.address || "");
-          setPincode(userObj.pincode || "");
+          if (!ignore) {
+            setCurrentUser(userObj);
+            setName(userObj.name || "");
+            setContact(userObj.contact || "");
+            setAddress(userObj.address || "");
+            setPincode(userObj.pincode || "");
+          }
         } catch (e) {
-          setCurrentUser(null);
+          if (!ignore) setCurrentUser(null);
         }
       } else {
-        setCurrentUser(null);
+        if (!ignore) setCurrentUser(null);
       }
+      if (!ignore) setIsMounted(true);
     };
     checkUser();
     window.addEventListener("auth-change", checkUser);
-    return () => window.removeEventListener("auth-change", checkUser);
+    return () => {
+      ignore = true;
+      window.removeEventListener("auth-change", checkUser);
+    };
   }, []);
 
   const handleSave = (e) => {
@@ -84,12 +90,21 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {}
     localStorage.removeItem("currentUser");
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith("cart") || key.startsWith("wishlist")) {
+        localStorage.removeItem(key);
+      }
+    });
     setCurrentUser(null);
     window.dispatchEvent(new Event("auth-change"));
     toast.success("Successfully logged out!");
     router.push("/home");
+    router.refresh();
   };
 
   if (!isMounted) {

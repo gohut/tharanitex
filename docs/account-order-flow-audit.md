@@ -614,3 +614,38 @@ After future implementation, execute the following verification steps:
 2. **Admin Refund Approval Test:** Log in as Admin -> Open order cancellation request -> Click "Approve Cancellation" -> Confirm order status updates to `cancelled`, refund status updates to `COMPLETED`, and HTTP status is 200 (no 500 errors).
 3. **Duplicate Refund Safety Test:** Re-click "Approve Cancellation" on an already cancelled/refunded order -> Confirm API returns graceful status without 500 error or exception.
 4. **Performance Verification Test:** Measure `GET /api/admin/orders` response time -> Confirm load time is under 1.5 seconds.
+
+---
+
+# Implementation Fix Report
+
+**Implementation Status:** COMPLETED  
+**Date:** August 19, 2026  
+
+## Summary of Fixes Applied
+
+### 1. Unified Customer & Admin Authentication
+- Updated `src/middleware/auth.js` (`authenticate` and `authenticateAdmin`) to accept both JWT signatures (`auth_token`/`token`) and D1 Session UUID tokens (`tharanitex_session`/`x-session-token`).
+- Updated `verify-otp` route (`src/app/api/auth/verify-otp/route.js`) to issue both `tharanitex_session` and signed `auth_token`/`token` cookies upon successful OTP login.
+
+### 2. OTP Customer D1 Sync
+- Updated `verifyOtpAndLogin` in `src/lib/auth.js` to idempotently check D1 `users` table and insert customer records if missing. Prevents SQL `JOIN users` queries from returning empty or null data for OTP users.
+
+### 3. Cart & Wishlist Race Conditions & Server Component Fixes
+- Added migration `0014_cart_wishlist_unique_constraints.sql` establishing unique constraints on `cart_items(user_id, product_id)` and `wishlist_items(user_id, product_id)`.
+- Updated `addToCart` in `src/lib/db/cart.js` to use `ON CONFLICT(user_id, product_id) DO UPDATE SET quantity = quantity + excluded.quantity` for atomic quantity increments without duplicate row creation.
+- Fixed `ReferenceError: cookies is not defined` in `src/app/cart/page.jsx` and `src/app/wishlist/page.jsx` by importing `cookies` from `"next/headers"`.
+
+### 4. Admin Refund 500 Error & Schema Alignment
+- Added migration `0015_order_cancellation_refund_columns.sql` ensuring `cancelled_by` and all cancellation/refund columns exist.
+- Updated `PATCH /api/admin/orders/[id]` (`route.js`) to include `cancelled_by` in SQL updates with an unmigrated fallback block.
+- Updated Razorpay refund error handling to gracefully handle `"The payment has been fully refunded already"`, setting `refund_status = 'COMPLETED'` without throwing HTTP 500.
+
+### 5. Order Creation Atomicity & Admin Performance
+- Updated `insertOrder` and `createCodOrder` in `src/lib/db/order.js` to execute order item insertion and cart clearing in a single atomic D1 `db.batch()` transaction.
+- Removed dynamic runtime `ensureCancellationColumns()` execution from read hot-paths.
+- Refactored `getAdminOrders` and `getOrders` to use 2-query batching instead of N+1 item fetch loops.
+
+### 6. Build & Compilation Verification
+- Ran full production build (`npm run build`). Next.js Turbopack compilation, TypeScript checks (322ms), and static page generation (53/53) succeeded with 0 errors.
+

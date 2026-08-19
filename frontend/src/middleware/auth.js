@@ -1,61 +1,96 @@
 import { verifyJWT } from "../utils/jwt";
 import { getJwtSecret } from "../utils/jwt-secret";
+import { validateSession } from "../lib/auth";
 
 /**
- * Authenticates a request. Extracts JWT from Authorization header or Cookies.
- * Returns the decoded token payload if valid, otherwise null.
+ * Authenticates a request. Accepts JWT from Authorization header/Cookies OR D1 Session tokens.
+ * Returns the decoded token or session payload if valid, otherwise null.
  */
 export async function authenticate(request, env) {
   let token = null;
   const debug = process.env.NODE_ENV !== "production";
   const authHeader = request.headers.get("Authorization");
+  const sessionHeader = request.headers.get("x-session-token");
   const rawCookieHeader = request.headers?.get?.("cookie");
+
   const cookieValues = {
-    token: Boolean(request.cookies?.get?.("token")?.value),
-    auth_token: Boolean(request.cookies?.get?.("auth_token")?.value),
-    admin_token: Boolean(request.cookies?.get?.("admin_token")?.value),
+    token: request.cookies?.get?.("token")?.value,
+    auth_token: request.cookies?.get?.("auth_token")?.value,
+    admin_token: request.cookies?.get?.("admin_token")?.value,
+    tharanitex_session: request.cookies?.get?.("tharanitex_session")?.value,
   };
 
-  // 1. Parse Authorization Header
+  // 1. Parse Authorization & Session Headers
   if (authHeader && authHeader.startsWith("Bearer ")) {
     token = authHeader.substring(7);
+  } else if (sessionHeader) {
+    token = sessionHeader;
   }
 
   // 2. Parse Cookies
   if (!token) {
-    token = request.cookies?.get?.("auth_token")?.value ||
-            request.cookies?.get?.("token")?.value ||
-            request.cookies?.get?.("admin_token")?.value;
+    token = cookieValues.auth_token ||
+            cookieValues.token ||
+            cookieValues.tharanitex_session ||
+            cookieValues.admin_token;
 
-    if (!token) {
-      if (rawCookieHeader) {
-        const cookies = Object.fromEntries(
-          rawCookieHeader.split(";").map((cookie) => {
-            const separator = cookie.indexOf("=");
-            const name = (separator === -1 ? cookie : cookie.slice(0, separator)).trim();
-            const value = separator === -1 ? "" : cookie.slice(separator + 1).trim();
-            return [name, decodeURIComponent(value)];
-          })
-        );
-        token = cookies.auth_token || cookies.token || cookies.admin_token;
-      }
+    if (!token && rawCookieHeader) {
+      const cookies = Object.fromEntries(
+        rawCookieHeader.split(";").map((cookie) => {
+          const separator = cookie.indexOf("=");
+          const name = (separator === -1 ? cookie : cookie.slice(0, separator)).trim();
+          const value = separator === -1 ? "" : cookie.slice(separator + 1).trim();
+          return [name, decodeURIComponent(value)];
+        })
+      );
+      token = cookies.auth_token || cookies.token || cookies.tharanitex_session || cookies.admin_token;
     }
   }
 
   if (!token) {
-    if (debug) console.info("AUTHENTICATE DEBUG", { authorizationHeaderExists: Boolean(authHeader), tokenCookieExists: cookieValues.token, authTokenCookieExists: cookieValues.auth_token, adminTokenCookieExists: cookieValues.admin_token, rawCookieHeaderExists: Boolean(rawCookieHeader), jwtVerificationSucceeded: false, jwtVerificationFailed: false, failureReason: "No authentication token was sent." });
+    if (debug) console.info("AUTHENTICATE DEBUG", { authorizationHeaderExists: Boolean(authHeader), tokenCookieExists: Boolean(cookieValues.token), authTokenCookieExists: Boolean(cookieValues.auth_token), sessionCookieExists: Boolean(cookieValues.tharanitex_session), adminTokenCookieExists: Boolean(cookieValues.admin_token), rawCookieHeaderExists: Boolean(rawCookieHeader), jwtVerificationSucceeded: false, failureReason: "No authentication token was sent." });
     return null;
   }
 
+  // 3. Try JWT Verification
   try {
     const secret = getJwtSecret(env);
     const payload = await verifyJWT(token, secret);
-    if (debug) console.info("AUTHENTICATE DEBUG", { authorizationHeaderExists: Boolean(authHeader), tokenCookieExists: cookieValues.token, authTokenCookieExists: cookieValues.auth_token, adminTokenCookieExists: cookieValues.admin_token, rawCookieHeaderExists: Boolean(rawCookieHeader), jwtVerificationSucceeded: Boolean(payload), jwtVerificationFailed: !payload, failureReason: payload ? null : "JWT signature, format, or expiry validation failed." });
-    return payload;
+    if (payload) {
+      if (debug) console.info("AUTHENTICATE DEBUG", { method: "JWT", jwtVerificationSucceeded: true, failureReason: null });
+      return {
+        ...payload,
+        id: String(payload.id),
+        userId: String(payload.id),
+      };
+    }
   } catch (error) {
-    if (debug) console.info("AUTHENTICATE DEBUG", { authorizationHeaderExists: Boolean(authHeader), tokenCookieExists: cookieValues.token, authTokenCookieExists: cookieValues.auth_token, adminTokenCookieExists: cookieValues.admin_token, rawCookieHeaderExists: Boolean(rawCookieHeader), jwtVerificationSucceeded: false, jwtVerificationFailed: true, failureReason: error?.message || "JWT verification failed." });
-    return null;
+    // JWT verification failed (might be a raw D1 Session UUID token)
   }
+
+  // 4. Try D1 Session Verification Fallback
+  try {
+    const sessionUser = await validateSession(token, env);
+    if (sessionUser) {
+      if (debug) console.info("AUTHENTICATE DEBUG", { method: "D1_SESSION", sessionVerificationSucceeded: true, failureReason: null });
+      const resolvedId = String(sessionUser.userId || sessionUser.id);
+      return {
+        id: resolvedId,
+        userId: resolvedId,
+        email: sessionUser.email || "",
+        role: sessionUser.userType === "admin" || sessionUser.role === "Super Admin" ? "admin" : "customer",
+        userType: sessionUser.userType || (sessionUser.role === "admin" ? "admin" : "customer"),
+        fullName: sessionUser.fullName || sessionUser.name || "",
+        customerId: sessionUser.customerId || null,
+        phoneVerified: sessionUser.phoneVerified ?? true,
+      };
+    }
+  } catch (error) {
+    // Session validation fallback failed
+  }
+
+  if (debug) console.info("AUTHENTICATE DEBUG", { jwtVerificationSucceeded: false, failureReason: "Token and Session verification failed." });
+  return null;
 }
 
 /**
@@ -64,7 +99,11 @@ export async function authenticate(request, env) {
  */
 export async function authenticateAdmin(request, env) {
   const payload = await authenticate(request, env);
-  if (!payload || payload.role !== "admin") {
+  if (!payload) {
+    return null;
+  }
+  const isAdmin = payload.role === "admin" || payload.userType === "admin" || payload.role === "Super Admin";
+  if (!isAdmin) {
     return null;
   }
   return payload;

@@ -119,16 +119,24 @@ export default async function OrderDetailsPage({ params }) {
                       <span>Qty : {item.quantity}</span>
                       <span>{typeof item.price === "number" ? formatPrice(item.price) : item.price}</span>
                     </div>
+                    {/* Date placed directly below saree name and details */}
+                    <p className="mt-2.5 text-sm font-medium text-[#8A8175]">{order.placedOn}</p>
                   </div>
-                  {item.slug ? (
-                    <Link
-                      href={`/product/${item.slug}`}
-                      className="inline-flex items-center justify-center gap-3 border border-[#CDBCA2] px-6 py-4 text-[17px] font-semibold text-[#231F1A] transition hover:border-[#E0A22E] hover:text-[#E0A22E]"
-                    >
-                      <ShoppingBag size={20} />
-                      <span>Buy Again</span>
-                    </Link>
-                  ) : null}
+
+                  <div className="flex flex-col items-end gap-3">
+                    {/* Status pill placed directly above Buy Again button */}
+                    <OrderStatusPill status={order.status} />
+
+                    {item.slug ? (
+                      <Link
+                        href={`/product/${item.slug}`}
+                        className="inline-flex items-center justify-center gap-3 border border-[#CDBCA2] px-6 py-4 text-[17px] font-semibold text-[#231F1A] transition hover:border-[#E0A22E] hover:text-[#E0A22E]"
+                      >
+                        <ShoppingBag size={20} />
+                        <span>Buy Again</span>
+                      </Link>
+                    ) : null}
+                  </div>
                 </div>
               ))}
             </div>
@@ -139,12 +147,7 @@ export default async function OrderDetailsPage({ params }) {
           </section>
 
           <section className="border border-[#DDCFBD] bg-[#FCF7EF] p-5 md:p-8">
-            <div className="flex flex-col gap-4 border-b border-[#DDCFBD] pb-5 text-sm text-[#8A8175] md:flex-row md:items-center md:justify-between">
-              <p>{order.placedOn}</p>
-              <OrderStatusPill status={order.status} />
-            </div>
-
-            <div className="grid gap-8 pt-7 md:grid-cols-[220px_1fr]">
+            <div className="grid gap-8 pt-2 md:grid-cols-[220px_1fr]">
               <h3 className="text-[20px] font-semibold text-[#211D19]">
                 Shipping Address
               </h3>
@@ -286,8 +289,12 @@ function mapDatabaseOrder(order) {
 
 function buildTrackingSteps(status, date) {
   const stages = ["placed", "processing", "shipped", "delivered"];
-  const completedIndex = status === "cancelled" ? 0 : Math.max(0, stages.indexOf(status));
-  const timelineStages = status === "cancelled" ? ["placed", "cancelled"] : stages;
+  let normalizedStatus = (status || "placed").toLowerCase();
+  if (normalizedStatus === "confirmed" || normalizedStatus === "packed") {
+    normalizedStatus = "processing";
+  }
+  const completedIndex = normalizedStatus === "cancelled" ? 0 : Math.max(0, stages.indexOf(normalizedStatus));
+  const timelineStages = normalizedStatus === "cancelled" ? ["placed", "cancelled"] : stages;
 
   return timelineStages.map((stage, index) => ({
     id: stage,

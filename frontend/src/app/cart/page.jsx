@@ -7,6 +7,7 @@ import { getCart } from "@/lib/db/cart";
 import { validateSession } from "@/lib/auth";
 import { SESSION_COOKIE_NAME } from "@/types/auth";
 import { verifyJWT } from "@/utils/jwt";
+import { getJwtSecret } from "@/utils/jwt-secret";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ export default async function CartPage() {
   // 1. Try JWT authentication (auth_token or token)
   const jwtToken = cookieStore.get("auth_token")?.value || cookieStore.get("token")?.value;
   if (jwtToken) {
-    const secret = process.env.JWT_SECRET || "tharanitex_super_secret_key_123!";
+    const secret = getJwtSecret(env);
     const payload = await verifyJWT(jwtToken, secret);
     if (payload && (payload.role === "customer" || !payload.role) && payload.id) {
       userId = String(payload.id);
@@ -37,7 +38,7 @@ export default async function CartPage() {
     }
   }
 
-  const cartItems = await getCart(env.DB, userId || "guest");
+  const cartItems = userId ? await getCart(env.DB, userId) : [];
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,

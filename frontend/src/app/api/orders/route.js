@@ -21,10 +21,10 @@ export async function POST(request) {
 
     const customerId = await requireCustomer(request, env);
 
-    const details = { name: body.customerName || "", phone: body.phone || "", otp: body.otp || "", address: body.deliveryAddress || "", paymentMethod: body.paymentMethod || "" };
+    const details = { name: body.customerName || "", phone: body.phone || "", address: body.deliveryAddress || "", paymentMethod: body.paymentMethod || "" };
     const errors = validateCheckoutDetails(details);
     if (Object.keys(errors).length) return Response.json({ success: false, error: Object.values(errors)[0], errors }, { status: 400 });
-    if (details.paymentMethod !== "COD") throw new CheckoutError("Use the online payment endpoint for UPI or card payments.");
+    if (details.paymentMethod !== "COD") throw new CheckoutError("Use the online payment endpoint for UPI or card payments.", 400);
     const checkoutType = body.checkoutType === "BUY_NOW" ? "BUY_NOW" : body.checkoutType === "CART" || !body.checkoutType ? "CART" : null;
     if (!checkoutType) throw new CheckoutError("Invalid checkout type.");
 
@@ -43,6 +43,6 @@ export async function POST(request) {
     return Response.json(order, { status: 201 });
   } catch (error) {
     console.error("CREATE COD order error", { message: error?.message, context: error?.context });
-    return Response.json({ success: false, error: error instanceof CheckoutError ? error.message : "Unable to create the order. Please try again." }, { status: error instanceof CheckoutError ? error.status : 500 });
+    return Response.json({ success: false, error: error instanceof CheckoutError ? error.message : "Unable to create the order. Please try again." }, { status: error instanceof CheckoutError ? (error.status || 400) : 500 });
   }
 }

@@ -1,35 +1,48 @@
 export async function addToCart(db, userId, productId, quantity) {
-  const existing = await db
-    .prepare(`
-      SELECT id, quantity
-      FROM cart_items
-      WHERE user_id = ?
-      AND product_id = ?
-    `)
-    .bind(userId, productId)
-    .first();
-
-  if (existing) {
+  const addQty = Math.max(1, Number(quantity) || 1);
+  try {
     await db
       .prepare(`
-        UPDATE cart_items
-        SET quantity = quantity + ?
-        WHERE id = ?
-      `)
-      .bind(quantity, existing.id)
-      .run();
-  } else {
-    await db
-      .prepare(`
-        INSERT INTO cart_items (
-          user_id,
-          product_id,
-          quantity
-        )
+        INSERT INTO cart_items (user_id, product_id, quantity)
         VALUES (?, ?, ?)
+        ON CONFLICT(user_id, product_id) DO UPDATE SET
+          quantity = quantity + excluded.quantity
       `)
-      .bind(userId, productId, quantity)
+      .bind(userId, productId, addQty)
       .run();
+  } catch (err) {
+    const existing = await db
+      .prepare(`
+        SELECT id, quantity
+        FROM cart_items
+        WHERE user_id = ?
+        AND product_id = ?
+      `)
+      .bind(userId, productId)
+      .first();
+
+    if (existing) {
+      await db
+        .prepare(`
+          UPDATE cart_items
+          SET quantity = quantity + ?
+          WHERE id = ?
+        `)
+        .bind(addQty, existing.id)
+        .run();
+    } else {
+      await db
+        .prepare(`
+          INSERT INTO cart_items (
+            user_id,
+            product_id,
+            quantity
+          )
+          VALUES (?, ?, ?)
+        `)
+        .bind(userId, productId, addQty)
+        .run();
+    }
   }
 
   return { success: true };

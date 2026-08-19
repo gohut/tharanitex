@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { ShoppingBag } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ImageWithSkeleton from "@/components/ui/ImageWithSkeleton";
 
 export default function ProductCard({
@@ -12,6 +13,7 @@ export default function ProductCard({
   isHomepageCard = false,
 }) {
   const [wishlisted, setWishlisted] = useState(initiallyWishlisted);
+  const router = useRouter();
 
   async function toggleWishlist() {
     try {
@@ -29,6 +31,7 @@ export default function ProductCard({
         if (!res.ok) throw new Error();
 
         setWishlisted(true);
+        router.refresh();
 
         toast.success("Added to wishlist", {
           style: {
@@ -55,6 +58,7 @@ export default function ProductCard({
         if (!res.ok) throw new Error();
 
         setWishlisted(false);
+        router.refresh();
 
         toast.success("Removed from wishlist", {
           style: {
@@ -80,6 +84,7 @@ export default function ProductCard({
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           productId: product.id,
           quantity: 1,
@@ -91,6 +96,7 @@ export default function ProductCard({
       }
 
       toast.success(`${product.name} added to cart`);
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast.error("Unable to add product to cart");

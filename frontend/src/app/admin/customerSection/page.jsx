@@ -39,39 +39,45 @@ export default function CustomersPage() {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
 
-  async function loadCustomers() {
-    try {
-      setLoading(true);
-
-      const res = await fetch("/api/admin/customers", {
-        cache: "no-store",
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to load customers");
-      }
-
-      setCustomers(data.customers || []);
-      setStats(
-        data.stats || {
-          totalCustomers: 0,
-          activeCustomers: 0,
-          blockedCustomers: 0,
-          newThisMonth: 0,
-        }
-      );
-    } catch (error) {
-      console.error("Customer load error:", error);
-      toast.error(error.message || "Failed to load customers");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
+    let ignore = false;
+
+    async function loadCustomers() {
+      try {
+        const res = await fetch("/api/admin/customers", {
+          cache: "no-store",
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to load customers");
+        }
+
+        if (!ignore) {
+          setCustomers(data.customers || []);
+          setStats(
+            data.stats || {
+              totalCustomers: 0,
+              activeCustomers: 0,
+              blockedCustomers: 0,
+              newThisMonth: 0,
+            }
+          );
+        }
+      } catch (error) {
+        console.error("Customer load error:", error);
+        if (!ignore) toast.error(error.message || "Failed to load customers");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+
     loadCustomers();
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const filteredCustomers = useMemo(() => {

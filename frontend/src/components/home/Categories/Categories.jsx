@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -8,15 +8,7 @@ export default function Categories({ categories }) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  if (!categories) {
-    return null;
-  }
-
-  const items = categories.items || [];
-
-  if (!items.length) {
-    return null;
-  }
+  const items = categories?.items || [];
 
   const updateScrollButtons = () => {
     const slider = sliderRef.current;
@@ -44,6 +36,10 @@ export default function Categories({ categories }) {
       window.removeEventListener("resize", updateScrollButtons);
     };
   }, [items.length]);
+
+  if (!categories || !items.length) {
+    return null;
+  }
 
   const scrollSlider = (direction) => {
     const slider = sliderRef.current;

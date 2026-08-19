@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyOtpAndLogin, buildSessionCookieHeader } from '../../../../lib/auth';
+import { signJWT } from '../../../../utils/jwt';
+import { getJwtSecret } from '../../../../utils/jwt-secret';
 
 export async function POST(request) {
   try {
@@ -29,16 +31,35 @@ export async function POST(request) {
 
     const cookieHeader = buildSessionCookieHeader(authResult.sessionToken);
 
+    // Also issue JWT for System A compatibility
+    let jwtToken = null;
+    try {
+      const secret = getJwtSecret();
+      jwtToken = await signJWT({ id: authResult.user.id, email: `${body.phoneNumber}@customer.tharanitex.com`, role: 'customer' }, secret);
+    } catch {
+      // JWT fallback optional
+    }
+
     const response = NextResponse.json({
       success: true,
       message: 'Authentication successful.',
       data: {
         user: authResult.user,
         expiresAt: authResult.expiresAt,
+        token: jwtToken || authResult.sessionToken,
       },
     });
 
+    const isProd = process.env.NODE_ENV === 'production';
+    const secureFlag = isProd ? '; Secure' : '';
+    const maxAge = 7 * 24 * 60 * 60;
+    const standardOptions = `; Path=/; HttpOnly; Max-Age=${maxAge}; SameSite=Lax${secureFlag}`;
+
     response.headers.append('Set-Cookie', cookieHeader);
+    if (jwtToken) {
+      response.headers.append('Set-Cookie', `token=${jwtToken}${standardOptions}`);
+      response.headers.append('Set-Cookie', `auth_token=${jwtToken}${standardOptions}`);
+    }
     return response;
   } catch (err) {
     return NextResponse.json(
@@ -51,3 +72,4 @@ export async function POST(request) {
     );
   }
 }
+

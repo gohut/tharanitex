@@ -58,23 +58,25 @@ function total(items) {
   return items.reduce((amount, item) => amount + item.price * item.quantity, 0);
 }
 
-async function insertOrder(db, { userId, addressId, items, paymentMethod, paymentStatus, razorpay = null }) {
+async function insertOrder(db, { userId, addressId, items, paymentMethod, paymentStatus, razorpay = null, clearCartUserId = null }) {
   const result = await db.prepare(`
     INSERT INTO orders (user_id, address_id, total_amount, payment_method, payment_status, order_status, razorpay_order_id, razorpay_payment_id, razorpay_signature, paid_at)
     VALUES (?, ?, ?, ?, ?, 'placed', ?, ?, ?, ?)
   `).bind(userId, addressId, total(items), paymentMethod, paymentStatus, razorpay?.orderId || null, razorpay?.paymentId || null, razorpay?.signature || null, paymentStatus === "paid" ? new Date().toISOString() : null).run();
   const orderId = result.meta.last_row_id;
-  await db.batch(items.map((item) => db.prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)").bind(orderId, item.product_id, item.quantity, item.price)));
+  const statements = items.map((item) => db.prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)").bind(orderId, item.product_id, item.quantity, item.price));
+  if (clearCartUserId) {
+    statements.push(db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind(clearCartUserId));
+  }
+  await db.batch(statements);
   return orderId;
 }
-
 
 export async function createCodOrder(db, checkout) {
   const cartUserId = checkout.cartUserId || checkout.userId;
   const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.quantity, cartUserId);
   const addressId = await findOrCreateAddress(db, checkout);
-  const orderId = await insertOrder(db, { userId: checkout.userId, addressId, items, paymentMethod: "COD", paymentStatus: "pending" });
-  if (checkout.checkoutType === "CART") await db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind(cartUserId).run();
+  const orderId = await insertOrder(db, { userId: checkout.userId, addressId, items, paymentMethod: "COD", paymentStatus: "pending", clearCartUserId: checkout.checkoutType === "CART" ? cartUserId : null });
   return { success: true, orderId, totalAmount: total(items), orderStatus: "placed", paymentMethod: "COD", paymentStatus: "pending" };
 }
 
@@ -131,13 +133,17 @@ export async function claimVerifiedPayment(db, { razorpayOrderId, razorpayPaymen
   }
 }
 
+let cancellationColumnsChecked = false;
+
 async function ensureCancellationColumns(db) {
+  if (cancellationColumnsChecked || !db) return;
   const alterStatements = [
     "ALTER TABLE orders ADD COLUMN cancellation_status TEXT NOT NULL DEFAULT 'NONE'",
     "ALTER TABLE orders ADD COLUMN cancellation_reason TEXT",
     "ALTER TABLE orders ADD COLUMN cancellation_requested_at TEXT",
     "ALTER TABLE orders ADD COLUMN cancellation_decided_at TEXT",
     "ALTER TABLE orders ADD COLUMN cancelled_at TEXT",
+    "ALTER TABLE orders ADD COLUMN cancelled_by TEXT",
     "ALTER TABLE orders ADD COLUMN delivered_at TEXT",
     "ALTER TABLE orders ADD COLUMN invoice_number TEXT",
     "ALTER TABLE orders ADD COLUMN refund_status TEXT NOT NULL DEFAULT 'NOT_REQUESTED'",
@@ -154,10 +160,10 @@ async function ensureCancellationColumns(db) {
       // Ignore if column already exists
     }
   }
+  cancellationColumnsChecked = true;
 }
 
 export async function getOrders(db, userId) {
-  await ensureCancellationColumns(db);
   let orders = [];
   try {
     const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.cancellation_status, o.refund_status, a.full_name, a.city, a.state FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.user_id = ? ORDER BY o.created_at DESC`).bind(userId).all();
@@ -167,15 +173,34 @@ export async function getOrders(db, userId) {
     orders = (res.results || []).map(o => ({ ...o, cancellation_status: 'NONE', refund_status: 'NOT_REQUESTED' }));
   }
 
-  for (const order of orders) {
-    const { results: items } = await db.prepare(`SELECT oi.id, oi.product_id, oi.quantity, oi.price, p.name, p.slug, (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) AS image FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ? ORDER BY oi.id`).bind(order.id).all();
-    order.items = items;
+  if (orders.length > 0) {
+    const orderIds = orders.map((o) => o.id);
+    const placeholders = orderIds.map(() => "?").join(",");
+    try {
+      const { results: allItems } = await db
+        .prepare(`SELECT oi.id, oi.order_id, oi.product_id, oi.quantity, oi.price, p.name, p.slug, (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) AS image FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id IN (${placeholders}) ORDER BY oi.id`)
+        .bind(...orderIds)
+        .all();
+
+      const itemsMap = new Map();
+      for (const item of allItems || []) {
+        if (!itemsMap.has(item.order_id)) itemsMap.set(item.order_id, []);
+        itemsMap.get(item.order_id).push(item);
+      }
+      for (const order of orders) {
+        order.items = itemsMap.get(order.id) || [];
+      }
+    } catch {
+      for (const order of orders) {
+        order.items = order.items || [];
+      }
+    }
   }
+
   return orders;
 }
 
 export async function getOrderById(db, orderId, userId) {
-  await ensureCancellationColumns(db);
   let order = null;
   try {
     order = await db.prepare(`SELECT o.id, o.user_id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.razorpay_order_id, o.razorpay_payment_id, o.paid_at, o.cancellation_status, o.cancellation_reason, o.cancellation_requested_at, o.cancellation_decided_at, o.cancelled_at, o.delivered_at, o.invoice_number, o.refund_status, o.refund_id, o.refund_amount, o.refund_requested_at, o.refund_completed_at, o.refund_failure_reason, a.full_name, a.phone, a.address_line1, a.address_line2, a.city, a.state, a.pincode, a.country FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.id = ? AND o.user_id = ? LIMIT 1`).bind(orderId, userId).first();
@@ -195,7 +220,6 @@ export async function getOrderById(db, orderId, userId) {
 }
 
 export async function getAdminOrderById(db, orderId) {
-  await ensureCancellationColumns(db);
   let order = null;
   try {
     order = await db.prepare(`SELECT o.id, o.user_id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.razorpay_order_id, o.razorpay_payment_id, o.paid_at, o.cancellation_status, o.cancellation_reason, o.cancellation_requested_at, o.cancellation_decided_at, o.cancelled_at, o.delivered_at, o.invoice_number, o.refund_status, o.refund_id, o.refund_amount, o.refund_requested_at, o.refund_completed_at, o.refund_failure_reason, a.full_name, a.phone, a.address_line1, a.address_line2, a.city, a.state, a.pincode, a.country FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.id = ? LIMIT 1`).bind(orderId).first();
@@ -215,7 +239,6 @@ export async function getAdminOrderById(db, orderId) {
 }
 
 export async function getAdminOrders(db) {
-  await ensureCancellationColumns(db);
   let results = [];
   try {
     const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.cancellation_status, o.refund_status, a.full_name, a.phone FROM orders o JOIN addresses a ON a.id = o.address_id ORDER BY o.created_at DESC`).all();
@@ -225,9 +248,29 @@ export async function getAdminOrders(db) {
     results = (res.results || []).map(o => ({ ...o, cancellation_status: 'NONE', refund_status: 'NOT_REQUESTED' }));
   }
 
-  for (const order of results) {
-    const { results: items } = await db.prepare(`SELECT oi.id, oi.product_id, oi.quantity, oi.price, p.name FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ? ORDER BY oi.id`).bind(order.id).all();
-    order.items = items;
+  if (results.length > 0) {
+    const orderIds = results.map((o) => o.id);
+    const placeholders = orderIds.map(() => "?").join(",");
+    try {
+      const { results: allItems } = await db
+        .prepare(`SELECT oi.id, oi.order_id, oi.product_id, oi.quantity, oi.price, p.name FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id IN (${placeholders}) ORDER BY oi.id`)
+        .bind(...orderIds)
+        .all();
+
+      const itemsMap = new Map();
+      for (const item of allItems || []) {
+        if (!itemsMap.has(item.order_id)) itemsMap.set(item.order_id, []);
+        itemsMap.get(item.order_id).push(item);
+      }
+      for (const order of results) {
+        order.items = itemsMap.get(order.id) || [];
+      }
+    } catch {
+      for (const order of results) {
+        order.items = order.items || [];
+      }
+    }
   }
+
   return results;
 }

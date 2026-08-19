@@ -689,6 +689,34 @@ export async function verifyOtpAndLogin(
   }
 
   const db = await getDB(env);
+
+  // Idempotently ensure OTP customer exists in D1 users table for SQL JOIN compatibility
+  if (db) {
+    try {
+      const existingD1User = await db
+        .prepare(`SELECT id FROM users WHERE phone = ? OR id = ? LIMIT 1`)
+        .bind(phoneNumber, String(user.id))
+        .first();
+
+      if (!existingD1User) {
+        await db
+          .prepare(
+            `INSERT INTO users (id, name, email, phone, role, created_at, updated_at)
+             VALUES (?, ?, ?, ?, 'customer', datetime('now'), datetime('now'))`
+          )
+          .bind(
+            String(user.id),
+            validName,
+            `${phoneNumber}@customer.tharanitex.com`,
+            phoneNumber
+          )
+          .run();
+      }
+    } catch {
+      // Non-blocking D1 user sync fallback
+    }
+  }
+
   const { sessionToken, expiresAt } = await createD1Session(
     db,
     user.id,

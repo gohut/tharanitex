@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -27,7 +27,7 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -47,11 +47,40 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    let ignore = false;
+
+    async function load() {
+      try {
+        const res = await fetch("/api/admin/orders");
+        if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            router.push("/admin/login");
+            return;
+          }
+          const json = await res.json().catch(() => ({}));
+          throw new Error(json.error || "Failed to load dashboard data");
+        }
+        const data = await res.json();
+        if (!ignore) {
+          setOrders(data || []);
+          setError("");
+        }
+      } catch (err) {
+        if (!ignore) setError(err.message || "Failed to load dashboard data");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      ignore = true;
+    };
+  }, [router]);
 
   const totalOrders = orders.length;
   const totalRevenue = orders
