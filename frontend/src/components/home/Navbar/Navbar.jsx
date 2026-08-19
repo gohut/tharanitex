@@ -281,69 +281,62 @@ export default function Navbar() {
               {/* Navbar-Embedded Search Bar Input & Live Dropdown */}
               <div
                 ref={searchContainerRef}
-                className="relative flex-1 w-full md:mx-auto md:w-[min(45vw,520px)] md:flex-initial"
+                className="relative flex-1 w-full md:mx-auto md:w-[min(32vw,360px)] md:flex-initial"
               >
-                <div className="relative flex flex-col w-full">
-                  <div className="relative flex items-center w-full border-b border-[#2F2B27]/40 pb-1 focus-within:border-[#2F2B27] transition-colors">
-                    <input
-                      ref={searchInputRef}
-                      type="text"
-                      autoFocus
-                      value={navbarSearch}
-                      onFocus={() => {
-                        setIsFocused(true);
-                        setIsDropdownOpen(true);
-                      }}
-                      onBlur={() => setIsFocused(false)}
-                      onChange={(event) => updateNavbarSearch(event.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Search sarees, collections & styles..."
-                      aria-label="Search products"
-                      className="h-9 md:h-10 w-full bg-transparent pl-0 pr-16 text-base md:text-xl font-medium text-[#2F2B27] placeholder:text-gray-400/80 outline-none border-none focus:outline-none focus:ring-0 shadow-none"
-                    />
+                <div className="relative flex items-center w-full border-b border-[#2F2B27]/30 pb-1 focus-within:border-[#2F2B27] transition-colors">
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    autoFocus
+                    value={navbarSearch}
+                    onFocus={() => {
+                      setIsFocused(true);
+                      setIsDropdownOpen(true);
+                    }}
+                    onBlur={() => setIsFocused(false)}
+                    onChange={(event) => updateNavbarSearch(event.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Search sarees..."
+                    aria-label="Search products"
+                    className="h-8 md:h-9 w-full bg-transparent pl-0 pr-14 text-xs md:text-sm font-medium text-[#2F2B27] placeholder:text-gray-400 outline-none border-none focus:outline-none focus:ring-0 shadow-none"
+                  />
 
-                    {/* Right Action Icons: Clear & Search Icon */}
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                      {navbarSearch ? (
-                        <button
-                          type="button"
-                          aria-label="Clear search text"
-                          onClick={() => {
-                            setNavbarSearch("");
-                            setDebouncedSearch("");
-                            setSelectedIndex(-1);
-                            searchInputRef.current?.focus();
-                          }}
-                          className="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200/60 hover:text-gray-600 transition"
-                        >
-                          <X size={16} />
-                        </button>
-                      ) : null}
-
+                  {/* Right Action Icons: Clear & Search Icon */}
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    {navbarSearch ? (
                       <button
                         type="button"
-                        aria-label="Submit search"
+                        aria-label="Clear search text"
                         onClick={() => {
-                          if (navbarSearch.trim()) {
-                            const q = navbarSearch.trim();
-                            setIsDropdownOpen(false);
-                            setIsSearchActive(false);
-                            router.push(`/search?q=${encodeURIComponent(q)}`);
-                          } else {
-                            deactivateSearch();
-                          }
+                          setNavbarSearch("");
+                          setDebouncedSearch("");
+                          setSelectedIndex(-1);
+                          searchInputRef.current?.focus();
                         }}
-                        className="flex h-8 w-8 items-center justify-center text-[#2F2B27] hover:text-[#C79A2B] transition"
+                        className="flex h-6 w-6 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200/60 hover:text-gray-600 transition"
                       >
-                        <Search size={20} strokeWidth={1.8} />
+                        <X size={14} />
                       </button>
-                    </div>
-                  </div>
+                    ) : null}
 
-                  {/* Subtitle helper text below the bottom line */}
-                  <span className="mt-1 text-[10px] sm:text-[11px] text-[#8A7A65] tracking-wide">
-                    Type keyword to search
-                  </span>
+                    <button
+                      type="button"
+                      aria-label="Submit search"
+                      onClick={() => {
+                        if (navbarSearch.trim()) {
+                          const q = navbarSearch.trim();
+                          setIsDropdownOpen(false);
+                          setIsSearchActive(false);
+                          router.push(`/search?q=${encodeURIComponent(q)}`);
+                        } else {
+                          deactivateSearch();
+                        }
+                      }}
+                      className="flex h-7 w-7 items-center justify-center text-[#2F2B27] hover:text-[#C79A2B] transition"
+                    >
+                      <Search size={18} strokeWidth={1.8} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Live Real-Time Search Dropdown (Anchored directly under Navbar Search Bar) */}
