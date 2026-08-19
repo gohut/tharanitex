@@ -236,6 +236,7 @@ async function toggleSection(section) {
                 productIds: section.productIds,
                 backgroundColor: section.backgroundColor,
                 backgroundImage: section.backgroundImage,
+                rowCount: section.rowCount ?? 1,
               }
             : {}),
         }),
@@ -1805,6 +1806,23 @@ async function addHomepageSection() {
       >
         <div className="space-y-4">
           <FormInput label="Section Title" id="showcaseTitle" value={showcaseForm.title} onChange={(e) => setShowcaseForm({ ...showcaseForm, title: e.target.value })} />
+          <FormInput
+            label="Mobile Rows"
+            id="showcaseRows"
+            type="number"
+            min={1}
+            max={6}
+            value={showcaseForm.rowCount ?? 1}
+            onChange={(e) =>
+              setShowcaseForm((prev) => ({
+                ...prev,
+                rowCount: Math.max(
+                  1,
+                  Math.min(6, Number(e.target.value) || 1)
+                ),
+              }))
+            }
+          />
           <FormInput label="Subtitle / Description" id="showcaseSubtitle" type="textarea" rows={3} value={showcaseForm.subtitle} onChange={(e) => setShowcaseForm({ ...showcaseForm, subtitle: e.target.value })} />
           <div>
             <label className="mb-2 block text-xs font-medium text-green-300">Products</label>

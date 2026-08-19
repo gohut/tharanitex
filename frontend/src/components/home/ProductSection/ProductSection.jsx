@@ -120,7 +120,6 @@ const handleMobileNext = (rowIndex) => {
     });
   }
   setRowIndex(rowIndex, nextIndex);
-  updateMobileRowIndex(rowIndex, nextIndex);
 };
 
 
@@ -233,8 +232,8 @@ const handleMobileNext = (rowIndex) => {
                       top-[110px]
                       z-30
                       flex
-                      h-10
-                      w-10
+                      h-8
+                      w-8
                       -translate-y-1/2
                       items-center
                       justify-center
@@ -246,8 +245,8 @@ const handleMobileNext = (rowIndex) => {
                       hover:scale-105
                       active:scale-95
                       sm:top-[120px]
-                      sm:h-10
-                      sm:w-10
+                      sm:h-8
+                      sm:w-8
                     "
                   >
                     <ArrowLeft
@@ -275,8 +274,8 @@ const handleMobileNext = (rowIndex) => {
                       top-[110px]
                       z-30
                       flex
-                      h-10
-                      w-10
+                      h-8
+                      w-8
                       -translate-y-1/2
                       items-center
                       justify-center
@@ -288,8 +287,8 @@ const handleMobileNext = (rowIndex) => {
                       hover:scale-105
                       active:scale-95
                       sm:top-[120px]
-                      sm:h-10
-                      sm:w-10
+                      sm:h-8
+                      sm:w-8
                     "
                   >
                     <ArrowRight

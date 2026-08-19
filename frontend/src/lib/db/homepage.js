@@ -328,7 +328,7 @@ export async function createHomepageSection(db, data) {
         background_image,
         row_count
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
     .bind(
       data.sectionType,
