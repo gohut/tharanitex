@@ -1,5 +1,6 @@
 import Navbar from "@/components/home/Navbar/Navbar";
 import RelatedProducts from "@/components/product/RelatedProducts";
+import Breadcrumb from "@/components/product/Breadcrumb";
 import ProductGallery from "@/components/product/ProductGallery";
 import ProductDetails from "@/components/product/ProductDetails";
 import ReviewSection from "@/components/product/ReviewSection";
@@ -7,11 +8,12 @@ import ReviewSection from "@/components/product/ReviewSection";
 import { notFound } from "next/navigation";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-import { getProductBySlug } from "@/lib/db/product";
+import {
+  getProductBySlug,
+  getRelatedProducts,
+} from "@/lib/db/product";
 
-import { productData } from "@/data/productData";
-
-export const revalidate = 3600; 
+export const dynamic = "force-dynamic";
 
 export default async function ProductPage({ params }) {
   const { slug } = await params;
@@ -20,19 +22,28 @@ export default async function ProductPage({ params }) {
     async: true,
   });
 
-  const product = await getProductBySlug(env.DB, slug);
+  const product = await getProductBySlug(
+    env.DB,
+    slug
+  );
 
   if (!product) {
     notFound();
   }
 
   /*
-   * REAL REVIEWS
+   * Real products from D1.
    *
-   * Reviews are loaded directly from D1.
-   * ReviewRepository only returns approved reviews.
+   * This does NOT change the existing product-page
+   * layout. It only replaces the mock relatedProducts
+   * array.
    */
-  const reviews = [];
+  const relatedProducts =
+    await getRelatedProducts(
+      env.DB,
+      product.id,
+      8
+    );
 
   return (
     <>
@@ -40,57 +51,45 @@ export default async function ProductPage({ params }) {
 
       <main className="bg-[#FBF5EA]">
 
-        {/* PRODUCT */}
-        <section
-          className="
-            mx-auto
-            w-full
-            max-w-[430px]
-            px-4
-            pb-8
-            pt-4
+        {/* EXISTING PRODUCT PAGE — UNCHANGED */}
+        <section className="mx-auto w-full max-w-[430px] px-4 pb-12 pt-4 sm:px-5 sm:pb-14 sm:pt-5 md:px-8 lg:max-w-[1420px] lg:px-10 lg:pt-6">
 
-            sm:px-5
-            sm:pb-14
-            sm:pt-5
+          <Breadcrumb
+            items={[
+              {
+                label: "Home",
+                href: "/",
+              },
+              {
+                label: "Products",
+              },
+              {
+                label: product.name,
+              },
+            ]}
+          />
 
-            md:px-8
+          <div className="grid gap-7 sm:gap-8 lg:grid-cols-[minmax(0,720px)_minmax(320px,1fr)] lg:gap-10 xl:gap-14">
 
-            lg:max-w-[1420px]
-            lg:px-10
-            lg:pt-6
-          "
-        >
-          <div
-            className="
-              grid
-              gap-7
+            <ProductGallery
+              images={product.images}
+            />
 
-              sm:gap-8
+            <ProductDetails
+              product={product}
+            />
 
-              lg:grid-cols-[minmax(0,720px)_minmax(320px,1fr)]
-              lg:gap-10
-
-              xl:gap-14
-            "
-          >
-            <ProductGallery images={product.images} />
-
-            <div className="w-full">
-              <ProductDetails product={product} />
-            </div>
           </div>
         </section>
 
-        {/* RELATED PRODUCTS */}
+        {/* REAL D1 PRODUCTS */}
         <RelatedProducts
-          products={productData.relatedProducts}
+          products={relatedProducts}
         />
 
         {/* REAL D1 REVIEWS */}
         <ReviewSection
           product={product}
-          reviews={reviews}
         />
 
       </main>

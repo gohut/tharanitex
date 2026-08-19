@@ -554,3 +554,97 @@ export async function deleteProductVariant(db, id) {
     .bind(id)
     .run();
 }
+
+export async function getRelatedProducts(
+  db,
+  currentProductId,
+  limit = 8
+) {
+  const productId = Number(currentProductId);
+  const safeLimit = Math.max(
+    1,
+    Math.min(Number(limit) || 8, 12)
+  );
+
+
+  if (!Number.isInteger(productId) || productId <= 0) {
+    return [];
+  }
+
+
+  /*
+   * First find the current product's category.
+   */
+  const currentProduct = await db
+    .prepare(`
+      SELECT category_id
+      FROM products
+      WHERE id = ?
+      LIMIT 1
+    `)
+    .bind(productId)
+    .first();
+
+
+  if (!currentProduct) {
+    return [];
+  }
+
+
+  /*
+   * Prefer products from the same category.
+   */
+  const { results } = await db
+    .prepare(`
+      SELECT
+        p.id,
+        p.name,
+        p.slug,
+        p.price,
+        c.name AS category,
+
+
+        (
+          SELECT image_url
+          FROM product_images pi
+          WHERE pi.product_id = p.id
+          ORDER BY
+            pi.sort_order ASC,
+            pi.id ASC
+          LIMIT 1
+        ) AS image
+
+
+      FROM products p
+
+
+      INNER JOIN categories c
+        ON c.id = p.category_id
+
+
+      WHERE
+        p.id != ?
+        AND p.category_id = ?
+        AND p.is_active = 1
+        AND c.is_active = 1
+
+
+      ORDER BY
+        p.featured DESC,
+        p.is_best_seller DESC,
+        p.is_new_arrival DESC,
+        p.id DESC
+
+
+      LIMIT ?
+    `)
+    .bind(
+      productId,
+      Number(currentProduct.category_id),
+      safeLimit
+    )
+    .all();
+
+
+  return results || [];
+}
