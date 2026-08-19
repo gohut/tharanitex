@@ -155,8 +155,31 @@ export async function getProductBySlug(db, slug) {
 
   product.images = images.map((image) => image.image_url);
 
+  // Load active product variants
+  const { results: variants } = await db
+    .prepare(`
+      SELECT
+        id,
+        product_id,
+        name,
+        sku,
+        price,
+        stock,
+        image_url AS imageUrl,
+        is_active AS isActive
+      FROM product_variants
+      WHERE product_id = ?
+        AND is_active = 1
+      ORDER BY id ASC
+    `)
+    .bind(product.id)
+    .all();
+
+  product.variants = variants || [];
+
   return product;
 }
+
 export async function getProductById(db, id) {
   const product = await db
     .prepare(`
@@ -404,4 +427,130 @@ export async function getProductsByCategorySlug(db, slug, { activeOnly = true } 
     .all();
 
   return results;
+}
+
+export async function getProductVariants(db, productId) {
+  const { results } = await db
+    .prepare(`
+      SELECT
+        id,
+        product_id,
+        name,
+        sku,
+        price,
+        stock,
+        image_url,
+        is_active,
+        created_at,
+        updated_at
+      FROM product_variants
+      WHERE product_id = ?
+        AND is_active = 1
+      ORDER BY id ASC
+    `)
+    .bind(productId)
+    .all();
+
+  return results || [];
+}
+
+export async function getAllProductVariants(db, productId) {
+  const { results } = await db
+    .prepare(`
+      SELECT
+        id,
+        product_id,
+        name,
+        sku,
+        price,
+        stock,
+        image_url,
+        is_active,
+        created_at,
+        updated_at
+      FROM product_variants
+      WHERE product_id = ?
+      ORDER BY id ASC
+    `)
+    .bind(productId)
+    .all();
+
+  return results || [];
+}
+
+export async function createProductVariant(db, {
+  productId,
+  name,
+  sku,
+  price,
+  stock,
+  imageUrl,
+}) {
+  const result = await db
+    .prepare(`
+      INSERT INTO product_variants (
+        product_id,
+        name,
+        sku,
+        price,
+        stock,
+        image_url
+      )
+      VALUES (?, ?, ?, ?, ?, ?)
+    `)
+    .bind(
+      productId,
+      name,
+      sku || null,
+      Number(price) || 0,
+      Number(stock) || 0,
+      imageUrl || null
+    )
+    .run();
+
+  return result.meta?.last_row_id;
+}
+
+export async function updateProductVariant(db, {
+  id,
+  name,
+  sku,
+  price,
+  stock,
+  imageUrl,
+  isActive,
+}) {
+  await db
+    .prepare(`
+      UPDATE product_variants
+      SET
+        name = ?,
+        sku = ?,
+        price = ?,
+        stock = ?,
+        image_url = ?,
+        is_active = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `)
+    .bind(
+      name,
+      sku || null,
+      Number(price) || 0,
+      Number(stock) || 0,
+      imageUrl || null,
+      isActive ? 1 : 0,
+      id
+    )
+    .run();
+}
+
+export async function deleteProductVariant(db, id) {
+  await db
+    .prepare(`
+      DELETE FROM product_variants
+      WHERE id = ?
+    `)
+    .bind(id)
+    .run();
 }

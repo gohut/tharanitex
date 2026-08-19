@@ -12,6 +12,7 @@ function AddProductContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("id");
   const isEditing = !!editId;
+  const [variants, setVariants] = useState([]);
 
   const [categories, setCategories] = useState([]);
 
@@ -89,6 +90,28 @@ function AddProductContent() {
         }
 
         const product = await res.json();
+
+        setVariants(
+          Array.isArray(product.variants)
+            ? product.variants.map((variant) => ({
+                id: variant.id,
+                name: variant.name || "",
+                sku: variant.sku || "",
+                price: variant.price ?? "",
+                stock: variant.stock ?? 0,
+                imageUrl:
+                  variant.image_url ||
+                  variant.imageUrl ||
+                  "",
+                isActive:
+                  variant.is_active !== undefined
+                    ? Boolean(variant.is_active)
+                    : variant.isActive !== undefined
+                    ? Boolean(variant.isActive)
+                    : true,
+              }))
+            : []
+        );
 
         setName(product.name || "");
         setSlug(product.slug || "");
@@ -325,6 +348,10 @@ const finalImages = images
   .map((image) => uploadedByPreview.get(image) || image)
   .filter((image) => !image.startsWith("blob:"));
 
+  console.log(
+  "VARIANTS BEFORE PAYLOAD:",
+  JSON.stringify(variants, null, 2)
+);
 const payload = {
     name: name.trim(),
     slug: isEditing ? slug : undefined,
@@ -337,6 +364,15 @@ const payload = {
     isBestSeller,
     isActive: status !== "Out of Stock",
     images: finalImages,
+    variants: variants.map((variant) => ({
+    id: variant.id,
+    name: variant.name,
+    sku: variant.sku,
+    price: Number(variant.price) || 0,
+    stock: Number(variant.stock) || 0,
+    imageUrl: variant.imageUrl || null,
+    isActive: variant.isActive !== false,
+  })),
   };
 
   const endpoint = isEditing
@@ -501,6 +537,184 @@ const payload = {
                 options={["Active", "Low Stock", "Out of Stock"]}
               />
             </div>
+          </div>
+          {/* Product Variants */}
+          <div className="bg-green-900 border border-green-800 rounded-2xl p-6 shadow-card">
+            <div className="flex items-center justify-between border-b border-green-800 pb-3 mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-white">
+                  Product Variants
+                </h2>
+
+                <p className="mt-1 text-xs text-green-400">
+                  Add different versions of this product with their own price and stock.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setVariants((prev) => [
+                    ...prev,
+                    {
+                      id: undefined,
+                      name: "",
+                      sku: "",
+                      price: sellingPrice || "",
+                      stock: 0,
+                      imageUrl: "",
+                      isActive: true,
+                    },
+                  ])
+                }
+                className="rounded-lg bg-gold-600 px-3 py-2 text-xs font-semibold text-green-950 hover:bg-gold-500"
+              >
+                + Add Variant
+              </button>
+            </div>
+
+            {variants.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-green-700 bg-green-950/40 p-5 text-center">
+                <p className="text-sm text-green-400">
+                  No variants added.
+                </p>
+
+                <p className="mt-1 text-xs text-green-500">
+                  This product will use its default price and stock.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {variants.map((variant, index) => (
+                  <div
+                    key={variant.id || `new-${index}`}
+                    className="rounded-xl border border-green-800 bg-green-950/50 p-4"
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="text-sm font-semibold text-white">
+                        Variant {index + 1}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setVariants((prev) =>
+                            prev.filter((_, i) => i !== index)
+                          )
+                        }
+                        className="text-xs font-medium text-red-400 hover:text-red-300"
+                      >
+                        Remove
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <FormInput
+                        label="Variant Name"
+                        id={`variant-name-${index}`}
+                        value={variant.name}
+                        placeholder="e.g. Green"
+                        onChange={(e) =>
+                          setVariants((prev) =>
+                            prev.map((item, i) =>
+                              i === index
+                                ? { ...item, name: e.target.value }
+                                : item
+                            )
+                          )
+                        }
+                      />
+
+                      <FormInput
+                        label="SKU"
+                        id={`variant-sku-${index}`}
+                        value={variant.sku}
+                        placeholder="e.g. SAREE-GRN-001"
+                        onChange={(e) =>
+                          setVariants((prev) =>
+                            prev.map((item, i) =>
+                              i === index
+                                ? { ...item, sku: e.target.value }
+                                : item
+                            )
+                          )
+                        }
+                      />
+
+                      <FormInput
+                        label="Price (₹)"
+                        id={`variant-price-${index}`}
+                        type="number"
+                        value={variant.price}
+                        onChange={(e) =>
+                          setVariants((prev) =>
+                            prev.map((item, i) =>
+                              i === index
+                                ? { ...item, price: e.target.value }
+                                : item
+                            )
+                          )
+                        }
+                      />
+
+                      <FormInput
+                        label="Stock"
+                        id={`variant-stock-${index}`}
+                        type="number"
+                        value={variant.stock ?? ""}
+                        placeholder="0"
+                        onChange={(e) => {
+                          const value = e.target.value;
+
+                          setVariants((prev) =>
+                            prev.map((item, i) =>
+                              i === index
+                                ? {
+                                    ...item,
+                                    stock: value === "" ? "" : Number(value),
+                                  }
+                                : item
+                            )
+                          );
+                        }}
+                      />
+
+                      <FormInput
+                        label="Image URL"
+                        id={`variant-image-${index}`}
+                        value={variant.imageUrl}
+                        placeholder="/api/images/..."
+                        onChange={(e) =>
+                          setVariants((prev) =>
+                            prev.map((item, i) =>
+                              i === index
+                                ? { ...item, imageUrl: e.target.value }
+                                : item
+                            )
+                          )
+                        }
+                      />
+                    </div>
+
+                    <div className="mt-4">
+                      <Toggle
+                        checked={variant.isActive}
+                        onChange={(value) =>
+                          setVariants((prev) =>
+                            prev.map((item, i) =>
+                              i === index
+                                ? { ...item, isActive: value }
+                                : item
+                            )
+                          )
+                        }
+                        label="Active"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

@@ -11,7 +11,7 @@ import { getProductBySlug } from "@/lib/db/product";
 
 import { productData } from "@/data/productData";
 
-export const revalidate = 3600;
+export const revalidate = 3600; 
 
 export default async function ProductPage({ params }) {
   const { slug } = await params;

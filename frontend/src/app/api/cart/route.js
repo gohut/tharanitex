@@ -16,18 +16,33 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const { env } = getCloudflareContext();
+  try {
+    const { env } = getCloudflareContext();
 
-  const body = await request.json();
+    const body = await request.json();
 
-  return Response.json(
-    await addToCart(
+    const result = await addToCart(
       env.DB,
-      body.userId,
+      body.userId || "guest",
       body.productId,
+      body.variantId ?? null,
       body.quantity
-    )
-  );
+    );
+
+    return Response.json(result);
+  } catch (error) {
+    console.error("Cart POST error:", error);
+
+    return Response.json(
+      {
+        success: false,
+        error:
+          error.message ||
+          "Unable to add item to cart",
+      },
+      { status: 400 }
+    );
+  }
 }
 
 export async function PATCH(request) {
