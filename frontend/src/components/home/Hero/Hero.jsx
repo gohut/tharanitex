@@ -36,7 +36,7 @@ export default function Hero({ slides = [] }) {
         }}
       >
         {slides.map((slide, index) => {
-          const mobileImage = `/assets/hero/mobile_hero/hero_${index + 1}.png`;
+          const mobileImage = slide.mobileImage || slide.image;
 
           return (
             <SwiperSlide key={slide.id}>

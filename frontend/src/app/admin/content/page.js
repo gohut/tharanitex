@@ -22,6 +22,7 @@ import Toggle from "../../../components/ui/Toggle";
 
 const emptyHero = {
   image: "",
+  mobileImage: "",
   title: "",
   subtitle: "",
   buttonText: "",
@@ -411,6 +412,7 @@ async function addHomepageSection() {
 
     setForm({
       image: slide.image || "",
+      mobileImage: slide.mobileImage || "",
       title: slide.title || "",
       subtitle: slide.subtitle || "",
       buttonText: slide.buttonText || "",
@@ -434,6 +436,7 @@ async function addHomepageSection() {
       const payload = {
         type: "hero",
         image: form.image,
+        mobileImage: form.mobileImage || null,
         title: form.title || null,
         subtitle: form.subtitle || null,
         buttonText: form.buttonText || null,
@@ -1392,6 +1395,79 @@ async function addHomepageSection() {
               }
             }}
           />
+
+          <div className="mt-6">
+            <label className="mb-2 block text-xs font-medium text-green-300">
+              Mobile Hero Image
+            </label>
+
+            <div className="overflow-hidden rounded-xl border border-green-800 bg-green-950">
+              {form.mobileImage ? (
+                <img
+                  src={form.mobileImage}
+                  alt="Mobile Hero Preview"
+                  className="h-48 w-full object-contain bg-green-950"
+                />
+              ) : (
+                <div className="flex h-40 flex-col items-center justify-center gap-2 text-green-500">
+                  <ImageIcon size={28} />
+
+                  <span className="text-xs">
+                    No mobile image selected
+                  </span>
+                </div>
+              )}
+
+              <div className="border-t border-green-800 p-3">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-green-700 px-4 py-2 text-xs font-medium text-green-300 transition hover:bg-green-900">
+                  {uploading ? (
+                    <Loader2
+                      size={14}
+                      className="animate-spin"
+                    />
+                  ) : (
+                    <ImageIcon size={14} />
+                  )}
+
+                  {uploading
+                    ? "Uploading..."
+                    : form.mobileImage
+                    ? "Replace Mobile Image"
+                    : "Upload Mobile Image"}
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={uploading}
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+
+                      if (file) {
+                        const url = await uploadImage(
+                          file,
+                          "homepage/hero/mobile"
+                        );
+
+                        if (url) {
+                          setForm((prev) => ({
+                            ...prev,
+                            mobileImage: url,
+                          }));
+                        }
+                      }
+
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+
+                <p className="mt-2 text-xs text-green-500">
+                  Recommended ratio: 4:3
+                </p>
+              </div>
+            </div>
+          </div>
 
           <FormInput
             label="Title"
