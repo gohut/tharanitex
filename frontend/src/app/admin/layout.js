@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, Truck,
   Star, FileText, Shield, Settings, Menu, X,
@@ -13,7 +13,7 @@ const navLinks = [
   { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
   { name: "Products", path: "/admin/products", icon: Package },
   { name: "Orders", path: "/admin/orders", icon: ShoppingCart },
-  { name: "Customers", path: "/admin/customers", icon: Users },
+  { name: "Customers", path: "/admin/customerSection", icon: Users },
   { name: "Shipping", path: "/admin/shipping", icon: Truck },
   { name: "Reviews", path: "/admin/reviews", icon: Star },
   { name: "Content", path: "/admin/content", icon: FileText },
@@ -23,13 +23,23 @@ const navLinks = [
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchVal, setSearchVal] = useState("");
 
-  if (pathname === "/admin") {
+  if (pathname === "/admin/login") {
     return children;
   }
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/admin/logout", { method: "POST" });
+    } catch (e) {}
+    localStorage.removeItem("currentUser");
+    window.dispatchEvent(new Event("auth-change"));
+    router.push("/admin/login");
+  };
 
   const isActive = (path) =>
     path === "/admin" ? pathname === "/admin" : pathname.startsWith(path);
@@ -75,7 +85,10 @@ export default function AdminLayout({ children }) {
 
         {/* Sidebar Footer */}
         <div className="px-3 py-4 border-t border-green-800">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800 cursor-pointer group">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800 cursor-pointer group text-left"
+          >
             <div className="w-8 h-8 rounded-full bg-gold-600 flex items-center justify-center text-green-950 font-bold text-xs">
               GR
             </div>
@@ -84,7 +97,7 @@ export default function AdminLayout({ children }) {
               <p className="text-green-400 text-xs truncate">Super Admin</p>
             </div>
             <LogOut size={14} className="text-green-500 group-hover:text-gold-400" />
-          </div>
+          </button>
         </div>
       </aside>
 
@@ -186,22 +199,25 @@ export default function AdminLayout({ children }) {
                 <div className="absolute right-0 top-full mt-2 w-48 bg-green-800 border border-green-700 rounded-xl shadow-card-hover animate-fade-in overflow-hidden z-50">
                   <div className="px-4 py-3 border-b border-green-700">
                     <p className="text-white text-sm font-medium">Gowtham Raj</p>
-                    <p className="text-green-400 text-xs">gowtham@aeux.com</p>
+                    <p className="text-green-400 text-xs">admin@tharanitextiles.com</p>
                   </div>
-                  <button className="w-full flex items-center gap-2 px-4 py-2.5 text-green-300 hover:bg-green-700 hover:text-white text-sm">
-                    <User size={14} /> Profile
-                  </button>
-                  <button className="w-full flex items-center gap-2 px-4 py-2.5 text-green-300 hover:bg-green-700 hover:text-white text-sm">
-                    <Settings size={14} /> Settings
-                  </button>
-                  <hr className="border-green-700" />
                   <Link
-                    href="/"
-                    className="flex items-center gap-2 px-4 py-2.5 text-red-400 hover:bg-green-700 text-sm"
+                    href="/admin/settings"
+                    className="flex items-center gap-2 px-4 py-2.5 text-green-300 hover:bg-green-700 hover:text-white text-sm"
                     onClick={() => setProfileOpen(false)}
                   >
-                    <LogOut size={14} /> Sign Out
+                    <Settings size={14} /> Settings
                   </Link>
+                  <hr className="border-green-700" />
+                  <button
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-red-400 hover:bg-green-700 text-sm text-left"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      handleLogout();
+                    }}
+                  >
+                    <LogOut size={14} /> Sign Out
+                  </button>
                 </div>
               )}
             </div>
@@ -212,24 +228,6 @@ export default function AdminLayout({ children }) {
         <main className="flex-1 overflow-y-auto bg-dark-800 p-4 md:p-6">
           {children}
         </main>
-
-        {/* ── Mobile Bottom Nav ── */}
-        {/*
-        <nav className="md:hidden flex items-center justify-around bg-green-900 border-t border-green-800 px-2 py-2 shrink-0">
-          {navLinks.slice(0, 5).map(({ name, path, icon: Icon }) => (
-            <Link
-              key={path}
-              href={path}
-              className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg min-w-[44px] min-h-[44px] justify-center ${
-                isActive(path) ? "text-gold-400" : "text-green-500"
-              }`}
-            >
-              <Icon size={20} />
-              <span className="text-[10px] font-medium">{name.split(" ")[0]}</span>
-            </Link>
-          ))}
-        </nav>
-        */}
       </div>
     </div>
   );
