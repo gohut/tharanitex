@@ -68,25 +68,6 @@ async function insertOrder(db, { userId, addressId, items, paymentMethod, paymen
   return orderId;
 }
 
-// Backward-compatible contract used by existing main flow:
-// create from guest cart + explicit addressId.
-export async function createOrder(db, userId, addressId) {
-  const normalizedUserId = Number(userId || 1);
-  const normalizedAddressId = Number(addressId);
-  if (!Number.isInteger(normalizedAddressId) || normalizedAddressId <= 0) {
-    throw new CheckoutError("Invalid address selected.");
-  }
-  const items = await trustedItems(db, "CART", null, null, "guest");
-  const orderId = await insertOrder(db, {
-    userId: normalizedUserId,
-    addressId: normalizedAddressId,
-    items,
-    paymentMethod: "COD",
-    paymentStatus: "pending",
-  });
-  await db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind("guest").run();
-  return { success: true, orderId, totalAmount: total(items) };
-}
 
 export async function createCodOrder(db, checkout) {
   const cartUserId = checkout.cartUserId || checkout.userId;
@@ -140,8 +121,6 @@ export async function claimVerifiedPayment(db, { razorpayOrderId, razorpayPaymen
     });
     const statements = [db.prepare("UPDATE checkout_sessions SET status = 'completed', completed_order_id = ? WHERE id = ?").bind(orderId, session.id)];
     if (session.checkout_type === "CART") {
-      // Keep compatibility with the existing storefront guest-cart model.
-      statements.push(db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind("guest"));
       statements.push(db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind(session.user_id));
     }
     await db.batch(statements);
@@ -152,8 +131,36 @@ export async function claimVerifiedPayment(db, { razorpayOrderId, razorpayPaymen
   }
 }
 
+async function ensureCancellationColumns(db) {
+  const alterStatements = [
+    "ALTER TABLE orders ADD COLUMN cancellation_status TEXT NOT NULL DEFAULT 'NONE'",
+    "ALTER TABLE orders ADD COLUMN cancellation_reason TEXT",
+    "ALTER TABLE orders ADD COLUMN cancellation_requested_at TEXT",
+    "ALTER TABLE orders ADD COLUMN cancellation_decided_at TEXT",
+    "ALTER TABLE orders ADD COLUMN cancelled_at TEXT",
+    "ALTER TABLE orders ADD COLUMN delivered_at TEXT",
+    "ALTER TABLE orders ADD COLUMN invoice_number TEXT",
+  ];
+  for (const stmt of alterStatements) {
+    try {
+      await db.prepare(stmt).run();
+    } catch (e) {
+      // Ignore if column already exists
+    }
+  }
+}
+
 export async function getOrders(db, userId) {
-  const { results: orders } = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, a.full_name, a.city, a.state FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.user_id = ? ORDER BY o.created_at DESC`).bind(userId).all();
+  await ensureCancellationColumns(db);
+  let orders = [];
+  try {
+    const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.cancellation_status, a.full_name, a.city, a.state FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.user_id = ? ORDER BY o.created_at DESC`).bind(userId).all();
+    orders = res.results || [];
+  } catch (err) {
+    const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, a.full_name, a.city, a.state FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.user_id = ? ORDER BY o.created_at DESC`).bind(userId).all();
+    orders = (res.results || []).map(o => ({ ...o, cancellation_status: 'NONE' }));
+  }
+
   for (const order of orders) {
     const { results: items } = await db.prepare(`SELECT oi.id, oi.product_id, oi.quantity, oi.price, p.name, p.slug, (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) AS image FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ? ORDER BY oi.id`).bind(order.id).all();
     order.items = items;
@@ -162,9 +169,57 @@ export async function getOrders(db, userId) {
 }
 
 export async function getOrderById(db, orderId, userId) {
-  const order = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.razorpay_order_id, o.razorpay_payment_id, o.paid_at, a.full_name, a.phone, a.address_line1, a.address_line2, a.city, a.state, a.pincode, a.country FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.id = ? AND o.user_id = ? LIMIT 1`).bind(orderId, userId).first();
+  await ensureCancellationColumns(db);
+  let order = null;
+  try {
+    order = await db.prepare(`SELECT o.id, o.user_id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.razorpay_order_id, o.razorpay_payment_id, o.paid_at, o.cancellation_status, o.cancellation_reason, o.cancellation_requested_at, o.cancellation_decided_at, o.cancelled_at, o.delivered_at, o.invoice_number, a.full_name, a.phone, a.address_line1, a.address_line2, a.city, a.state, a.pincode, a.country FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.id = ? AND o.user_id = ? LIMIT 1`).bind(orderId, userId).first();
+  } catch (err) {
+    order = await db.prepare(`SELECT o.id, o.user_id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.razorpay_order_id, o.razorpay_payment_id, o.paid_at, a.full_name, a.phone, a.address_line1, a.address_line2, a.city, a.state, a.pincode, a.country FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.id = ? AND o.user_id = ? LIMIT 1`).bind(orderId, userId).first();
+    if (order) {
+      order.cancellation_status = 'NONE';
+      order.cancellation_reason = null;
+      order.cancellation_requested_at = null;
+    }
+  }
   if (!order) return null;
   const { results } = await db.prepare(`SELECT oi.id, oi.product_id, oi.quantity, oi.price, p.name, p.slug, (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) AS image FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ? ORDER BY oi.id`).bind(orderId).all();
   order.items = results;
   return order;
+}
+
+export async function getAdminOrderById(db, orderId) {
+  await ensureCancellationColumns(db);
+  let order = null;
+  try {
+    order = await db.prepare(`SELECT o.id, o.user_id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.cancellation_status, o.cancellation_reason, o.cancellation_requested_at, o.cancellation_decided_at, o.cancelled_at, o.delivered_at, o.invoice_number, a.full_name, a.phone, a.address_line1, a.address_line2, a.city, a.state, a.pincode, a.country FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.id = ? LIMIT 1`).bind(orderId).first();
+  } catch (err) {
+    order = await db.prepare(`SELECT o.id, o.user_id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, a.full_name, a.phone, a.address_line1, a.address_line2, a.city, a.state, a.pincode, a.country FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.id = ? LIMIT 1`).bind(orderId).first();
+    if (order) {
+      order.cancellation_status = 'NONE';
+      order.cancellation_reason = null;
+      order.cancellation_requested_at = null;
+    }
+  }
+  if (!order) return null;
+  const { results } = await db.prepare(`SELECT oi.id, oi.product_id, oi.quantity, oi.price, p.name, p.slug, (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) AS image FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ? ORDER BY oi.id`).bind(orderId).all();
+  order.items = results;
+  return order;
+}
+
+export async function getAdminOrders(db) {
+  await ensureCancellationColumns(db);
+  let results = [];
+  try {
+    const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.cancellation_status, a.full_name, a.phone FROM orders o JOIN addresses a ON a.id = o.address_id ORDER BY o.created_at DESC`).all();
+    results = res.results || [];
+  } catch (err) {
+    const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, a.full_name, a.phone FROM orders o JOIN addresses a ON a.id = o.address_id ORDER BY o.created_at DESC`).all();
+    results = (res.results || []).map(o => ({ ...o, cancellation_status: 'NONE' }));
+  }
+
+  for (const order of results) {
+    const { results: items } = await db.prepare(`SELECT oi.id, oi.product_id, oi.quantity, oi.price, p.name FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ? ORDER BY oi.id`).bind(order.id).all();
+    order.items = items;
+  }
+  return results;
 }

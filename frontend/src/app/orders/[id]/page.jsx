@@ -9,8 +9,8 @@ import Navbar from "@/components/home/Navbar/Navbar";
 import CustomerPageHeader from "@/components/orders/CustomerPageHeader";
 import OrderStatusPill from "@/components/orders/OrderStatusPill";
 import OrderTimeline from "@/components/orders/OrderTimeline";
+import CustomerOrderActions from "@/components/orders/CustomerOrderActions";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { getOrderById as getMockOrderById } from "@/data/customerOrders";
 import { getOrderById as getDatabaseOrderById } from "@/lib/db/order";
 import { validateSession } from "@/lib/auth";
 import { SESSION_COOKIE_NAME } from "@/types/auth";
@@ -49,16 +49,12 @@ export default async function OrderDetailsPage({ params }) {
       }
     }
 
-    databaseOrder = await getDatabaseOrderById(env.DB, resolvedParams.id, userId || "1");
+    if (userId) databaseOrder = await getDatabaseOrderById(env.DB, resolvedParams.id, userId);
   } catch (error) {
     console.error("Order details error:", error);
   }
 
-  // Retain the existing static order examples when an older demo order URL is
-  // opened, while newly created checkout orders come from the database.
-  const order = databaseOrder
-    ? mapDatabaseOrder(databaseOrder)
-    : getMockOrderById(resolvedParams.id);
+  const order = databaseOrder ? mapDatabaseOrder(databaseOrder) : null;
 
   if (!order) {
     return (
@@ -75,7 +71,7 @@ export default async function OrderDetailsPage({ params }) {
               Order Not Found
             </p>
             <p className="mt-4 text-[#7D7267]">
-              The requested order could not be located.
+              The requested order could not be located or does not belong to your account.
             </p>
             <Link
               href="/orders"
@@ -114,11 +110,27 @@ export default async function OrderDetailsPage({ params }) {
             </div>
 
             <div className="mt-8 space-y-6 border-b border-[#DDCFBD] pb-8">
-              {displayItems.map((item) => <div key={item.id} className="grid gap-6 md:grid-cols-[140px_1fr_auto] md:items-center">
-                <img src={item.image} alt={item.name} className="h-[154px] w-[122px] object-cover" />
-                <div><h3 className="text-[26px] font-semibold text-[#211D19]">{item.name}</h3><div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-[#8A8175]"><span>Qty : {item.quantity}</span><span>{typeof item.price === "number" ? formatPrice(item.price) : item.price}</span></div></div>
-                {item.slug ? <Link href={`/product/${item.slug}`} className="inline-flex items-center justify-center gap-3 border border-[#CDBCA2] px-6 py-4 text-[17px] font-semibold text-[#231F1A] transition hover:border-[#E0A22E] hover:text-[#E0A22E]"><ShoppingBag size={20} /><span>Buy Again</span></Link> : null}
-              </div>)}
+              {displayItems.map((item) => (
+                <div key={item.id} className="grid gap-6 md:grid-cols-[140px_1fr_auto] md:items-center">
+                  <img src={item.image} alt={item.name} className="h-[154px] w-[122px] object-cover" />
+                  <div>
+                    <h3 className="text-[26px] font-semibold text-[#211D19]">{item.name}</h3>
+                    <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-[#8A8175]">
+                      <span>Qty : {item.quantity}</span>
+                      <span>{typeof item.price === "number" ? formatPrice(item.price) : item.price}</span>
+                    </div>
+                  </div>
+                  {item.slug ? (
+                    <Link
+                      href={`/product/${item.slug}`}
+                      className="inline-flex items-center justify-center gap-3 border border-[#CDBCA2] px-6 py-4 text-[17px] font-semibold text-[#231F1A] transition hover:border-[#E0A22E] hover:text-[#E0A22E]"
+                    >
+                      <ShoppingBag size={20} />
+                      <span>Buy Again</span>
+                    </Link>
+                  ) : null}
+                </div>
+              ))}
             </div>
 
             <div className="mx-auto mt-10 max-w-[430px]">
@@ -170,6 +182,14 @@ export default async function OrderDetailsPage({ params }) {
               </div>
             )}
           </section>
+
+          {/* Standalone Section Card for Cancellation Request & Tax Invoice */}
+          <CustomerOrderActions
+            orderId={order.rawId}
+            rawStatus={order.rawStatus}
+            cancellationStatus={order.cancellationStatus}
+            cancellationReason={order.cancellationReason}
+          />
 
           <section className="border border-[#DDCFBD] bg-[#FCF7EF] p-5 md:p-8">
             <h2 className="text-[22px] font-semibold text-[#201C18]">
@@ -239,12 +259,16 @@ function mapDatabaseOrder(order) {
   const status = order.order_status || "placed";
 
   return {
+    rawId: order.id,
+    rawStatus: status,
+    cancellationStatus: order.cancellation_status || "NONE",
+    cancellationReason: order.cancellation_reason || "",
     items: (order.items || []).map((item) => ({ ...item, id: item.id || item.product_id })),
     placedOn: `Placed On ${date}`,
     status: `${status.charAt(0).toUpperCase()}${status.slice(1)}`,
     trackingSteps: buildTrackingSteps(status, date),
     shippingAddress: {
-      lines: order.address_line1.split(/\n|,/).map((line) => line.trim()).filter(Boolean),
+      lines: (order.address_line1 || "").split(/\n|,/).map((line) => line.trim()).filter(Boolean),
       phone: order.phone,
     },
     summary: {

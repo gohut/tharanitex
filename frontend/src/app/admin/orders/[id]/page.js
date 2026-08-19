@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -12,19 +12,15 @@ import {
   Package,
   Phone,
   RotateCcw,
-  Save,
   Truck,
   XCircle,
+  RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
 import Button from "../../../../components/ui/Button";
-import FormInput from "../../../../components/ui/FormInput";
 import StatusBadge from "../../../../components/ui/StatusBadge";
-import { orders as initialOrders } from "../../../../data/orders";
-import { products as catalogProducts } from "../../../../data/products";
 
-const ORDERS_STORAGE_KEY = "tharani-admin-orders";
 const PROCESS_STEPS = ["Placed", "Confirmed", "Packed", "Shipped", "Delivered"];
-const PAYMENT_OPTIONS = ["Pending", "Paid", "Refunded", "Failed"];
 
 const stepIcons = {
   Placed: Package,
@@ -34,7 +30,6 @@ const stepIcons = {
   Delivered: Check,
   Cancelled: XCircle,
   Returned: RotateCcw,
-  "Return Initiated": RotateCcw,
 };
 
 const escapeHtml = (value) =>
@@ -45,125 +40,95 @@ const escapeHtml = (value) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 
-const getCatalogProduct = (item) =>
-  catalogProducts.find((product) => product.name === item.name);
-
-const hydrateOrder = (order) => {
-  if (!order) return null;
-  const status = order.status === "Pending" ? "Placed" : order.status;
-
-  return {
-    ...order,
-    status,
-    estimatedDelivery: order.estimatedDelivery || "",
-    items: order.items.map((item) => {
-      const product = getCatalogProduct(item);
-      return {
-        ...item,
-        image: item.image || product?.image || "https://placehold.co/160x160/145C3E/D4AF37?text=TT",
-      };
-    }),
-  };
-};
-
-const loadOrders = () => {
-  try {
-    const savedOrders = JSON.parse(localStorage.getItem(ORDERS_STORAGE_KEY) || "null");
-    return Array.isArray(savedOrders) ? savedOrders : initialOrders;
-  } catch {
-    return initialOrders;
-  }
-};
-
-const buildTimeline = (status, previousTimeline = []) => {
-  if (status === "Cancelled") {
-    const timeline = previousTimeline.filter((step) => step !== "Cancelled");
-    return [...timeline, "Cancelled"];
-  }
-
-  if (status === "Returned") {
-    return previousTimeline.length ? previousTimeline : ["Placed", "Confirmed", "Packed", "Shipped", "Delivered", "Returned"];
-  }
-
-  const currentIndex = PROCESS_STEPS.indexOf(status);
-  return currentIndex >= 0 ? PROCESS_STEPS.slice(0, currentIndex + 1) : previousTimeline;
-};
-
-const formatDate = (date) => {
-  if (!date) return "Not set";
-  return new Date(`${date}T00:00:00`).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-};
-
 export default function OrderDetailPage() {
   const params = useParams();
   const router = useRouter();
   const orderId = decodeURIComponent(String(params?.id || ""));
-  const [order, setOrder] = useState(() => hydrateOrder(initialOrders.find((item) => item.id === orderId)));
-  const [cancelReason, setCancelReason] = useState("");
-  const [showCancel, setShowCancel] = useState(false);
-  const [saved, setSaved] = useState(false);
+
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [error, setError] = useState("");
+  const [cancellationReason, setCancellationReason] = useState("");
+
+  const fetchOrder = async () => {
+    if (!orderId) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}`);
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || "Order not found");
+      }
+      const data = await res.json();
+      setOrder(data);
+    } catch (err) {
+      setError(err.message || "Failed to load order");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const storedOrder = loadOrders().find((item) => item.id === orderId);
-    setOrder(hydrateOrder(storedOrder));
+    fetchOrder();
   }, [orderId]);
 
-  const subtotal = useMemo(
-    () => order?.items.reduce((sum, item) => sum + item.price * item.qty, 0) || 0,
-    [order]
-  );
-
-  const isClosed = order ? ["Cancelled", "Returned"].includes(order.status) : false;
-  const canCancel = order ? !["Delivered", "Cancelled", "Returned"].includes(order.status) : false;
-  const processOptions = PROCESS_STEPS.includes(order?.status) ? PROCESS_STEPS : [order?.status, ...PROCESS_STEPS].filter(Boolean);
-
-  const saveOrder = (nextOrder) => {
-    const hydrated = hydrateOrder(nextOrder);
-    const updatedOrders = loadOrders().map((item) => (item.id === hydrated.id ? hydrated : item));
-
-    localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(updatedOrders));
-    setOrder(hydrated);
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 1800);
+  const handleStatusUpdate = async (nextStatus) => {
+    setUpdating(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus.toLowerCase() }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || "Status update failed");
+      await fetchOrder();
+    } catch (err) {
+      setError(err.message || "Status update failed");
+    } finally {
+      setUpdating(false);
+    }
   };
 
-  const updateProcess = (status) => {
-    saveOrder({
-      ...order,
-      status,
-      timeline: buildTimeline(status, order.timeline),
-    });
-  };
-
-  const cancelOrder = () => {
-    if (!cancelReason.trim()) return;
-
-    saveOrder({
-      ...order,
-      status: "Cancelled",
-      payment: order.payment === "Paid" ? "Refunded" : order.payment,
-      cancellationReason: cancelReason.trim(),
-      timeline: buildTimeline("Cancelled", order.timeline),
-    });
-    setShowCancel(false);
+  const handleCancellationAction = async (action) => {
+    setUpdating(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cancellationAction: action,
+          cancellationReason: cancellationReason.trim() || undefined,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || "Cancellation action failed");
+      setCancellationReason("");
+      await fetchOrder();
+    } catch (err) {
+      setError(err.message || "Cancellation action failed");
+    } finally {
+      setUpdating(false);
+    }
   };
 
   const downloadPdf = () => {
+    if (!order) return;
     const printable = window.open("", "_blank", "width=900,height=700");
     if (!printable) return;
 
-    const rows = order.items
+    const rows = (order.items || [])
       .map(
         (item) => `
           <tr>
-            <td>${escapeHtml(item.name)}</td>
-            <td>${item.qty}</td>
-            <td>Rs. ${item.price.toLocaleString()}</td>
-            <td>Rs. ${(item.price * item.qty).toLocaleString()}</td>
+            <td>${escapeHtml(item.name || item.product_name)}</td>
+            <td>${item.quantity}</td>
+            <td>Rs. ${Number(item.price).toLocaleString()}</td>
+            <td>Rs. ${(Number(item.price) * Number(item.quantity)).toLocaleString()}</td>
           </tr>
         `
       )
@@ -173,7 +138,7 @@ export default function OrderDetailPage() {
       <!doctype html>
       <html>
         <head>
-          <title>${escapeHtml(order.id)} PDF</title>
+          <title>Order #${escapeHtml(order.id)} PDF</title>
           <style>
             body { color: #10251c; font-family: Arial, sans-serif; margin: 36px; }
             h1 { margin: 0 0 4px; }
@@ -184,26 +149,24 @@ export default function OrderDetailPage() {
             th, td { border-bottom: 1px solid #d9e4df; padding: 10px; text-align: left; }
             th { color: #315c49; font-size: 12px; text-transform: uppercase; }
             .total { color: #8c6b12; font-size: 22px; font-weight: 700; text-align: right; }
-            @media print { button { display: none; } }
           </style>
         </head>
         <body>
           <h1>Tharani Textiles</h1>
-          <p class="muted">Order summary for ${escapeHtml(order.id)}</p>
+          <p class="muted">Order summary for #${escapeHtml(order.id)}</p>
           <div class="grid">
             <div class="box">
-              <strong>Customer</strong>
-              <p>${escapeHtml(order.customer)}</p>
-              <p>${escapeHtml(order.email)}</p>
+              <strong>Customer Information</strong>
+              <p>${escapeHtml(order.full_name)}</p>
               <p>${escapeHtml(order.phone)}</p>
-              <p>${escapeHtml(order.address)}</p>
+              <p>${escapeHtml(order.address_line1)}</p>
+              <p>${escapeHtml(order.city)}, ${escapeHtml(order.state)} - ${escapeHtml(order.pincode)}</p>
             </div>
             <div class="box">
-              <strong>Order</strong>
-              <p>Date: ${escapeHtml(order.date)}</p>
-              <p>Process: ${escapeHtml(order.status)}</p>
-              <p>Payment: ${escapeHtml(order.payment)}</p>
-              <p>Estimated delivery: ${escapeHtml(formatDate(order.estimatedDelivery))}</p>
+              <strong>Order Information</strong>
+              <p>Date: ${new Date(order.created_at).toLocaleDateString("en-IN")}</p>
+              <p>Status: ${escapeHtml(order.order_status)}</p>
+              <p>Payment: ${escapeHtml(order.payment_method)} (${escapeHtml(order.payment_status)})</p>
             </div>
           </div>
           <table>
@@ -212,7 +175,7 @@ export default function OrderDetailPage() {
             </thead>
             <tbody>${rows}</tbody>
           </table>
-          <p class="total">Total: Rs. ${order.total.toLocaleString()}</p>
+          <p class="total">Total: Rs. ${Number(order.total_amount).toLocaleString()}</p>
           <script>
             window.onload = () => {
               window.print();
@@ -225,19 +188,38 @@ export default function OrderDetailPage() {
     printable.document.close();
   };
 
-  if (!order) {
+  if (loading) {
+    return (
+      <div className="space-y-5 animate-fade-in">
+        <Button variant="ghost" onClick={() => router.push("/admin/orders")}>
+          <ArrowLeft size={15} /> Back to Orders
+        </Button>
+        <div className="bg-green-900 border border-green-800 rounded-2xl p-12 text-center text-green-300 animate-pulse shadow-card">
+          Loading order details...
+        </div>
+      </div>
+    );
+  }
+
+  if (!order || error) {
     return (
       <div className="space-y-5 animate-fade-in">
         <Button variant="ghost" onClick={() => router.push("/admin/orders")}>
           <ArrowLeft size={15} /> Back to Orders
         </Button>
         <div className="bg-green-900 border border-green-800 rounded-2xl p-8 text-center shadow-card">
-          <p className="text-white font-semibold">Order not found</p>
-          <p className="text-green-400 text-sm mt-1">{orderId}</p>
+          <p className="text-white font-semibold">{error || "Order not found"}</p>
+          <p className="text-green-400 text-sm mt-1">#{orderId}</p>
         </div>
       </div>
     );
   }
+
+  const currentStatus = (order.order_status || "placed").toLowerCase();
+  const currentStatusCap = currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1);
+  const isClosed = ["cancelled", "delivered"].includes(currentStatus);
+  const items = order.items || [];
+  const totalAmount = Number(order.total_amount || 0);
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -248,60 +230,92 @@ export default function OrderDetailPage() {
           </Button>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-white text-2xl font-bold">{order.id}</h1>
-              <StatusBadge status={order.status} />
-              <StatusBadge status={order.payment} />
+              <h1 className="text-white text-2xl font-bold">#{order.id}</h1>
+              <StatusBadge status={currentStatusCap} />
+              <StatusBadge status={(order.payment_status || "pending").charAt(0).toUpperCase() + (order.payment_status || "pending").slice(1)} />
             </div>
-            <p className="text-green-400 text-sm mt-0.5">{order.customer} - {order.date}</p>
+            <p className="text-green-400 text-sm mt-0.5">
+              {order.full_name} &bull; {new Date(order.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+            </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {saved && (
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-green-700 bg-green-900 px-3 py-2 text-xs font-medium text-green-300">
-              <Save size={13} /> Saved
-            </span>
-          )}
+          <Button variant="ghost" size="sm" onClick={fetchOrder} disabled={updating}>
+            <RefreshCw size={14} className={updating ? "animate-spin" : ""} /> Refresh
+          </Button>
           <Button onClick={downloadPdf}>
             <Download size={14} /> Download PDF
           </Button>
         </div>
       </div>
 
+      {error && (
+        <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+          <AlertTriangle size={16} /> {error}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-5">
         <div className="space-y-5">
+          {/* Order Lifecycle Control */}
           <section className="bg-green-900 border border-green-800 rounded-2xl p-4 sm:p-5 shadow-card">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-green-400 text-xs font-medium uppercase tracking-wider">Order Timeline</p>
-                <p className="text-white font-semibold mt-1">{order.status}</p>
+                <p className="text-green-400 text-xs font-medium uppercase tracking-wider">Order Process Lifecycle</p>
+                <p className="text-white font-semibold mt-1">Current Status: {currentStatusCap}</p>
               </div>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                <FormInput
-                  label="Order Process"
-                  id="process"
-                  type="select"
-                  value={PROCESS_STEPS.includes(order.status) ? order.status : processOptions[0]}
-                  onChange={(event) => updateProcess(event.target.value)}
-                  options={processOptions}
-                  disabled={isClosed}
-                  className="min-w-44"
-                />
-                <FormInput
-                  label="Estimated Delivery"
-                  id="estimatedDelivery"
-                  type="date"
-                  value={order.estimatedDelivery}
-                  onChange={(event) => saveOrder({ ...order, estimatedDelivery: event.target.value })}
-                  className="min-w-48"
-                />
-              </div>
+
+              {!isClosed && (
+                <div className="flex flex-wrap gap-2">
+                  {currentStatus === "placed" && (
+                    <button
+                      onClick={() => handleStatusUpdate("confirmed")}
+                      disabled={updating}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold transition disabled:opacity-50"
+                    >
+                      Confirm Order
+                    </button>
+                  )}
+                  {currentStatus === "confirmed" && (
+                    <button
+                      onClick={() => handleStatusUpdate("packed")}
+                      disabled={updating}
+                      className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-500 text-white rounded-lg text-xs font-semibold transition disabled:opacity-50"
+                    >
+                      Pack Order
+                    </button>
+                  )}
+                  {currentStatus === "packed" && (
+                    <button
+                      onClick={() => handleStatusUpdate("shipped")}
+                      disabled={updating}
+                      className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition disabled:opacity-50"
+                    >
+                      Mark as Shipped
+                    </button>
+                  )}
+                  {currentStatus === "shipped" && (
+                    <button
+                      onClick={() => handleStatusUpdate("delivered")}
+                      disabled={updating}
+                      className="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg text-xs font-semibold transition disabled:opacity-50"
+                    >
+                      Mark as Delivered
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-5">
               {PROCESS_STEPS.map((step) => {
                 const Icon = stepIcons[step] || Package;
-                const done = order.timeline.includes(step);
-                const current = order.status === step;
+                const stepLower = step.toLowerCase();
+                const stages = ["placed", "confirmed", "packed", "shipped", "delivered"];
+                const currentIdx = stages.indexOf(currentStatus);
+                const stepIdx = stages.indexOf(stepLower);
+                const done = currentStatus !== "cancelled" && stepIdx <= currentIdx;
+                const current = currentStatus === stepLower;
 
                 return (
                   <div
@@ -324,7 +338,7 @@ export default function OrderDetailPage() {
                         <p className={`text-xs font-semibold ${current ? "text-gold-300" : done ? "text-white" : "text-green-500"}`}>
                           {step}
                         </p>
-                        <p className="text-[11px] text-green-500">{done ? "Complete" : "Waiting"}</p>
+                        <p className="text-[11px] text-green-500">{done ? "Complete" : "Pending"}</p>
                       </div>
                     </div>
                   </div>
@@ -333,29 +347,76 @@ export default function OrderDetailPage() {
             </div>
           </section>
 
+          {/* Customer Cancellation Request Review */}
+          {order.cancellation_status && order.cancellation_status !== "NONE" && (
+            <section className="bg-green-900 border border-green-800 rounded-2xl p-4 sm:p-5 shadow-card">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-400 text-xs font-medium uppercase tracking-wider">Customer Cancellation Request</p>
+                  <h2 className="text-white font-semibold mt-1">Status: <span className="text-gold-400 uppercase">{order.cancellation_status}</span></h2>
+                </div>
+                <AlertTriangle size={20} className="text-gold-400" />
+              </div>
+
+              <div className="mt-3 text-sm text-green-200 space-y-1 bg-green-950/40 p-3 rounded-xl border border-green-800">
+                {order.cancellation_reason && <p><strong className="text-white">Customer Reason:</strong> {order.cancellation_reason}</p>}
+                {order.cancellation_requested_at && <p className="text-xs text-green-400">Requested At: {new Date(order.cancellation_requested_at).toLocaleString("en-IN")}</p>}
+              </div>
+
+              {order.cancellation_status === "REQUESTED" && (
+                <div className="mt-4 space-y-3 pt-3 border-t border-green-800">
+                  <textarea
+                    placeholder="Optional admin note / reason for decision..."
+                    value={cancellationReason}
+                    onChange={(e) => setCancellationReason(e.target.value)}
+                    rows={2}
+                    className="w-full bg-green-950/60 border border-green-700 rounded-xl p-3 text-xs text-white placeholder-green-500 focus:outline-none focus:border-gold-500"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleCancellationAction("approve")}
+                      disabled={updating}
+                      className="px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded-lg text-xs font-semibold transition disabled:opacity-50"
+                    >
+                      Approve Cancellation
+                    </button>
+                    <button
+                      onClick={() => handleCancellationAction("reject")}
+                      disabled={updating}
+                      className="px-4 py-2 bg-green-800 hover:bg-green-700 text-white rounded-lg text-xs font-semibold transition disabled:opacity-50"
+                    >
+                      Reject Request
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Items Section */}
           <section className="bg-green-900 border border-green-800 rounded-2xl p-4 sm:p-5 shadow-card">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-green-400 text-xs font-medium uppercase tracking-wider">Items</p>
-                <h2 className="text-white font-semibold mt-1">{order.items.length} item{order.items.length > 1 ? "s" : ""}</h2>
+                <p className="text-green-400 text-xs font-medium uppercase tracking-wider">Order Items</p>
+                <h2 className="text-white font-semibold mt-1">{items.length} item{items.length !== 1 ? "s" : ""}</h2>
               </div>
-              <p className="text-gold-400 text-lg font-bold">Rs. {order.total.toLocaleString()}</p>
+              <p className="text-gold-400 text-lg font-bold">Rs. {totalAmount.toLocaleString()}</p>
             </div>
 
             <div className="mt-4 grid gap-3 lg:grid-cols-2">
-              {order.items.map((item) => (
-                <article key={`${item.name}-${item.qty}`} className="flex gap-3 rounded-xl border border-green-800 bg-green-950/35 p-3">
+              {items.map((item) => (
+                <article key={`${item.id}-${item.product_id}`} className="flex gap-3 rounded-xl border border-green-800 bg-green-950/35 p-3">
                   <img
-                    src={item.image}
+                    src={item.image || "/assets/product1.png"}
                     alt={item.name}
                     className="h-20 w-20 shrink-0 rounded-lg border border-green-800 object-cover bg-green-900"
                   />
                   <div className="min-w-0 flex-1">
                     <p className="text-white text-sm font-semibold leading-snug">{item.name}</p>
-                    <p className="text-green-400 text-xs mt-1">Qty {item.qty}</p>
+                    <p className="text-green-400 text-xs mt-1">Qty {item.quantity}</p>
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-green-300 text-xs">Rs. {item.price.toLocaleString()} each</p>
-                      <p className="text-gold-400 text-sm font-bold">Rs. {(item.price * item.qty).toLocaleString()}</p>
+                      <p className="text-green-300 text-xs">Rs. {Number(item.price).toLocaleString()} each</p>
+                      <p className="text-gold-400 text-sm font-bold">Rs. {(Number(item.price) * Number(item.quantity)).toLocaleString()}</p>
                     </div>
                   </div>
                 </article>
@@ -365,109 +426,40 @@ export default function OrderDetailPage() {
             <div className="mt-4 border-t border-green-800 pt-4 space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-green-400">Subtotal</span>
-                <span className="text-white font-medium">Rs. {subtotal.toLocaleString()}</span>
+                <span className="text-white font-medium">Rs. {totalAmount.toLocaleString()}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-green-400">Shipping</span>
-                <span className="text-green-300">Included</span>
+                <span className="text-green-300">Free</span>
               </div>
               <div className="flex items-center justify-between pt-2 text-base">
                 <span className="text-white font-semibold">Total</span>
-                <span className="text-gold-400 font-bold">Rs. {order.total.toLocaleString()}</span>
+                <span className="text-gold-400 font-bold">Rs. {totalAmount.toLocaleString()}</span>
               </div>
             </div>
           </section>
         </div>
 
+        {/* Sidebar */}
         <aside className="space-y-5">
           <section className="bg-green-900 border border-green-800 rounded-2xl p-4 sm:p-5 shadow-card">
-            <p className="text-green-400 text-xs font-medium uppercase tracking-wider">Customer</p>
-            <h2 className="text-white font-semibold mt-2">{order.customer}</h2>
+            <p className="text-green-400 text-xs font-medium uppercase tracking-wider">Customer Details</p>
+            <h2 className="text-white font-semibold mt-2">{order.full_name}</h2>
             <div className="mt-3 space-y-2 text-sm">
-              <p className="flex gap-2 text-green-300"><Mail size={14} className="mt-0.5 shrink-0" /> {order.email}</p>
               <p className="flex gap-2 text-green-300"><Phone size={14} className="mt-0.5 shrink-0" /> {order.phone}</p>
-              <p className="flex gap-2 text-green-300"><MapPin size={14} className="mt-0.5 shrink-0" /> {order.address}</p>
+              <p className="flex gap-2 text-green-300"><MapPin size={14} className="mt-0.5 shrink-0" /> {order.address_line1}, {order.city}, {order.state} - {order.pincode}</p>
             </div>
           </section>
 
           <section className="bg-green-900 border border-green-800 rounded-2xl p-4 sm:p-5 shadow-card">
-            <p className="text-green-400 text-xs font-medium uppercase tracking-wider">Shipping</p>
-            <div className="mt-3 space-y-3">
-              <div className="flex items-start gap-2 text-sm">
-                <Truck size={15} className="mt-0.5 text-gold-400 shrink-0" />
-                <div>
-                  <p className="text-white font-medium">{order.courier}</p>
-                  <p className="text-green-400 text-xs">{order.trackingId}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2 text-sm">
-                <CalendarDays size={15} className="mt-0.5 text-gold-400 shrink-0" />
-                <div>
-                  <p className="text-white font-medium">{formatDate(order.estimatedDelivery)}</p>
-                  <p className="text-green-400 text-xs">Estimated delivery</p>
-                </div>
-              </div>
+            <p className="text-green-400 text-xs font-medium uppercase tracking-wider">Payment Details</p>
+            <div className="mt-3 text-sm space-y-1.5 text-green-300">
+              <p>Method: <strong className="text-white">{order.payment_method}</strong></p>
+              <p>Status: <strong className="text-gold-400 uppercase">{order.payment_status}</strong></p>
+              {order.razorpay_order_id && <p className="text-xs">Razorpay Order: {order.razorpay_order_id}</p>}
+              {order.razorpay_payment_id && <p className="text-xs">Razorpay Payment: {order.razorpay_payment_id}</p>}
+              {order.paid_at && <p className="text-xs">Paid At: {new Date(order.paid_at).toLocaleString("en-IN")}</p>}
             </div>
-          </section>
-
-          <section className="bg-green-900 border border-green-800 rounded-2xl p-4 sm:p-5 shadow-card">
-            <p className="text-green-400 text-xs font-medium uppercase tracking-wider">Payment</p>
-            <div className="mt-3">
-              <FormInput
-                label="Payment Status"
-                id="payment"
-                type="select"
-                value={order.payment}
-                onChange={(event) => saveOrder({ ...order, payment: event.target.value })}
-                options={PAYMENT_OPTIONS}
-              />
-            </div>
-          </section>
-
-          <section className="bg-green-900 border border-green-800 rounded-2xl p-4 sm:p-5 shadow-card">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-green-400 text-xs font-medium uppercase tracking-wider">Cancellation</p>
-                <p className="text-white text-sm font-semibold mt-1">{order.status === "Cancelled" ? "Cancelled" : "Available"}</p>
-              </div>
-              {canCancel && (
-                <Button variant="danger" size="sm" onClick={() => setShowCancel((value) => !value)}>
-                  <XCircle size={14} /> Cancel
-                </Button>
-              )}
-            </div>
-
-            {order.cancellationReason && (
-              <p className="mt-3 rounded-lg border border-red-800 bg-red-950/30 px-3 py-2 text-sm text-red-200">
-                {order.cancellationReason}
-              </p>
-            )}
-
-            {!canCancel && !order.cancellationReason && (
-              <p className="mt-3 text-sm text-green-400">
-                {isClosed ? "This order is closed." : "Delivered orders are closed."}
-              </p>
-            )}
-
-            {showCancel && canCancel && (
-              <div className="mt-4 space-y-3">
-                <FormInput
-                  label="Reason"
-                  id="cancelReason"
-                  type="textarea"
-                  value={cancelReason}
-                  onChange={(event) => setCancelReason(event.target.value)}
-                  placeholder="Enter cancellation reason..."
-                  rows={3}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button variant="secondary" size="sm" onClick={() => setShowCancel(false)}>Back</Button>
-                  <Button variant="danger" size="sm" disabled={!cancelReason.trim()} onClick={cancelOrder}>
-                    Confirm
-                  </Button>
-                </div>
-              </div>
-            )}
           </section>
         </aside>
       </div>

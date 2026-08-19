@@ -20,7 +20,6 @@ export default function ProductDetails({ product }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: "guest",
           productId: product.id,
           quantity: qty,
         }),

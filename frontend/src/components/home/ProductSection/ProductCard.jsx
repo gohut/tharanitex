@@ -22,7 +22,6 @@ export default function ProductCard({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            userId: "guest",
             productId: product.id,
           }),
         });
@@ -49,7 +48,6 @@ export default function ProductCard({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            userId: "guest",
             productId: product.id,
           }),
         });
@@ -83,7 +81,6 @@ export default function ProductCard({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: "guest",
           productId: product.id,
           quantity: 1,
         }),

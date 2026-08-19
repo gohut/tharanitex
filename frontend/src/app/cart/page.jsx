@@ -4,37 +4,64 @@ import OrderSummary from "@/components/Cart/OrderSummary";
 import DeliveryCard from "@/components/Cart/DeliveryCard";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getCart } from "@/lib/db/cart";
+import { validateSession } from "@/lib/auth";
+import { SESSION_COOKIE_NAME } from "@/types/auth";
+import { verifyJWT } from "@/utils/jwt";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
+
 export default async function CartPage() {
   const { env } = await getCloudflareContext({ async: true });
-  const cartItems = await getCart(env.DB, "guest");
+  const cookieStore = await cookies();
+  let userId = null;
+
+  // 1. Try JWT authentication (auth_token or token)
+  const jwtToken = cookieStore.get("auth_token")?.value || cookieStore.get("token")?.value;
+  if (jwtToken) {
+    const secret = process.env.JWT_SECRET || "tharanitex_super_secret_key_123!";
+    const payload = await verifyJWT(jwtToken, secret);
+    if (payload && (payload.role === "customer" || !payload.role) && payload.id) {
+      userId = String(payload.id);
+    }
+  }
+
+  // 2. Fall back to D1 session authentication (tharanitex_session)
+  if (!userId) {
+    const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value || "";
+    if (sessionToken) {
+      const user = await validateSession(sessionToken, env);
+      if (user && user.userType === "customer" && user.userId) {
+        userId = String(user.userId);
+      }
+    }
+  }
+
+  const cartItems = await getCart(env.DB, userId || "guest");
 
   const subtotal = cartItems.reduce(
-  (sum, item) => sum + item.price * item.quantity,
-  0
-);
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
-const formatPrice = (value) =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(value);
+  const formatPrice = (value) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(value);
 
   return (
     <>
       <Navbar />
 
       <main className="bg-[#F8F2E8] min-h-screen">
-
         {/* Header */}
         <section
           className="border-b border-[#E8DCCB] bg-[#F4E7D4] bg-cover bg-[center_right] bg-no-repeat"
           style={{ backgroundImage: "linear-gradient(90deg, rgba(248, 242, 232, 0.92) 0%, rgba(248, 242, 232, 0.82) 38%, rgba(248, 242, 232, 0.32) 100%), url('/assets/header1.png')" }}
         >
           <div className="mx-auto max-w-[1440px] px-5 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12">
-
             <p className="uppercase tracking-[0.3em] text-[#B58A45] text-sm font-medium">
               Tharani Textiles
             </p>
@@ -46,7 +73,6 @@ const formatPrice = (value) =>
             <p className="mt-3 text-sm text-gray-600 sm:mt-4 sm:text-base">
               {cartItems.length} Item{cartItems.length !== 1 && "s"} in your shopping bag.
             </p>
-
           </div>
         </section>
 
@@ -59,29 +85,16 @@ const formatPrice = (value) =>
 
         {/* Main Layout */}
         <section className="mx-auto max-w-[1440px] px-5 pb-14 sm:px-6 sm:pb-20 lg:px-10">
-
           <div className="grid gap-8 lg:grid-cols-[2fr_430px] lg:gap-14">
-
             {/* Left Side */}
             <div>
-
               {/* Column Headers */}
               <div className="hidden grid-cols-[140px_1fr_160px_120px_60px] border-b border-[#D8CCB4] pb-5 text-xs uppercase tracking-[0.18em] text-[#8A8175] lg:grid">
-
                 <div>Product</div>
-
                 <div></div>
-
-                <div className="text-center">
-                  Qty
-                </div>
-
-                <div className="text-center">
-                  Total
-                </div>
-
+                <div className="text-center">Qty</div>
+                <div className="text-center">Total</div>
                 <div></div>
-
               </div>
 
               {cartItems.map((product) => (
@@ -90,29 +103,22 @@ const formatPrice = (value) =>
                   product={product}
                 />
               ))}
-
             </div>
 
             {/* Right Side */}
-
             <div className="self-start lg:sticky lg:top-8">
-
               <OrderSummary
-                  subtotal={formatPrice(subtotal)}
-                  shipping="Free"
-                  tax="Included"
-                  total={formatPrice(subtotal)}
-                  isCartEmpty={cartItems.length === 0}
+                subtotal={formatPrice(subtotal)}
+                shipping="Free"
+                tax="Included"
+                total={formatPrice(subtotal)}
+                isCartEmpty={cartItems.length === 0}
               />
 
               <DeliveryCard />
-
             </div>
-
           </div>
-
         </section>
-
       </main>
     </>
   );

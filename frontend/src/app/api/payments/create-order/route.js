@@ -18,7 +18,7 @@ export async function POST(request) {
     const userId = await requireCustomer(request, env);
     const payment = await prepareOnlineCheckout(env.DB, {
       userId,
-      cartUserId: checkoutType === "CART" ? "guest" : userId,
+      cartUserId: userId,
       checkoutType,
       productId: body.productId,
       quantity: body.quantity,

@@ -1,7 +1,9 @@
+
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Navbar from "@/components/home/Navbar/Navbar";
 import { ArrowRight, Mail, Lock, User, Phone, MapPin, Hash, X, Info } from "lucide-react";
 import toast from "react-hot-toast";
 import { GOOGLE_CLIENT_ID } from "../../config/google";
@@ -277,7 +279,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F2E8] flex items-center justify-center p-4 md:p-8 font-sans relative overflow-hidden">
+    <main className="min-h-screen bg-[#FBF5EA]">
+      <Navbar />
+      <div className="flex items-center justify-center p-4 py-12 md:p-12 font-sans relative overflow-hidden">
       {/* Decorative saree-like wave gradients */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute -top-48 -right-48 w-96 h-96 bg-[#5A1F2F]/5 rounded-full blur-3xl"></div>
@@ -519,5 +523,6 @@ export default function LoginPage() {
         </div>
       )}
     </div>
-  );
+  </main>
+);
 }

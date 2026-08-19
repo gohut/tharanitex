@@ -64,27 +64,27 @@ export async function getCart(db, userId) {
   return results;
 }
 
-export async function updateCartQuantity(db, cartId, quantity) {
-  await db
+export async function updateCartQuantity(db, userId, cartId, quantity) {
+  const result = await db
     .prepare(`
       UPDATE cart_items
       SET quantity = ?
-      WHERE id = ?
+      WHERE id = ? AND user_id = ?
     `)
-    .bind(quantity, cartId)
+    .bind(quantity, cartId, userId)
     .run();
-
+  if (!result.meta.changes) throw Object.assign(new Error("Cart item not found."), { status: 404 });
   return { success: true };
 }
 
-export async function removeFromCart(db, cartId) {
-  await db
+export async function removeFromCart(db, userId, cartId) {
+  const result = await db
     .prepare(`
       DELETE FROM cart_items
-      WHERE id = ?
+      WHERE id = ? AND user_id = ?
     `)
-    .bind(cartId)
+    .bind(cartId, userId)
     .run();
-
+  if (!result.meta.changes) throw Object.assign(new Error("Cart item not found."), { status: 404 });
   return { success: true };
 }

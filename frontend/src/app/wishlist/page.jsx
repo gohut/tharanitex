@@ -3,25 +3,52 @@ import ProductCard from "@/components/home/ProductSection/ProductCard";
 import Link from "next/link";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getWishlist } from "@/lib/db/wishlist";
+import { validateSession } from "@/lib/auth";
+import { SESSION_COOKIE_NAME } from "@/types/auth";
+import { verifyJWT } from "@/utils/jwt";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
+
 export default async function WishlistPage() {
   const { env } = await getCloudflareContext({ async: true });
-  const wishlistItems = await getWishlist(env.DB, "guest");
+  const cookieStore = await cookies();
+  let userId = null;
+
+  // 1. Try JWT authentication (auth_token or token)
+  const jwtToken = cookieStore.get("auth_token")?.value || cookieStore.get("token")?.value;
+  if (jwtToken) {
+    const secret = process.env.JWT_SECRET || "tharanitex_super_secret_key_123!";
+    const payload = await verifyJWT(jwtToken, secret);
+    if (payload && (payload.role === "customer" || !payload.role) && payload.id) {
+      userId = String(payload.id);
+    }
+  }
+
+  // 2. Fall back to D1 session authentication (tharanitex_session)
+  if (!userId) {
+    const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value || "";
+    if (sessionToken) {
+      const user = await validateSession(sessionToken, env);
+      if (user && user.userType === "customer" && user.userId) {
+        userId = String(user.userId);
+      }
+    }
+  }
+
+  const wishlistItems = await getWishlist(env.DB, userId || "guest");
 
   return (
     <>
       <Navbar />
 
       <main className="bg-[#F8F2E8] min-h-screen">
-
         {/* Heading */}
         <section
           className="border-b border-[#E8DCCB] bg-[#F4E7D4] bg-cover bg-[center_right] bg-no-repeat"
           style={{ backgroundImage: "linear-gradient(90deg, rgba(248, 242, 232, 0.92) 0%, rgba(248, 242, 232, 0.82) 38%, rgba(248, 242, 232, 0.32) 100%), url('/assets/header2.png')" }}
         >
           <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-12">
-
             <p className="uppercase tracking-[0.3em] text-[#B58A45] text-sm font-medium">
               Tharani Textiles
             </p>
@@ -38,7 +65,6 @@ export default async function WishlistPage() {
               {wishlistItems.length} Saved Item
               {wishlistItems.length !== 1 && "s"}
             </p>
-
           </div>
         </section>
 
@@ -47,16 +73,13 @@ export default async function WishlistPage() {
           <Link href="/" className="hover:text-[#5A1F2F]">
             Home
           </Link>
-
           <span className="mx-2">/</span>
-
           Wishlist
         </section>
 
         {/* Empty State */}
         {wishlistItems.length === 0 ? (
           <section className="mx-auto max-w-7xl px-5 py-20 text-center sm:px-6 sm:py-28">
-
             <img
               src="/assets/wishlist_icon.png"
               alt="Wishlist"
@@ -77,13 +100,10 @@ export default async function WishlistPage() {
             >
               Continue Shopping
             </Link>
-
           </section>
         ) : (
           <section className="mx-auto max-w-7xl px-5 pb-14 sm:px-6 sm:pb-20">
-
             <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
-
               {wishlistItems.map((product) => (
                 <ProductCard
                   key={product.product_id}
@@ -94,12 +114,9 @@ export default async function WishlistPage() {
                   initiallyWishlisted={true}
                 />
               ))}
-
             </div>
-
           </section>
         )}
-
       </main>
     </>
   );
