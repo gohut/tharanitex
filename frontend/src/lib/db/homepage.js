@@ -125,6 +125,7 @@ export async function getPromoBanners(db, { activeOnly = false } = {}) {
       SELECT
         id,
         image_url AS image,
+        mobile_image_url AS mobileImage,
         title,
         subtitle,
         link,
@@ -143,8 +144,16 @@ export async function getPromoBanners(db, { activeOnly = false } = {}) {
 export async function getPromoBannerById(db, id) {
   return db
     .prepare(`
-      SELECT id, image_url AS image, title, subtitle, link, placement,
-             sort_order AS sortOrder, is_active AS isActive
+      SELECT
+      id,
+      image_url AS image,
+      mobile_image_url AS mobileImage,
+      title,
+      subtitle,
+      link,
+      placement,
+      sort_order AS sortOrder,
+      is_active AS isActive
       FROM homepage_banners
       WHERE id = ?
       LIMIT 1
@@ -157,11 +166,12 @@ export async function createPromoBanner(db, data) {
   const result = await db
     .prepare(`
       INSERT INTO homepage_banners
-        (image_url, title, subtitle, link, placement, sort_order, is_active)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+        (image_url, mobile_image_url, title, subtitle, link, placement, sort_order, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `)
     .bind(
       data.image,
+      data.mobileImage || "",
       data.title || "",
       data.subtitle || "",
       data.link || "",
@@ -178,12 +188,13 @@ export async function updatePromoBanner(db, id, data) {
   await db
     .prepare(`
       UPDATE homepage_banners
-      SET image_url = ?, title = ?, subtitle = ?, link = ?,
+      SET image_url = ?, mobile_image_url = ?, title = ?, subtitle = ?, link = ?,
           placement = ?, sort_order = ?, is_active = ?
       WHERE id = ?
     `)
     .bind(
       data.image,
+      data.mobileImage || "",
       data.title || "",
       data.subtitle || "",
       data.link || "",
