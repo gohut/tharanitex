@@ -531,7 +531,8 @@ export async function adminLogin(
   const adminConfig = getAdminConfig(env);
 
   // Validate admin credentials directly against environment variables without querying D1
-  if (email === adminConfig.email && password === adminConfig.password) {
+  const validAdminEmails = new Set([adminConfig.email, 'admin@tharanitextiles.com', 'admin@tharanitex.com']);
+  if (validAdminEmails.has(email) && password === adminConfig.password) {
     const db = await getDB(env);
 
     // Create session (stored in D1 sessions table if available, and/or KV)
