@@ -81,6 +81,7 @@ export default async function HomePage() {
             key={section.id}
             title={section.title}
             subtitle={section.subtitle}
+            rowCount={section.rowCount ?? 1}
             products={data.showcaseProducts?.[section.id] || []}
             backgroundColor={section.backgroundColor || undefined}
             backgroundImage={section.backgroundImage || undefined}

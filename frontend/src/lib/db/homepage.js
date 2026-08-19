@@ -276,6 +276,7 @@ export async function getHomepageSections(db) {
         hs.product_ids AS productIds,
         hs.background_color AS backgroundColor,
         hs.background_image AS backgroundImage,
+        hs.row_count AS rowCount,
 
         CASE
           WHEN hs.section_type = 'banner'
@@ -324,7 +325,8 @@ export async function createHomepageSection(db, data) {
         subtitle,
         product_ids,
         background_color,
-        background_image
+        background_image,
+        row_count
       )
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
@@ -337,7 +339,8 @@ export async function createHomepageSection(db, data) {
       data.subtitle || null,
       JSON.stringify(data.productIds || []),
       data.backgroundColor || null,
-      data.backgroundImage || null
+      data.backgroundImage || null,
+      Number(data.rowCount) || 1
     )
     .run();
 
@@ -363,6 +366,7 @@ export async function updateHomepageSection(db, id, data) {
         product_ids = ?,
         background_color = ?,
         background_image = ?,
+        row_count = ?,
         updated_at = CURRENT_TIMESTAMP
 
       WHERE id = ?
@@ -377,6 +381,7 @@ export async function updateHomepageSection(db, id, data) {
       JSON.stringify(data.productIds || []),
       data.backgroundColor || null,
       data.backgroundImage || null,
+      Number(data.rowCount) || 1,
       Number(id)
     )
     .run();

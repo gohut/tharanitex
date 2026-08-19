@@ -10,7 +10,7 @@ export default function ProductSection({
   products = [],
   backgroundImage,
   backgroundColor = "#FBF5EA",
-  rowCount = 2,
+  rowCount = 1,
 }) {
   const visibleCount = 4;
 
@@ -57,21 +57,21 @@ const mobileRows = Array.from(
 
 const mobileRowRefs = useRef([]);
 
-const [mobileRowIndexes, setMobileRowIndexes] = useState(
-  () => Array(safeRowCount).fill(0)
-);
+const [mobileRowIndexes, setMobileRowIndexes] = useState({});
 
-const updateMobileRowIndex = (rowIndex, value) => {
-  setMobileRowIndexes((prev) => {
-    const next = [...prev];
-    next[rowIndex] = value;
-    return next;
-  });
+const getRowIndex = (rowIndex) => {
+  return mobileRowIndexes[rowIndex] || 0;
+};
+
+const setRowIndex = (rowIndex, value) => {
+  setMobileRowIndexes((prev) => ({
+    ...prev,
+    [rowIndex]: value,
+  }));
 };
 
 const handleMobilePrevious = (rowIndex) => {
-  const row = mobileRows[rowIndex];
-  const currentIndex = mobileRowIndexes[rowIndex] || 0;
+  const currentIndex = getRowIndex(rowIndex);
 
   if (currentIndex <= 0) return;
 
@@ -80,17 +80,24 @@ const handleMobilePrevious = (rowIndex) => {
     currentIndex - mobileStep
   );
 
-  mobileRowRefs.current[rowIndex]?.scrollBy({
-    left: -mobileRowRefs.current[rowIndex].clientWidth,
-    behavior: "smooth",
-  });
+  const container = mobileRowRefs.current[rowIndex];
 
-  updateMobileRowIndex(rowIndex, nextIndex);
+  if (container) {
+    container.scrollBy({
+      left: -container.clientWidth,
+      behavior: "smooth",
+    });
+  }
+
+  setRowIndex(rowIndex, nextIndex);
 };
 
 const handleMobileNext = (rowIndex) => {
   const row = mobileRows[rowIndex];
-  const currentIndex = mobileRowIndexes[rowIndex] || 0;
+
+  if (!row) return;
+
+  const currentIndex = getRowIndex(rowIndex);
 
   const maxIndex = Math.max(
     0,
@@ -104,13 +111,18 @@ const handleMobileNext = (rowIndex) => {
     currentIndex + mobileStep
   );
 
-  mobileRowRefs.current[rowIndex]?.scrollBy({
-    left: mobileRowRefs.current[rowIndex].clientWidth,
-    behavior: "smooth",
-  });
+  const container = mobileRowRefs.current[rowIndex];
 
+  if (container) {
+    container.scrollBy({
+      left: container.clientWidth,
+      behavior: "smooth",
+    });
+  }
+  setRowIndex(rowIndex, nextIndex);
   updateMobileRowIndex(rowIndex, nextIndex);
 };
+
 
   return (
     <section

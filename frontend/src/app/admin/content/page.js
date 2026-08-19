@@ -55,6 +55,7 @@ const emptyShowcase = {
   title: "",
   subtitle: "",
   productIds: [],
+  rowCount: 1,
   sortOrder: 1,
   isActive: true,
   backgroundColor: "",
@@ -349,7 +350,7 @@ async function addHomepageSection() {
 
   function openEditShowcase(section) {
     setShowcaseSection(section);
-    setShowcaseForm({ title: section.title || "", subtitle: section.subtitle || "", productIds: section.productIds || [], sortOrder: section.sortOrder ?? 1, isActive: Boolean(section.isActive), backgroundColor: section.backgroundColor || "", backgroundImage: section.backgroundImage || "" });
+    setShowcaseForm({ title: section.title || "", subtitle: section.subtitle || "", productIds: section.productIds || [], rowCount: section.rowCount ?? 1, sortOrder: section.sortOrder ?? 1, isActive: Boolean(section.isActive), backgroundColor: section.backgroundColor || "", backgroundImage: section.backgroundImage || "" });
     setShowcaseOpen(true);
   }
 
@@ -357,7 +358,7 @@ async function addHomepageSection() {
     if (!showcaseForm.title.trim() || !showcaseForm.productIds.length) { toast.error("A title and at least one product are required"); return; }
     try {
       setSaving(true);
-      const res = await fetch(showcaseSection ? `/api/admin/homepage/sections/${showcaseSection.id}` : "/api/admin/homepage/sections", { method: showcaseSection ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...showcaseForm, sectionType: "product_showcase", referenceId: null, sortOrder: Number(showcaseForm.sortOrder) || sections.length + 1 }) });
+      const res = await fetch(showcaseSection ? `/api/admin/homepage/sections/${showcaseSection.id}` : "/api/admin/homepage/sections", { method: showcaseSection ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...showcaseForm, sectionType: "product_showcase", referenceId: null, rowCount: Number(showcaseForm.rowCount) || 1, sortOrder: Number(showcaseForm.sortOrder) || sections.length + 1 }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save product section");
       toast.success(showcaseSection ? "Product section updated" : "Product section added");
@@ -1357,6 +1358,24 @@ async function addHomepageSection() {
               setForm({
                 ...form,
                 subtitle: e.target.value,
+              })
+            }
+          />
+
+          <FormInput
+            label="Rows"
+            id="showcaseRows"
+            type="number"
+            min={1}
+            max={6}
+            value={showcaseForm.rowCount ?? 1}
+            onChange={(e) =>
+              setShowcaseForm({
+                ...showcaseForm,
+                rowCount: Math.max(
+                  1,
+                  Math.min(6, Number(e.target.value) || 1)
+                ),
               })
             }
           />
