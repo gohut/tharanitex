@@ -40,20 +40,22 @@ export default function Hero({ slides = [] }) {
 
           return (
             <SwiperSlide key={slide.id}>
-              <div className="relative">
-                <picture>
-                  <source
-                    media="(max-width: 639px)"
-                    srcSet={mobileImage}
-                  />
+              <div className="hero-image-wrapper relative">
+                {/* Desktop Image */}
+                <img
+                  src={slide.image}
+                  alt={slide.title || `Hero Banner ${slide.id}`}
+                  className="hero-image hero-image-desktop"
+                  draggable={false}
+                />
 
-                  <img
-                    src={slide.image}
-                    alt={slide.title || `Hero Banner ${slide.id}`}
-                    className="hero-image h-full w-full object-contain"
-                    draggable={false}
-                  />
-                </picture>
+                {/* Mobile Image */}
+                <img
+                  src={mobileImage}
+                  alt={slide.title || `Hero Banner ${slide.id}`}
+                  className="hero-image hero-image-mobile"
+                  draggable={false}
+                />
 
                 {(slide.title ||
                   slide.subtitle ||
