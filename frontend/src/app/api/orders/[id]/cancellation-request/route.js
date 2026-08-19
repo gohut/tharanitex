@@ -17,7 +17,8 @@ export async function POST(request, { params }) {
     const body = await request.json().catch(() => ({}));
     const reason = typeof body.reason === "string" ? body.reason.trim().slice(0, 500) : "";
     await env.DB.prepare("UPDATE orders SET cancellation_status = 'REQUESTED', cancellation_reason = ?, cancellation_requested_at = datetime('now') WHERE id = ? AND user_id = ?").bind(reason || null, id, customerId).run();
-    const number = String(env.WHATSAPP_ADMIN_NUMBER || process.env.WHATSAPP_ADMIN_NUMBER || "").replace(/\D/g, "");
+    const rawNumber = env.WHATSAPP_ADMIN_NUMBER || process.env.WHATSAPP_ADMIN_NUMBER || "919344474088";
+    const number = String(rawNumber).replace(/\D/g, "");
     const message = `Tharani Textiles - Order Cancellation Request\n\nOrder ID: ${id}\nCustomer: ${order.full_name}\nPhone: ${order.phone}\nOrder Date: ${order.created_at}\nCurrent Status: ${order.order_status}\nPayment Status: ${order.payment_status}\nPayment Method: ${order.payment_method}\nTotal: Rs. ${order.total_amount}\nItems: ${(order.items || []).map((item) => `${item.name} x${item.quantity}`).join(", ")}\nReason: ${reason || "Not provided"}`;
     console.info("Cancellation request recorded", { orderId: id, customerId });
     return Response.json({ success: true, whatsappUrl: number ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : null, message: "Cancellation request recorded." }, { status: 201 });
