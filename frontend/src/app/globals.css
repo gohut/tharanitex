@@ -368,3 +368,23 @@ a {
     background: #eee3d1;
   }
 }
+
+/* Promotional banners */
+
+.promo-banner-desktop {
+  display: block;
+}
+
+.promo-banner-mobile {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .promo-banner-desktop {
+    display: none;
+  }
+
+  .promo-banner-mobile {
+    display: block;
+  }
+}
