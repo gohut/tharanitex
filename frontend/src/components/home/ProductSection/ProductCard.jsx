@@ -77,9 +77,6 @@ export default function ProductCard({
     }
   }
 
-  function addToCart() {
-  router.push(`/product/${product.slug}`);
-}
 
   const formattedPrice = new Intl.NumberFormat("en-IN").format(
     Number(String(product.price).replace(/[^0-9.]/g, "")) || 0
