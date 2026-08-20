@@ -8,9 +8,7 @@ export async function POST(request) {
   try {
     const { env } = await getCloudflareContext({ async: true });
     const token =
-      request.cookies?.get?.(SESSION_COOKIE_NAME)?.value ||
-      request.cookies?.get?.("admin_token")?.value ||
-      "";
+      request.cookies?.get?.(SESSION_COOKIE_NAME)?.value || "";
 
     if (token) {
       await logoutSession(token, env).catch(() => {});
@@ -23,10 +21,6 @@ export async function POST(request) {
     });
 
     response.headers.append("Set-Cookie", clearHeader);
-    response.headers.append(
-      "Set-Cookie",
-      `admin_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
-    );
     return response;
   } catch (err) {
     return Response.json(

@@ -1,6 +1,10 @@
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
-initOpenNextCloudflareForDev();
+try {
+  initOpenNextCloudflareForDev();
+} catch (e) {
+  // Ignore in standard next dev if Cloudflare dev proxy context is unavailable
+}
 
 const nextConfig = {
   images: {
@@ -9,3 +13,4 @@ const nextConfig = {
 };
 
 export default nextConfig;
+

@@ -1,17 +1,52 @@
 /**
- * In-Memory Mock KV Namespace for local next dev environment
+ * In-Memory & Disk-Persisted Mock KV Namespace for local next dev environment
  */
 class MockKVNamespace {
   constructor() {
     this.store = new Map();
+    this.loadFromDisk();
+  }
+
+  loadFromDisk() {
+    try {
+      if (typeof window !== 'undefined') return;
+      const req = eval('require');
+      const fs = req('fs');
+      const path = req('path');
+      const filePath = path.join(process.cwd(), '.next', 'dev-kv-store.json');
+      if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const data = JSON.parse(content);
+        this.store = new Map(Object.entries(data));
+      }
+    } catch (e) {}
+  }
+
+  saveToDisk() {
+    try {
+      if (typeof window !== 'undefined') return;
+      const req = eval('require');
+      const fs = req('fs');
+      const path = req('path');
+      const filePath = path.join(process.cwd(), '.next', 'dev-kv-store.json');
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      const obj = {};
+      for (const [k, v] of this.store.entries()) {
+        obj[k] = v;
+      }
+      fs.writeFileSync(filePath, JSON.stringify(obj), 'utf-8');
+    } catch (e) {}
   }
 
   async get(key, type) {
+    this.loadFromDisk();
     const entry = this.store.get(key);
     if (!entry) return null;
 
     if (entry.expiresAt && Date.now() > entry.expiresAt) {
       this.store.delete(key);
+      this.saveToDisk();
       return null;
     }
 
@@ -26,6 +61,7 @@ class MockKVNamespace {
   }
 
   async put(key, value, options) {
+    this.loadFromDisk();
     let expiresAt;
     if (options?.expiration) {
       expiresAt = options.expiration * 1000;
@@ -33,13 +69,17 @@ class MockKVNamespace {
       expiresAt = Date.now() + options.expirationTtl * 1000;
     }
     this.store.set(key, { value: String(value), expiresAt });
+    this.saveToDisk();
   }
 
   async delete(key) {
+    this.loadFromDisk();
     this.store.delete(key);
+    this.saveToDisk();
   }
 
   async list(options) {
+    this.loadFromDisk();
     const prefix = options?.prefix || '';
     const keys = [];
     const now = Date.now();
@@ -62,26 +102,91 @@ if (!globalThis[globalMockKvSymbol]) {
   globalThis[globalMockKvSymbol] = new MockKVNamespace();
 }
 
+function withTimeout(promise, ms = 100) {
+  let timeoutId;
+  const timeoutPromise = new Promise((resolve) => {
+    timeoutId = setTimeout(() => resolve(null), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+}
+
 /**
  * Retrieve Cloudflare KV binding or dev fallback
  */
 export async function getKV(requestEnv) {
+  const mockKv = globalThis[globalMockKvSymbol];
+
   if (requestEnv && requestEnv.KV) {
-    return requestEnv.KV;
+    const realKv = requestEnv.KV;
+    return {
+      async get(key, type) {
+        try {
+          const val = await withTimeout(realKv.get(key, type), 100);
+          if (val !== null && val !== undefined) return val;
+        } catch (e) {}
+        return await mockKv.get(key, type);
+      },
+      async put(key, value, options) {
+        try {
+          await withTimeout(realKv.put(key, value, options), 100);
+        } catch (e) {}
+        await mockKv.put(key, value, options);
+      },
+      async delete(key) {
+        try {
+          await withTimeout(realKv.delete(key), 100);
+        } catch (e) {}
+        await mockKv.delete(key);
+      },
+      async list(options) {
+        try {
+          const res = await withTimeout(realKv.list(options), 100);
+          if (res && res.keys && res.keys.length > 0) return res;
+        } catch (e) {}
+        return await mockKv.list(options);
+      }
+    };
   }
 
   try {
     const { getCloudflareContext } = await import('@opennextjs/cloudflare');
     const ctx = await getCloudflareContext();
     if (ctx && ctx.env && ctx.env.KV) {
-      return ctx.env.KV;
+      const realKv = ctx.env.KV;
+      return {
+        async get(key, type) {
+          try {
+            const val = await realKv.get(key, type);
+            if (val !== null && val !== undefined) return val;
+          } catch (e) {}
+          return await mockKv.get(key, type);
+        },
+        async put(key, value, options) {
+          try {
+            await realKv.put(key, value, options);
+          } catch (e) {}
+          await mockKv.put(key, value, options);
+        },
+        async delete(key) {
+          try {
+            await realKv.delete(key);
+          } catch (e) {}
+          await mockKv.delete(key);
+        },
+        async list(options) {
+          try {
+            const res = await realKv.list(options);
+            if (res && res.keys && res.keys.length > 0) return res;
+          } catch (e) {}
+          return await mockKv.list(options);
+        }
+      };
     }
   } catch (e) {
-    // OpenNext context unavailable (e.g. static build time or dev fallback)
+    // OpenNext context unavailable
   }
 
-  // Fallback to in-memory Mock KV Namespace for local next dev testing
-  return globalThis[globalMockKvSymbol];
+  return mockKv;
 }
 
 /**

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requestOtp } from '../../../../lib/auth';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 export async function POST(request) {
   try {
@@ -16,7 +17,8 @@ export async function POST(request) {
       );
     }
 
-    const result = await requestOtp(body.fullName, body.phoneNumber);
+    const { env } = await getCloudflareContext({ async: true });
+    const result = await requestOtp(body.fullName, body.phoneNumber, env);
 
     return NextResponse.json({
       success: true,

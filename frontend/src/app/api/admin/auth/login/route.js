@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminLogin, buildSessionCookieHeader } from '../../../../../lib/auth';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 /**
  * POST /api/admin/auth/login
@@ -36,7 +37,8 @@ export async function POST(request) {
     const ipAddress =
       request.headers.get('x-forwarded-for') || request.headers.get('cf-connecting-ip');
 
-    const result = await adminLogin(body.email, body.password, userAgent, ipAddress);
+    const { env } = await getCloudflareContext({ async: true });
+    const result = await adminLogin(body.email, body.password, userAgent, ipAddress, env);
 
     const cookieHeader = buildSessionCookieHeader(result.sessionToken);
 

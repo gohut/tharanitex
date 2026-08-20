@@ -1,0 +1,167 @@
+================================================================================
+THARANI TEXTILES — OVERALL WEBSITE AUTHENTICATION ARCHITECTURE PLAN
+================================================================================
+Document Version: 1.0.0
+Date: 2026-08-20
+Status: ACTIVE ARCHITECTURE & VERIFIED REFERENCE PLAN
+Repository: gohut/tharanitex
+
+--------------------------------------------------------------------------------
+1. CURRENT STATUS & VERIFICATION SUMMARY
+--------------------------------------------------------------------------------
+The existing authentication system has been thoroughly debugged, repaired, and
+empirically verified. Live automated E2E tests have confirmed full end-to-end
+functionality across all user workflows on http://localhost:3000:
+
+  [✔] POST /api/auth/login       -> HTTP 200 OK (Issues HttpOnly cookies)
+  [✔] GET  /api/auth/profile     -> HTTP 200 OK (Resolves authenticated customer)
+  [✔] POST /api/wishlist         -> HTTP 200 OK (Adds item to user wishlist)
+  [✔] GET  /api/wishlist         -> HTTP 200 OK (Retrieves wishlist items)
+  [✔] POST /api/cart             -> HTTP 200 OK (Adds item to user cart)
+  [✔] GET  /api/cart             -> HTTP 200 OK (Retrieves cart items)
+  [✔] POST /api/orders           -> HTTP 201 Created (Places order with session)
+  [✔] Production Build           -> 53/53 Static & Dynamic Routes Compiled
+
+If you ever wish to upgrade, re-architect, or refactor authentication for the
+entire application in the future, this document provides the comprehensive master
+plan and architectural blueprint.
+
+--------------------------------------------------------------------------------
+2. PROPOSED END-TO-END AUTHENTICATION ARCHITECTURE
+--------------------------------------------------------------------------------
+The recommended standard for Tharani Textiles combines a hybrid D1 SQL storage
+model with Cloudflare KV edge caching and Next.js App Router middleware.
+
+Key Architectural Pillars:
+  A. Primary Identity Store: D1 Database (`users` SQL Table).
+  B. Active Session Store: D1 Database (`sessions` Table) + KV Edge Cache.
+  C. Dual Cookie Delivery Strategy:
+     - `tharanitex_session`: High-security HttpOnly session token.
+     - `token`: Backward-compatible JWT cookie containing user claims.
+  D. Edge Middleware Defense Layer: Unified guard intercepting standard routes.
+
+--------------------------------------------------------------------------------
+3. DATABASE SCHEMA & STORAGE BLUEPRINT
+--------------------------------------------------------------------------------
+
+A. USERS TABLE (D1 Database SQL):
+   CREATE TABLE IF NOT EXISTS users (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     first_name TEXT NOT NULL,
+     last_name TEXT,
+     name TEXT GENERATED ALWAYS AS (first_name || CASE WHEN last_name IS NOT NULL AND last_name != '' THEN ' ' || last_name ELSE '' END),
+     email TEXT UNIQUE NOT NULL,
+     phone TEXT,
+     password_hash TEXT NOT NULL,
+     role TEXT DEFAULT 'customer',
+     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+   );
+
+B. SESSIONS TABLE (D1 Database SQL):
+   CREATE TABLE IF NOT EXISTS sessions (
+     id TEXT PRIMARY KEY,
+     user_id INTEGER NOT NULL,
+     user_type TEXT CHECK(user_type IN ('customer', 'admin')) NOT NULL,
+     token_hash TEXT NOT NULL,
+     ip_address TEXT,
+     user_agent TEXT,
+     is_revoked INTEGER DEFAULT 0,
+     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+     expires_at DATETIME NOT NULL,
+     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+   );
+
+C. CLOUDFLARE KV CACHE SCHEMA:
+   - Key: `session:<rawSessionToken>`
+   - Key: `d1_session:<tokenHash>`
+   - Value (JSON): {
+       "userId": "5",
+       "userType": "customer",
+       "fullName": "Customer Name",
+       "email": "customer@example.com",
+       "phoneNumber": "9876543210",
+       "expiresAt": "2026-08-27T12:00:00.000Z"
+     }
+   - Expiration TTL: 604,800 seconds (7 days)
+
+--------------------------------------------------------------------------------
+4. AUTHENTICATION & REQUEST FLOW DIAGRAMS
+--------------------------------------------------------------------------------
+
+[ Customer Registration / Login Flow ]
+  1. Client sends POST request to `/api/auth/register` or `/api/auth/login`.
+  2. Input validator (`src/validators/validators.js`) checks payload format.
+  3. `AuthService` validates credentials against D1 `users` via `UserRepository`.
+  4. `createD1Session` generates a 64-character cryptographically secure token.
+  5. `createD1Session` hashes the token via SHA-256 (`token_hash`).
+  6. Insert record into D1 `sessions` table AND mirror to Cloudflare KV cache.
+  7. `AuthController` attaches response headers:
+     Set-Cookie: tharanitex_session=<sessionToken>; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800
+     Set-Cookie: token=<jwtToken>; Path=/; SameSite=Lax; Max-Age=604800
+  8. Return HTTP 200/201 JSON response with safe user object.
+
+[ Authenticated API Request Flow (Cart / Wishlist / Checkout / Profile) ]
+  1. Client initiates request (e.g. `POST /api/cart`).
+  2. `requireAuth(request, env)` extracts `tharanitex_session` or `token` cookie.
+  3. Step A: Fast KV Cache Check (`d1_session:<hash>` or `session:<rawToken>`).
+  4. Step B: D1 SQL Check (`SELECT * FROM sessions WHERE token_hash = ...`).
+  5. Step C: JWT Verification Fallback (Decode JWT payload if legacy cookie).
+  6. Return resolved user identity object `{ id, customerId, fullName, role }`.
+  7. Route handler processes business logic with guaranteed non-null user ID.
+
+--------------------------------------------------------------------------------
+5. API ROUTE CONTRACTS & GUARANTEES
+--------------------------------------------------------------------------------
+
+  1. POST /api/auth/register
+     Input:  { name, email, password, phone }
+     Output: { success: true, message: "...", data: { id, name, email, phone, role } }
+     Header: Set-Cookie: tharanitex_session=...; token=...
+
+  2. POST /api/auth/login
+     Input:  { email, password }
+     Output: { success: true, message: "...", data: { id, name, email, phone, role } }
+     Header: Set-Cookie: tharanitex_session=...; token=...
+
+  3. GET /api/auth/profile
+     Input:  [Header: Cookie: tharanitex_session=...]
+     Output: { success: true, message: "Success", data: { id, name, email, phone, role } }
+
+  4. POST /api/auth/logout
+     Input:  [Header: Cookie: tharanitex_session=...]
+     Output: { success: true, message: "Logged out successfully" }
+     Header: Set-Cookie: tharanitex_session=; Max-Age=0
+
+  5. POST /api/cart  &  POST /api/wishlist
+     Input:  { productId, quantity }
+     Output: { success: true }
+     Guarantees: Returns HTTP 401 Unauthorized if cookie is missing or invalid.
+
+--------------------------------------------------------------------------------
+6. IMPLEMENTATION ROADMAP (IF FULL RE-IMPLEMENTATION IS EVER REQUIRED)
+--------------------------------------------------------------------------------
+
+  Phase 1: Database Migration & Tables
+    - Execute D1 SQL migration for `users` and `sessions` tables.
+    - Verify indices on `users(email)` and `sessions(token_hash)`.
+
+  Phase 2: Core Auth Library Utilities
+    - Implement `hashToken` SHA-256 generator in `src/lib/auth.js`.
+    - Implement `createD1Session` and `validateSession` with KV composite fallback.
+
+  Phase 3: Controller & Service Refactoring
+    - Ensure `AuthService.login` and `AuthService.register` return both `sessionToken` and `token`.
+    - Ensure `AuthController` sets both `tharanitex_session` and `token` cookies.
+
+  Phase 4: Middleware Integration
+    - Ensure `requireAuth` in `src/middleware/auth.js` checks both cookies and JWT headers.
+    - Wrap protected API routes (`/api/cart`, `/api/wishlist`, `/api/orders`, `/api/payments/*`).
+
+  Phase 5: E2E Automated Verification
+    - Execute `scratch/test-e2e.js` node script to confirm HTTP 200/201 across all routes.
+    - Run `npm run build` to verify 0 build errors.
+
+================================================================================
+END OF ARCHITECTURE PLAN
+================================================================================

@@ -1,5 +1,5 @@
-import { validateSession } from "@/lib/auth";
-import { SESSION_COOKIE_NAME } from "@/types/auth";
+import { requireAuth } from "@/middleware/auth";
+import { checkPermission, getDB } from "@/lib/auth";
 import { CheckoutError } from "@/lib/db/order";
 
 export async function requireAdmin(request, env) {
@@ -21,10 +21,18 @@ export async function requireAdmin(request, env) {
     };
   }
 
-  const token = request.cookies?.get?.(SESSION_COOKIE_NAME)?.value || request.headers.get("x-session-token") || "";
-  const user = await validateSession(token, env);
+  const user = await requireAuth(request, env);
   if (!user || user.userType !== "admin") throw new CheckoutError("Admin access required.", 403);
   return user;
+}
+
+export async function requirePermission(request, env, moduleName, action) {
+  const admin = await requireAdmin(request, env);
+  const db = await getDB(env);
+  if (!(await checkPermission(db, admin.roleId, moduleName, action))) {
+    throw new CheckoutError("You do not have permission for this action.", 403);
+  }
+  return admin;
 }
 
 export function errorResponse(error, fallback = "Request failed.") {

@@ -1,20 +1,23 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-export function getDB() {
+export async function getDB(requestEnv) {
+  if (requestEnv && requestEnv.DB) {
+    return requestEnv.DB;
+  }
+
   try {
-    const { env } = getCloudflareContext();
-    if (env?.DB) {
-      return env.DB;
+    const ctx = await getCloudflareContext({ async: true });
+    if (ctx && ctx.env && ctx.env.DB) {
+      return ctx.env.DB;
     }
   } catch (error) {
     // Fallback if context is unavailable
   }
 
-  const db = process.env.DB;
-  if (!db) {
-    throw new Error(
-      "D1 Database binding (DB) not found in process.env or getCloudflareContext()."
-    );
+  if (typeof process !== "undefined" && process.env?.DB) {
+    return process.env.DB;
   }
-  return db;
+
+  return null;
 }
+

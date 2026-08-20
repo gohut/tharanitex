@@ -2,6 +2,7 @@ import { UserRepository } from "../repositories/UserRepository";
 import { Hash } from "../utils/hash";
 import { signJWT } from "../utils/jwt";
 import { getJwtSecret } from "../utils/jwt-secret";
+import { createD1Session } from "../lib/auth";
 
 export class AuthService {
   static async register({ name, email, password, phone }, env) {
@@ -20,12 +21,13 @@ export class AuthService {
     });
 
     const token = await this.generateToken(user, env);
+    const { sessionToken, expiresAt } = await createD1Session(null, user.id, user.role, null, null, env, user);
     const { password: _, ...safeUser } = user;
-    return { user: safeUser, token };
+    return { user: safeUser, token, sessionToken: sessionToken || token, expiresAt };
   }
 
   static async login(email, password, env) {
-    const user = await UserRepository.findByEmail(email);
+    const user = await UserRepository.findByEmail(email, env);
     if (!user) {
       throw new Error("Invalid email or password");
     }
@@ -36,8 +38,9 @@ export class AuthService {
     }
 
     const token = await this.generateToken(user, env);
+    const { sessionToken, expiresAt } = await createD1Session(null, user.id, user.role, null, null, env, user);
     const { password: _, ...safeUser } = user;
-    return { user: safeUser, token };
+    return { user: safeUser, token, sessionToken: sessionToken || token, expiresAt };
   }
 
   static async adminLogin(email, password, env) {

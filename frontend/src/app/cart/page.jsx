@@ -6,8 +6,6 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getCart } from "@/lib/db/cart";
 import { validateSession } from "@/lib/auth";
 import { SESSION_COOKIE_NAME } from "@/types/auth";
-import { verifyJWT } from "@/utils/jwt";
-import { getJwtSecret } from "@/utils/jwt-secret";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -17,25 +15,10 @@ export default async function CartPage() {
   const cookieStore = await cookies();
   let userId = null;
 
-  // 1. Try JWT authentication (auth_token or token)
-  const jwtToken = cookieStore.get("auth_token")?.value || cookieStore.get("token")?.value;
-  if (jwtToken) {
-    const secret = getJwtSecret(env);
-    const payload = await verifyJWT(jwtToken, secret);
-    if (payload && (payload.role === "customer" || !payload.role) && payload.id) {
-      userId = String(payload.id);
-    }
-  }
-
-  // 2. Fall back to D1 session authentication (tharanitex_session)
-  if (!userId) {
-    const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value || "";
-    if (sessionToken) {
-      const user = await validateSession(sessionToken, env);
-      if (user && user.userType === "customer" && user.userId) {
-        userId = String(user.userId);
-      }
-    }
+  const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value || "";
+  if (sessionToken) {
+    const user = await validateSession(sessionToken, env);
+    if (user?.userType === "customer" && user.userId) userId = String(user.userId);
   }
 
   const cartItems = userId ? await getCart(env.DB, userId) : [];

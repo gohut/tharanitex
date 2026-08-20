@@ -40,10 +40,6 @@ export async function POST(request) {
     });
 
     response.headers.append("Set-Cookie", cookieHeader);
-    response.headers.append(
-      "Set-Cookie",
-      `admin_token=${result.sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`
-    );
     return response;
   } catch (err) {
     return Response.json(

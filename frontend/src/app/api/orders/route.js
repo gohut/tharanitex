@@ -2,6 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { createCodOrder, CheckoutError, getOrders } from "@/lib/db/order";
 import { validateCheckoutDetails } from "@/lib/checkout";
 import { requireCustomer } from "@/lib/checkout-auth";
+import { getDB } from "@/lib/db";
 
 export async function GET(request) {
   try {
@@ -30,7 +31,8 @@ export async function POST(request) {
 
     const orderUserId = String(customerId);
     const cartUserId = orderUserId;
-    const order = await createCodOrder(env.DB, {
+    const db = env.DB || (await getDB(env));
+    const order = await createCodOrder(db, {
       userId: orderUserId,
       cartUserId,
       checkoutType,

@@ -3,6 +3,7 @@ import { CheckoutError, prepareOnlineCheckout } from "@/lib/db/order";
 import { validateCheckoutDetails } from "@/lib/checkout";
 import { createRazorpayOrder, getRazorpayKeyId } from "@/lib/razorpay";
 import { requireCustomer } from "@/lib/checkout-auth";
+import { getDB } from "@/lib/db";
 
 export async function POST(request) {
   try {
@@ -12,11 +13,12 @@ export async function POST(request) {
     const details = { name: body.customerName || "", phone: body.phone || "", address: body.deliveryAddress || "", paymentMethod: body.paymentMethod || "" };
     const errors = validateCheckoutDetails(details);
     if (Object.keys(errors).length) throw new CheckoutError(Object.values(errors)[0]);
-    if (!["UPI", "CARD"].includes(details.paymentMethod)) throw new CheckoutError("Choose UPI or Card for online payment.");
+    if (!["UPI", "CARD", "ONLINE"].includes(details.paymentMethod)) throw new CheckoutError("Choose UPI or Card for online payment.");
     const checkoutType = body.checkoutType === "BUY_NOW" ? "BUY_NOW" : body.checkoutType === "CART" ? "CART" : null;
     if (!checkoutType) throw new CheckoutError("Invalid checkout type.");
     const userId = await requireCustomer(request, env);
-    const payment = await prepareOnlineCheckout(env.DB, {
+    const db = env.DB || (await getDB(env));
+    const payment = await prepareOnlineCheckout(db, {
       userId,
       cartUserId: userId,
       checkoutType,

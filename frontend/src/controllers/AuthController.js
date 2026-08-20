@@ -1,12 +1,8 @@
 import { AuthService } from "../services/AuthService";
 import { Validators } from "../validators/validators";
 import { ApiResponse } from "../utils/ApiResponse";
-import { authenticate } from "../middleware/auth";
-
-const isProd = process.env.NODE_ENV === "production";
-const secureFlag = isProd ? "; Secure" : "";
-const cookieOptions = `; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax${secureFlag}`;
-const expireCookieOptions = `; Path=/; HttpOnly; Max-Age=0; SameSite=Lax${secureFlag}`;
+import { requireAuth } from "../middleware/auth";
+import { buildClearCookieHeader, buildSessionCookieHeader, logoutSession } from "../lib/auth";
 
 export class AuthController {
   static async register(request, env) {
@@ -17,20 +13,15 @@ export class AuthController {
         return ApiResponse.badRequest("Validation failed", valErrors);
       }
 
-      const { user, token } = await AuthService.register(body, env);
+      const { user, sessionToken, token, expiresAt } = await AuthService.register(body, env);
 
       const response = ApiResponse.success(user, "User registered successfully", 201);
-      response.headers.append(
-        "Set-Cookie",
-        `token=${token}${cookieOptions}`
-      );
-      response.headers.append(
-        "Set-Cookie",
-        `auth_token=${token}${cookieOptions}`
-      );
-      if (process.env.NODE_ENV !== "production") {
-        console.info("AUTH LOGIN DEBUG", { status: 201, setCookie: true, cookieName: "token & auth_token", cookieAttributes: cookieOptions });
+      const activeToken = sessionToken || token;
+      response.headers.append("Set-Cookie", buildSessionCookieHeader(activeToken));
+      if (token) {
+        response.headers.append("Set-Cookie", `token=${token}; Path=/; SameSite=Lax; Max-Age=604800`);
       }
+      if (expiresAt) response.headers.set("X-Session-Expires-At", expiresAt);
       return response;
     } catch (error) {
       return ApiResponse.error(error.message, 400);
@@ -45,65 +36,27 @@ export class AuthController {
         return ApiResponse.badRequest("Validation failed", valErrors);
       }
 
-      const { user, token } = await AuthService.login(body.email, body.password, env);
+      const { user, sessionToken, token, expiresAt } = await AuthService.login(body.email, body.password, env);
 
       const response = ApiResponse.success(user, "Login successful");
-      response.headers.append(
-        "Set-Cookie",
-        `token=${token}${cookieOptions}`
-      );
-      response.headers.append(
-        "Set-Cookie",
-        `auth_token=${token}${cookieOptions}`
-      );
-      if (process.env.NODE_ENV !== "production") {
-        console.info("AUTH LOGIN DEBUG", { status: 200, setCookie: true, cookieName: "token & auth_token", cookieAttributes: cookieOptions });
+      const activeToken = sessionToken || token;
+      response.headers.append("Set-Cookie", buildSessionCookieHeader(activeToken));
+      if (token) {
+        response.headers.append("Set-Cookie", `token=${token}; Path=/; SameSite=Lax; Max-Age=604800`);
       }
+      if (expiresAt) response.headers.set("X-Session-Expires-At", expiresAt);
       return response;
     } catch (error) {
       return ApiResponse.error(error.message, 401);
     }
   }
 
-  static async logout(request) {
+  static async logout(request, env) {
     try {
       const response = ApiResponse.success(null, "Logged out successfully");
-      response.headers.append("Set-Cookie", `token=${expireCookieOptions}`);
-      response.headers.append("Set-Cookie", `auth_token=${expireCookieOptions}`);
-      response.headers.append("Set-Cookie", `tharanitex_session=${expireCookieOptions}`);
-      return response;
-    } catch (error) {
-      return ApiResponse.error(error.message);
-    }
-  }
-
-  static async adminLogin(request, env) {
-    try {
-      const body = await request.json();
-      const valErrors = Validators.validateLogin(body);
-      if (valErrors) {
-        return ApiResponse.badRequest("Validation failed", valErrors);
-      }
-
-      const { user, token } = await AuthService.adminLogin(body.email, body.password, env);
-
-      const response = ApiResponse.success(user, "Admin login successful");
-      response.headers.set(
-        "Set-Cookie",
-        `admin_token=${token}${cookieOptions}`
-      );
-      return response;
-    } catch (error) {
-      return ApiResponse.error(error.message, 401);
-    }
-  }
-  static async adminLogout(request) {
-    try {
-      const response = ApiResponse.success(null, "Admin logged out successfully");
-      response.headers.set(
-        "Set-Cookie",
-        `admin_token=${expireCookieOptions}`
-      );
+      const token = request.cookies?.get?.("tharanitex_session")?.value;
+      if (token) await logoutSession(token, env);
+      response.headers.append("Set-Cookie", buildClearCookieHeader());
       return response;
     } catch (error) {
       return ApiResponse.error(error.message);
@@ -112,7 +65,7 @@ export class AuthController {
 
   static async getProfile(request, env) {
     try {
-      const payload = await authenticate(request, env);
+      const payload = await requireAuth(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -126,7 +79,7 @@ export class AuthController {
 
   static async updateProfile(request, env) {
     try {
-      const payload = await authenticate(request, env);
+      const payload = await requireAuth(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }

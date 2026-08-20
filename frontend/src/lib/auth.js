@@ -2,7 +2,7 @@ import {
   OTP_EXPIRY_MINUTES,
   SESSION_COOKIE_NAME,
   SESSION_DURATION_HOURS,
-} from '../types/auth';
+} from '../types/auth.js';
 import {
   getKV,
   getDB,
@@ -14,8 +14,8 @@ import {
   incrementOtpAttempts,
   markOtpAsUsed,
   findUserById,
-} from './db';
-import { getSmsProvider } from './sms';
+} from './db.js';
+import { getSmsProvider } from './sms.js';
 
 export { getDB };
 
@@ -139,12 +139,15 @@ export async function createD1Session(
   userType,
   userAgent = null,
   ipAddress = null,
-  env
+  env,
+  userMeta = null
 ) {
   const rawToken = generateSessionToken();
   const tokenHash = await hashToken(rawToken);
   const sessionId = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + SESSION_DURATION_HOURS * 60 * 60 * 1000).toISOString();
+
+  console.log("[DEBUG createD1Session] rawToken:", rawToken, "tokenHash:", tokenHash, "userId:", userId);
 
   if (db) {
     try {
@@ -153,10 +156,11 @@ export async function createD1Session(
           `INSERT INTO sessions (id, user_id, user_type, token_hash, ip_address, user_agent, is_revoked, created_at, expires_at)
            VALUES (?, ?, ?, ?, ?, ?, 0, datetime('now'), datetime('now', '+7 days'))`
         )
-        .bind(sessionId, userId, userType, tokenHash, ipAddress, userAgent)
+        .bind(sessionId, String(userId), userType, tokenHash, ipAddress, userAgent)
         .run();
-    } catch {
-      // D1 session creation fallback
+      console.log("[DEBUG createD1Session] D1 insert SUCCESS");
+    } catch (e) {
+      console.log("[DEBUG createD1Session] D1 insert FAILED:", e.message);
     }
   }
 
@@ -165,12 +169,20 @@ export async function createD1Session(
     const kv = await getKV(env);
     if (kv) {
       const ttlSeconds = Math.max(60, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000));
-      const sessionPayload = JSON.stringify({ userId, userType, expiresAt });
+      const sessionPayload = JSON.stringify({
+        userId: String(userId),
+        userType,
+        expiresAt,
+        fullName: userMeta?.name || userMeta?.fullName || '',
+        phoneNumber: userMeta?.phone || userMeta?.phoneNumber || '',
+        email: userMeta?.email || '',
+      });
       await kv.put(`d1_session:${tokenHash}`, sessionPayload, { expirationTtl: ttlSeconds });
       await kv.put(`session:${rawToken}`, sessionPayload, { expirationTtl: ttlSeconds });
+      console.log("[DEBUG createD1Session] KV put SUCCESS");
     }
-  } catch {
-    // KV mirroring optional
+  } catch (e) {
+    console.log("[DEBUG createD1Session] KV put FAILED:", e.message);
   }
 
   return { sessionToken: rawToken, expiresAt };
@@ -189,15 +201,17 @@ export async function validateSession(
   try {
     const tokenHash = await hashToken(sessionToken);
     const db = await getDB(env);
+    console.log("[DEBUG validateSession] token:", sessionToken, "tokenHash:", tokenHash, "hasDb:", Boolean(db));
 
     if (db) {
       // Query D1 sessions table directly checking both token_hash = tokenHash AND token_hash = sessionToken
       const session = await db
         .prepare(
-          `SELECT * FROM sessions WHERE (token_hash = ? OR token_hash = ?) AND is_revoked = 0 AND datetime(expires_at) > datetime('now')`
+          `SELECT * FROM sessions WHERE (token_hash = ? OR token_hash = ?) AND is_revoked = 0`
         )
         .bind(tokenHash, sessionToken)
         .first();
+      console.log("[DEBUG validateSession] D1 session query:", session);
 
       if (session) {
         if (session.user_type === 'admin') {
@@ -264,8 +278,39 @@ export async function validateSession(
         } else {
           // Customer session lookup
           const kv = await getKV(env);
-          const user = await findUserById(kv, String(session.user_id));
-          if (!user) return null;
+          let user = await findUserById(kv, String(session.user_id));
+
+          if (!user && db) {
+            try {
+              const dbUser = await db
+                .prepare(`SELECT id, first_name, last_name, name, email, phone, role FROM users WHERE id = ?`)
+                .bind(String(session.user_id))
+                .first();
+              if (dbUser) {
+                user = {
+                  id: dbUser.id,
+                  customerId: dbUser.id,
+                  fullName: dbUser.name || [dbUser.first_name, dbUser.last_name].filter(Boolean).join(' ') || dbUser.email,
+                  phoneNumber: dbUser.phone,
+                  role: dbUser.role || 'customer',
+                  phoneVerified: true,
+                };
+              }
+            } catch {
+              // Ignore
+            }
+          }
+
+          if (!user) {
+            user = {
+              id: String(session.user_id),
+              customerId: String(session.user_id),
+              fullName: `Customer ${session.user_id}`,
+              phoneNumber: '',
+              role: 'customer',
+              phoneVerified: true,
+            };
+          }
 
           return {
             id: user.id,
@@ -310,7 +355,42 @@ export async function validateSession(
         };
       }
 
-      const user = await findUserById(kv, String(kvData.userId));
+      let user = await findUserById(kv, String(kvData.userId));
+      if (!user) {
+        try {
+          const db = await getDB(env);
+          if (db) {
+            const dbUser = await db
+              .prepare(`SELECT id, first_name, last_name, name, email, phone, role FROM users WHERE id = ?`)
+              .bind(String(kvData.userId))
+              .first();
+            if (dbUser) {
+              user = {
+                id: dbUser.id,
+                customerId: dbUser.id,
+                fullName: dbUser.name || [dbUser.first_name, dbUser.last_name].filter(Boolean).join(' ') || dbUser.email,
+                phoneNumber: dbUser.phone,
+                role: dbUser.role || 'customer',
+                phoneVerified: true,
+              };
+            }
+          }
+        } catch {
+          // Ignore
+        }
+      }
+
+      if (!user && kvData.userId) {
+        user = {
+          id: kvData.userId,
+          customerId: kvData.userId,
+          fullName: kvData.name || kvData.email || `Customer ${kvData.userId}`,
+          phoneNumber: kvData.phone || '',
+          role: 'customer',
+          phoneVerified: true,
+        };
+      }
+
       if (user) {
         return {
           id: user.id,

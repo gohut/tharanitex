@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { validateSession } from '../../../../lib/auth';
 import { SESSION_COOKIE_NAME } from '../../../../types/auth';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 export async function GET(request) {
   try {
@@ -19,7 +20,8 @@ export async function GET(request) {
       );
     }
 
-    const userData = await validateSession(sessionToken);
+    const { env } = await getCloudflareContext({ async: true });
+    const userData = await validateSession(sessionToken, env);
 
     if (!userData) {
       return NextResponse.json(
