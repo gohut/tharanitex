@@ -12,9 +12,12 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
   getProductBySlug,
   getRelatedProducts,
+  getAllProducts,
 } from "@/lib/db/product";
 
 export const dynamic = "force-dynamic";
+
+const RELATED_PRODUCT_LIMIT = 8;
 
 export default async function ProductPage({ params }) {
   const { slug } = await params;
@@ -23,28 +26,96 @@ export default async function ProductPage({ params }) {
     async: true,
   });
 
-  const product = await getProductBySlug(
-    env.DB,
-    slug
-  );
+  const product = await getProductBySlug(env.DB, slug);
 
   if (!product) {
     notFound();
   }
 
   /*
-   * Real products from D1.
+   * ============================================================
+   * YOU MAY ALSO LIKE — PERMANENT PRODUCT FLOW
+   * ============================================================
    *
-   * This does NOT change the existing product-page
-   * layout. It only replaces the mock relatedProducts
-   * array.
+   * Priority:
+   *
+   * 1. Products from the same category.
+   * 2. Never show the product currently being viewed.
+   * 3. If the category has fewer than 8 products,
+   *    fill the remaining slots with other active products.
+   * 4. Everything comes from the database.
+   *
+   * Therefore:
+   *
+   * Product A
+   *   ↓
+   * Same-category recommendations for A
+   *   ↓
+   * Click Product B
+   *   ↓
+   * Product B page loads
+   *   ↓
+   * Same-category recommendations for B
+   *
+   * There is no static/mock relatedProducts array here.
    */
-  const relatedProducts =
-    await getRelatedProducts(
-      env.DB,
-      product.id,
-      8
-    );
+
+  const sameCategoryProducts = await getRelatedProducts(
+    env.DB,
+    product.id,
+    RELATED_PRODUCT_LIMIT
+  );
+
+  /*
+   * Keep track of products already selected so that
+   * recommendations never contain duplicates.
+   */
+  const selectedIds = new Set(
+    sameCategoryProducts.map((item) => Number(item.id))
+  );
+
+  /*
+   * The current product must never appear inside
+   * "You May Also Like".
+   */
+  selectedIds.add(Number(product.id));
+
+  let relatedProducts = [...sameCategoryProducts];
+
+  /*
+   * If there aren't enough products in the same category,
+   * use other active products as a fallback.
+   *
+   * This prevents the section from randomly becoming empty
+   * simply because a category has only a few products.
+   */
+  if (relatedProducts.length < RELATED_PRODUCT_LIMIT) {
+    const allActiveProducts = await getAllProducts(env.DB, {
+      activeOnly: true,
+    });
+
+    for (const item of allActiveProducts) {
+      const id = Number(item.id);
+
+      if (selectedIds.has(id)) {
+        continue;
+      }
+
+      relatedProducts.push(item);
+      selectedIds.add(id);
+
+      if (relatedProducts.length >= RELATED_PRODUCT_LIMIT) {
+        break;
+      }
+    }
+  }
+
+  /*
+   * ============================================================
+   * REVIEWS
+   * ============================================================
+   */
+
   const rawReviews = await ReviewService.getProductReviews(product.id);
 
   const reviews = rawReviews.map((review) => ({
@@ -66,10 +137,11 @@ export default async function ProductPage({ params }) {
       <Navbar />
 
       <main className="bg-[#FBF5EA]">
+        {/* ======================================================
+            PRODUCT
+        ====================================================== */}
 
-        {/* EXISTING PRODUCT PAGE — UNCHANGED */}
         <section className="mx-auto w-full max-w-[430px] px-4 pb-12 pt-4 sm:px-5 sm:pb-14 sm:pt-5 md:px-8 lg:max-w-[1420px] lg:px-10 lg:pt-6">
-
           <Breadcrumb
             items={[
               {
@@ -86,29 +158,26 @@ export default async function ProductPage({ params }) {
           />
 
           <div className="grid gap-7 sm:gap-8 lg:grid-cols-[minmax(0,720px)_minmax(320px,1fr)] lg:gap-10 xl:gap-14">
+            <ProductGallery images={product.images} />
 
-            <ProductGallery
-              images={product.images}
-            />
-
-            <ProductDetails
-              product={product}
-            />
-
+            <ProductDetails product={product} />
           </div>
         </section>
 
-        {/* REAL D1 PRODUCTS */}
-        <RelatedProducts
-          products={relatedProducts}
-        />
+        {/* ======================================================
+            YOU MAY ALSO LIKE
+        ====================================================== */}
 
-        {/* REAL D1 REVIEWS */}
+        <RelatedProducts products={relatedProducts} />
+
+        {/* ======================================================
+            REVIEWS
+        ====================================================== */}
+
         <ReviewSection
           product={product}
           reviews={reviews}
         />
-
       </main>
     </>
   );
