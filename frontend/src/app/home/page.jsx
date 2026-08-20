@@ -1,6 +1,5 @@
 import Navbar from "@/components/home/Navbar/Navbar";
 import Hero from "@/components/home/Hero/Hero";
-import ConditionalFooter from "@/components/Footer/ConditionalFooter";
 import Categories from "@/components/home/Categories/Categories";
 import PromoBanner from "@/components/home/PromoBanner/PromoBanner";
 import ProductSection from "@/components/home/ProductSection/ProductSection";
@@ -117,7 +116,6 @@ export default async function HomePage() {
         {sections.map(renderSection)}
       </main>
 
-      <ConditionalFooter />
     </>
   );
 }

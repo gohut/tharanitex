@@ -7,6 +7,7 @@ export default function PromoBanner({ banner }) {
 
   const image = (
     <picture>
+      {/* Mobile-specific banner */}
       <source
         media="(max-width: 767px)"
         srcSet={banner.mobileImage || banner.image}
@@ -15,39 +16,51 @@ export default function PromoBanner({ banner }) {
       <img
         src={banner.image}
         alt={banner.title || "Promotional Banner"}
-        className="..."
+        className="
+          block
+          h-auto
+          w-full
+          object-contain
+        "
       />
     </picture>
   );
 
   return (
-    <section className="relative w-full overflow-hidden bg-[#FBF5EA]">
-      <div className="relative aspect-[16/7] w-full sm:aspect-auto">
-        {banner.link ? (
-          <Link href={banner.link} className="block h-full w-full">
-            {image}
-          </Link>
-        ) : (
-          image
-        )}
+    <section className="w-full bg-[#FBF5EA] py-6 sm:py-8 md:py-10">
+      <div className="mx-auto w-full max-w-[1600px] px-0 sm:px-5 md:px-8">
+        <div className="relative w-full overflow-hidden rounded-none sm:rounded-md">
 
-        {(banner.title || banner.subtitle) && (
-          <div className="pointer-events-none absolute inset-0 flex items-center">
-            <div className="mx-auto w-full max-w-[1400px] px-5 md:px-8">
-              {banner.title && (
-                <h2 className="text-2xl font-light leading-tight text-white sm:text-3xl md:text-5xl">
-                  {banner.title}
-                </h2>
-              )}
+          {banner.link ? (
+            <Link
+              href={banner.link}
+              className="block w-full"
+            >
+              {image}
+            </Link>
+          ) : (
+            image
+          )}
 
-              {banner.subtitle && (
-                <p className="mt-2 text-sm leading-6 text-white/90 sm:mt-3 sm:text-base md:text-lg">
-                  {banner.subtitle}
-                </p>
-              )}
+          {(banner.title || banner.subtitle) && (
+            <div className="pointer-events-none absolute inset-0 flex items-center">
+              <div className="mx-auto w-full max-w-[1400px] px-5 md:px-8">
+                {banner.title && (
+                  <h2 className="text-2xl font-light leading-tight text-white sm:text-3xl md:text-5xl">
+                    {banner.title}
+                  </h2>
+                )}
+
+                {banner.subtitle && (
+                  <p className="mt-2 text-sm leading-6 text-white/90 sm:mt-3 sm:text-base md:text-lg">
+                    {banner.subtitle}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+        </div>
       </div>
     </section>
   );

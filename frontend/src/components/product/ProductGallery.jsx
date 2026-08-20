@@ -129,7 +129,7 @@ export default function ProductGallery({ images }) {
             sm:w-9
             ${
               wishlisted
-                ? "bg-[#5B2333]"
+                ? "bg-[#00361f]"
                 : "bg-white"
             }
           `}
