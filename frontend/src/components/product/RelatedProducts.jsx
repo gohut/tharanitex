@@ -65,9 +65,7 @@ export default function RelatedProducts({ products }) {
 }
 
 function RelatedCard({ product }) {
-  const [wishlisted, setWishlisted] = useState(
-    initiallyWishlisted ?? false
-  );
+  const [wishlisted, setWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const router = useRouter();
 
