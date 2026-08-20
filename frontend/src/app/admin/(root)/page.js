@@ -1,29 +1,29 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   ShoppingCart,
-  Package,
   Users,
-  Truck,
+  Package,
   Star,
   FileText,
   Shield,
   Settings,
-  ArrowRight,
   TrendingUp,
   Clock,
-  CheckCircle,
   AlertTriangle,
   RefreshCw,
+  ArrowRight,
 } from "lucide-react";
-import StatusBadge from "../../components/ui/StatusBadge";
+import StatusBadge from "@/components/ui/StatusBadge";
 
 export default function AdminDashboardPage() {
-  const router = useRouter();
   const [orders, setOrders] = useState([]);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [pendingOrders, setPendingOrders] = useState(0);
+  const [pendingCancellations, setPendingCancellations] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -34,66 +34,47 @@ export default function AdminDashboardPage() {
       const res = await fetch("/api/admin/orders");
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
-          router.push("/admin/login");
-          return;
+          throw new Error("Unauthorized admin access. Please log in.");
         }
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json.error || "Failed to load dashboard data");
+        throw new Error("Failed to fetch dashboard data.");
       }
       const data = await res.json();
-      setOrders(data || []);
+      const orderList = Array.isArray(data) ? data : data.data || [];
+      setOrders(orderList);
+
+      setTotalOrders(orderList.length);
+      const pending = orderList.filter((o) =>
+        ["placed", "confirmed", "processing"].includes(
+          (o.order_status || "").toLowerCase()
+        )
+      ).length;
+      setPendingOrders(pending);
+
+      const cancelRequests = orderList.filter((o) =>
+        (o.order_status || "").toLowerCase().includes("cancel")
+      ).length;
+      setPendingCancellations(cancelRequests);
+
+      const revenue = orderList
+        .filter((o) => (o.order_status || "").toLowerCase() !== "cancelled")
+        .reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+      setTotalRevenue(revenue);
     } catch (err) {
-      setError(err.message || "Failed to load dashboard data");
+      console.error("Error loading dashboard data:", err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, []);
 
   useEffect(() => {
-    let ignore = false;
-
-    async function load() {
-      try {
-        const res = await fetch("/api/admin/orders");
-        if (!res.ok) {
-          if (res.status === 401 || res.status === 403) {
-            router.push("/admin/login");
-            return;
-          }
-          const json = await res.json().catch(() => ({}));
-          throw new Error(json.error || "Failed to load dashboard data");
-        }
-        const data = await res.json();
-        if (!ignore) {
-          setOrders(data || []);
-          setError("");
-        }
-      } catch (err) {
-        if (!ignore) setError(err.message || "Failed to load dashboard data");
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    }
-
-    load();
-
-    return () => {
-      ignore = true;
-    };
-  }, [router]);
-
-  const totalOrders = orders.length;
-  const totalRevenue = orders
-    .filter((o) => o.order_status !== "cancelled")
-    .reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
-  const pendingCancellations = orders.filter((o) => o.cancellation_status === "REQUESTED").length;
-  const pendingOrders = orders.filter((o) => ["placed", "confirmed"].includes(o.order_status?.toLowerCase())).length;
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   const quickNav = [
-    { title: "Manage Orders", count: `${totalOrders} Orders`, href: "/admin/orders", icon: ShoppingCart, color: "text-blue-400" },
-    { title: "Manage Products", count: "Catalog", href: "/admin/products", icon: Package, color: "text-gold-400" },
-    { title: "Customers", count: "Accounts", href: "/admin/customerSection", icon: Users, color: "text-purple-400" },
-    { title: "Shipping & Rates", count: "Logistics", href: "/admin/shipping", icon: Truck, color: "text-emerald-400" },
+    { title: "Orders", count: `${totalOrders} total`, href: "/admin/orders", icon: ShoppingCart, color: "text-blue-400" },
+    { title: "Customers", count: "Directory & History", href: "/admin/customerSection", icon: Users, color: "text-purple-400" },
+    { title: "Products", count: "Inventory Catalog", href: "/admin/products", icon: Package, color: "text-emerald-400" },
     { title: "Reviews", count: "Moderation", href: "/admin/reviews", icon: Star, color: "text-amber-400" },
     { title: "Store Content", count: "Banners & Sections", href: "/admin/content", icon: FileText, color: "text-pink-400" },
     { title: "Users & Roles", count: "Permissions", href: "/admin/users", icon: Shield, color: "text-indigo-400" },
@@ -236,7 +217,7 @@ export default function AdminDashboardPage() {
                 orders.slice(0, 5).map((order) => (
                   <tr key={order.id} className="hover:bg-green-800/30 transition">
                     <td className="py-3 px-3 text-gold-400 font-semibold">#{order.id}</td>
-                    <td className="py-3 px-3 text-white font-medium">{order.full_name}</td>
+                    <td className="py-3 px-3 text-white font-medium">{order.full_name || order.customer_name || "Customer"}</td>
                     <td className="py-3 px-3 text-white font-semibold">Rs. {Number(order.total_amount).toLocaleString()}</td>
                     <td className="py-3 px-3"><StatusBadge status={order.order_status} /></td>
                     <td className="py-3 px-3 text-right">

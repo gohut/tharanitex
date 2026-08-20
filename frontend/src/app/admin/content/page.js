@@ -22,6 +22,7 @@ import Toggle from "../../../components/ui/Toggle";
 
 const emptyHero = {
   image: "",
+  mobileImage: "",
   title: "",
   subtitle: "",
   buttonText: "",
@@ -32,6 +33,7 @@ const emptyHero = {
 
 const emptyBanner = {
   image: "",
+  mobileImage: "",
   title: "",
   subtitle: "",
   link: "",
@@ -53,6 +55,7 @@ const emptyShowcase = {
   title: "",
   subtitle: "",
   productIds: [],
+  rowCount: 1,
   sortOrder: 1,
   isActive: true,
   backgroundColor: "",
@@ -233,6 +236,7 @@ async function toggleSection(section) {
                 productIds: section.productIds,
                 backgroundColor: section.backgroundColor,
                 backgroundImage: section.backgroundImage,
+                rowCount: section.rowCount ?? 1,
               }
             : {}),
         }),
@@ -347,7 +351,7 @@ async function addHomepageSection() {
 
   function openEditShowcase(section) {
     setShowcaseSection(section);
-    setShowcaseForm({ title: section.title || "", subtitle: section.subtitle || "", productIds: section.productIds || [], sortOrder: section.sortOrder ?? 1, isActive: Boolean(section.isActive), backgroundColor: section.backgroundColor || "", backgroundImage: section.backgroundImage || "" });
+    setShowcaseForm({ title: section.title || "", subtitle: section.subtitle || "", productIds: section.productIds || [], rowCount: section.rowCount ?? 1, sortOrder: section.sortOrder ?? 1, isActive: Boolean(section.isActive), backgroundColor: section.backgroundColor || "", backgroundImage: section.backgroundImage || "" });
     setShowcaseOpen(true);
   }
 
@@ -355,7 +359,7 @@ async function addHomepageSection() {
     if (!showcaseForm.title.trim() || !showcaseForm.productIds.length) { toast.error("A title and at least one product are required"); return; }
     try {
       setSaving(true);
-      const res = await fetch(showcaseSection ? `/api/admin/homepage/sections/${showcaseSection.id}` : "/api/admin/homepage/sections", { method: showcaseSection ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...showcaseForm, sectionType: "product_showcase", referenceId: null, sortOrder: Number(showcaseForm.sortOrder) || sections.length + 1 }) });
+      const res = await fetch(showcaseSection ? `/api/admin/homepage/sections/${showcaseSection.id}` : "/api/admin/homepage/sections", { method: showcaseSection ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...showcaseForm, sectionType: "product_showcase", referenceId: null, rowCount: Number(showcaseForm.rowCount) || 1, sortOrder: Number(showcaseForm.sortOrder) || sections.length + 1 }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save product section");
       toast.success(showcaseSection ? "Product section updated" : "Product section added");
@@ -411,6 +415,7 @@ async function addHomepageSection() {
 
     setForm({
       image: slide.image || "",
+      mobileImage: slide.mobileImage || "",
       title: slide.title || "",
       subtitle: slide.subtitle || "",
       buttonText: slide.buttonText || "",
@@ -434,6 +439,7 @@ async function addHomepageSection() {
       const payload = {
         type: "hero",
         image: form.image,
+        mobileImage: form.mobileImage || null,
         title: form.title || null,
         subtitle: form.subtitle || null,
         buttonText: form.buttonText || null,
@@ -492,6 +498,7 @@ async function addHomepageSection() {
 
     setForm({
       image: banner.image || "",
+      mobileImage: banner.mobileImage || "",
       title: banner.title || "",
       subtitle: banner.subtitle || "",
       link: banner.link || "",
@@ -515,6 +522,7 @@ async function addHomepageSection() {
       const payload = {
         type: "banner",
         image: form.image,
+        mobileImage: form.mobileImage || "",
         title: form.title || null,
         subtitle: form.subtitle || null,
         link: form.link || null,
@@ -1256,6 +1264,79 @@ async function addHomepageSection() {
             }}
           />
 
+                    <div className="mt-6">
+                      <label className="mb-2 block text-xs font-medium text-green-300">
+                        Mobile Hero Image
+                      </label>
+
+                      <div className="overflow-hidden rounded-xl border border-green-800 bg-green-950">
+                        {form.mobileImage ? (
+                          <img
+                            src={form.mobileImage}
+                            alt="Mobile Hero Preview"
+                            className="h-48 w-full object-contain bg-green-950"
+                          />
+                        ) : (
+                          <div className="flex h-40 flex-col items-center justify-center gap-2 text-green-500">
+                            <ImageIcon size={28} />
+
+                            <span className="text-xs">
+                              No mobile image selected
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="border-t border-green-800 p-3">
+                          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-green-700 px-4 py-2 text-xs font-medium text-green-300 transition hover:bg-green-900">
+                            {uploading ? (
+                              <Loader2
+                                size={14}
+                                className="animate-spin"
+                              />
+                            ) : (
+                              <ImageIcon size={14} />
+                            )}
+
+                            {uploading
+                              ? "Uploading..."
+                              : form.mobileImage
+                              ? "Replace Mobile Image"
+                              : "Upload Mobile Image"}
+
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={uploading}
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+
+                                if (file) {
+                                  const url = await uploadImage(
+                                    file,
+                                    "homepage/hero/mobile"
+                                  );
+
+                                  if (url) {
+                                    setForm((prev) => ({
+                                      ...prev,
+                                      mobileImage: url,
+                                    }));
+                                  }
+                                }
+
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+
+                          <p className="mt-2 text-xs text-green-500">
+                            Recommended ratio: 4:3
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
           <FormInput
             label="Title"
             id="heroTitle"
@@ -1278,6 +1359,24 @@ async function addHomepageSection() {
               setForm({
                 ...form,
                 subtitle: e.target.value,
+              })
+            }
+          />
+
+          <FormInput
+            label="Rows"
+            id="showcaseRows"
+            type="number"
+            min={1}
+            max={6}
+            value={showcaseForm.rowCount ?? 1}
+            onChange={(e) =>
+              setShowcaseForm({
+                ...showcaseForm,
+                rowCount: Math.max(
+                  1,
+                  Math.min(6, Number(e.target.value) || 1)
+                ),
               })
             }
           />
@@ -1392,6 +1491,80 @@ async function addHomepageSection() {
               }
             }}
           />
+
+          {/* MOBILE BANNER IMAGE */}
+          <div className="mt-6">
+            <label className="mb-2 block text-xs font-medium text-green-300">
+              Mobile Banner Image
+            </label>
+
+            <div className="overflow-hidden rounded-xl border border-green-800 bg-green-950">
+              {form.mobileImage ? (
+                <img
+                  src={form.mobileImage}
+                  alt="Mobile Banner Preview"
+                  className="h-48 w-full object-contain bg-green-950"
+                />
+              ) : (
+                <div className="flex h-40 flex-col items-center justify-center gap-2 text-green-500">
+                  <ImageIcon size={28} />
+
+                  <span className="text-xs">
+                    No mobile image selected
+                  </span>
+                </div>
+              )}
+
+              <div className="border-t border-green-800 p-3">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-green-700 px-4 py-2 text-xs font-medium text-green-300 transition hover:bg-green-900">
+                  {uploading ? (
+                    <Loader2
+                      size={14}
+                      className="animate-spin"
+                    />
+                  ) : (
+                    <ImageIcon size={14} />
+                  )}
+
+                  {uploading
+                    ? "Uploading..."
+                    : form.mobileImage
+                    ? "Replace Mobile Image"
+                    : "Upload Mobile Image"}
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={uploading}
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+
+                      if (file) {
+                        const url = await uploadImage(
+                          file,
+                          "homepage/banners/mobile"
+                        );
+
+                        if (url) {
+                          setForm((prev) => ({
+                            ...prev,
+                            mobileImage: url,
+                          }));
+                        }
+                      }
+
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+
+                <p className="mt-2 text-xs text-green-500">
+                  Recommended ratio: 4:3
+                </p>
+              </div>
+            </div>
+          </div>
 
           <FormInput
             label="Title"
@@ -1633,6 +1806,23 @@ async function addHomepageSection() {
       >
         <div className="space-y-4">
           <FormInput label="Section Title" id="showcaseTitle" value={showcaseForm.title} onChange={(e) => setShowcaseForm({ ...showcaseForm, title: e.target.value })} />
+          <FormInput
+            label="Mobile Rows"
+            id="showcaseRows"
+            type="number"
+            min={1}
+            max={6}
+            value={showcaseForm.rowCount ?? 1}
+            onChange={(e) =>
+              setShowcaseForm((prev) => ({
+                ...prev,
+                rowCount: Math.max(
+                  1,
+                  Math.min(6, Number(e.target.value) || 1)
+                ),
+              }))
+            }
+          />
           <FormInput label="Subtitle / Description" id="showcaseSubtitle" type="textarea" rows={3} value={showcaseForm.subtitle} onChange={(e) => setShowcaseForm({ ...showcaseForm, subtitle: e.target.value })} />
           <div>
             <label className="mb-2 block text-xs font-medium text-green-300">Products</label>
@@ -1646,6 +1836,23 @@ async function addHomepageSection() {
             </div>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <FormInput
+              label="Rows"
+              id="showcaseRows"
+              type="number"
+              min={1}
+              max={6}
+              value={showcaseForm.rowCount ?? 1}
+              onChange={(e) =>
+                setShowcaseForm((prev) => ({
+                  ...prev,
+                  rowCount: Math.max(
+                    1,
+                    Math.min(6, Number(e.target.value) || 1)
+                  ),
+                }))
+              }
+            />
             <FormInput label="Display Order" id="showcaseOrder" type="number" value={showcaseForm.sortOrder} onChange={(e) => setShowcaseForm({ ...showcaseForm, sortOrder: Number(e.target.value) })} />
             <div><label className="mb-2 block text-xs font-medium text-green-300">Background Color</label><input type="color" value={showcaseForm.backgroundColor || "#FBF5EA"} onChange={(e) => setShowcaseForm({ ...showcaseForm, backgroundColor: e.target.value })} className="h-10 w-full rounded-xl border border-green-700 bg-green-950 p-1" /><p className="mt-1 text-xs text-green-500">The homepage default is used until a color is selected.</p></div>
           </div>

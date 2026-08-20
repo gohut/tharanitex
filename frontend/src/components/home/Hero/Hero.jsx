@@ -35,49 +35,62 @@ export default function Hero({ slides = [] }) {
           clickable: true,
         }}
       >
-        {slides.map((slide) => (
-          <SwiperSlide key={slide.id}>
-            <div className="relative">
-              <img
-                src={slide.image}
-                alt={slide.title || `Hero Banner ${slide.id}`}
-                className="hero-image h-full w-full object-contain"
-                draggable={false}
-              />
+        {slides.map((slide, index) => {
+          const mobileImage = slide.mobileImage || slide.image;
 
-              {(slide.title ||
-                slide.subtitle ||
-                slide.buttonText) && (
-                <div className="absolute inset-0 flex items-center">
-                  <div className="mx-auto w-full max-w-[1400px] px-4 md:px-8">
-                    <div className="max-w-[18rem] sm:max-w-xl">
-                      {slide.title && (
-                        <h1 className="text-2xl font-light leading-tight text-white sm:text-4xl md:text-6xl">
-                          {slide.title}
-                        </h1>
-                      )}
+          return (
+            <SwiperSlide key={slide.id}>
+              <div className="hero-image-wrapper relative">
+                {/* Desktop Image */}
+                <img
+                  src={slide.image}
+                  alt={slide.title || `Hero Banner ${slide.id}`}
+                  className="hero-image hero-image-desktop"
+                  draggable={false}
+                />
 
-                      {slide.subtitle && (
-                        <p className="mt-2 text-xs leading-5 text-white/90 sm:mt-4 sm:text-lg">
-                          {slide.subtitle}
-                        </p>
-                      )}
+                {/* Mobile Image */}
+                <img
+                  src={mobileImage}
+                  alt={slide.title || `Hero Banner ${slide.id}`}
+                  className="hero-image hero-image-mobile"
+                  draggable={false}
+                />
 
-                      {slide.buttonText && slide.buttonLink && (
-                        <a
-                          href={slide.buttonLink}
-                          className="mt-4 inline-flex min-h-10 items-center bg-[#D4A437] px-4 py-2.5 text-xs font-semibold text-white transition hover:opacity-90 sm:mt-7 sm:min-h-11 sm:px-7 sm:py-3 sm:text-sm"
-                        >
-                          {slide.buttonText}
-                        </a>
-                      )}
+                {(slide.title ||
+                  slide.subtitle ||
+                  slide.buttonText) && (
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="mx-auto w-full max-w-[1400px] px-4 md:px-8">
+                      <div className="max-w-[18rem] sm:max-w-xl">
+                        {slide.title && (
+                          <h1 className="text-2xl font-light leading-tight text-white sm:text-4xl md:text-6xl">
+                            {slide.title}
+                          </h1>
+                        )}
+
+                        {slide.subtitle && (
+                          <p className="mt-2 text-xs leading-5 text-white/90 sm:mt-4 sm:text-lg">
+                            {slide.subtitle}
+                          </p>
+                        )}
+
+                        {slide.buttonText && slide.buttonLink && (
+                          <a
+                            href={slide.buttonLink}
+                            className="mt-4 inline-flex min-h-10 items-center bg-[#D4A437] px-4 py-2.5 text-xs font-semibold text-white transition hover:opacity-90 sm:mt-7 sm:min-h-11 sm:px-7 sm:py-3 sm:text-sm"
+                          >
+                            {slide.buttonText}
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          </SwiperSlide>
-        ))}
+                )}
+              </div>
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
     </section>
   );

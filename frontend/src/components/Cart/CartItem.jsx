@@ -49,13 +49,13 @@ export default function CartItem({ product }) {
             quantity={product.quantity}
           />
           <p className="text-[16px] font-medium text-[#D49E28] sm:text-[19px]">
-            {formatPrice(product.price * product.quantity)}
+            {formatPrice((product.final_price ?? product.price) * product.quantity)}
           </p>
         </div>
 
         {/* Price only (desktop keeps its own column) */}
         <p className="mt-4 hidden text-[26px] font-medium text-[#D49E28] lg:block">
-          {formatPrice(product.price)}
+          {formatPrice(product.final_price ?? product.price)}
         </p>
       </div>
 
@@ -70,7 +70,7 @@ export default function CartItem({ product }) {
       {/* Total (desktop column) */}
       <div className="hidden lg:block lg:text-center">
         <p className="text-[22px] font-medium text-[#3E3A39]">
-          {formatPrice(product.price * product.quantity)}
+          {formatPrice((product.final_price ?? product.price) * product.quantity)}
         </p>
       </div>
 

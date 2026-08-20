@@ -4,6 +4,7 @@ import {
   getAllProducts,
   createProduct,
   addProductImage,
+  createProductVariant,
 } from "@/lib/db/product";
 
 export async function GET() {
@@ -123,6 +124,27 @@ export async function POST(request) {
           body.images[i],
           i
         );
+      }
+    }
+
+        // -----------------------------------
+    // Add product variants
+    // -----------------------------------
+
+    if (Array.isArray(body.variants)) {
+      for (const variant of body.variants) {
+        if (!variant?.name?.trim()) {
+          continue;
+        }
+
+        await createProductVariant(env.DB, {
+          productId: result.id,
+          name: variant.name.trim(),
+          sku: variant.sku?.trim() || null,
+          price: Number(variant.price) || 0,
+          stock: Number(variant.stock) || 0,
+          imageUrl: variant.imageUrl || null,
+        });
       }
     }
 

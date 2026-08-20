@@ -6,11 +6,18 @@ export default function PromoBanner({ banner }) {
   }
 
   const image = (
-    <img
-      src={banner.image}
-      alt={banner.title || "Promotional Banner"}
-      className="block h-full w-full object-contain"
-    />
+    <picture>
+      <source
+        media="(max-width: 767px)"
+        srcSet={banner.mobileImage || banner.image}
+      />
+
+      <img
+        src={banner.image}
+        alt={banner.title || "Promotional Banner"}
+        className="..."
+      />
+    </picture>
   );
 
   return (

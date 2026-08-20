@@ -1,9 +1,37 @@
 ﻿.hero-section {
   width: 100%;
-  height: 420px;
   overflow: hidden;
   position: relative;
   background: #FBF5EA;
+}
+
+.hero-image-wrapper {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+
+  transition: opacity 0.45s ease-in-out;
+}
+
+/* Desktop image visible */
+.hero-image-desktop {
+  opacity: 1;
+  position: relative;
+}
+
+/* Mobile image hidden */
+.hero-image-mobile {
+  opacity: 0;
+  position: absolute;
+  inset: 0;
 }
 
 /* =========================
@@ -11,131 +39,46 @@
    ========================= */
 
 @media (max-width: 639px) {
-  .hero-section {
-    height: auto;
-    min-height: 0;
+  .hero-image-desktop {
+    opacity: 0;
+    position: absolute;
+    inset: 0;
   }
 
-  .hero-section .swiper {
-    width: 100%;
-    height: auto;
-  }
-
-  .hero-section .swiper-slide {
-    width: 100%;
-    height: auto;
-    overflow: hidden;
-  }
-
-  .hero-image {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    object-position: center center;
-    display: block;
-    user-select: none;
-    pointer-events: none;
-    transform: none;
-  }
-
-  .hero-section .swiper-slide-active .hero-image {
-    transform: none;
-  }
-
-  .hero-section .swiper-pagination {
-    bottom: 12px !important;
-  }
-}
-
-/* =========================
-   TABLET
-   ========================= */
-
-@media (min-width: 640px) and (max-width: 1023px) {
-  .hero-section {
-    height: auto;
-  }
-
-  .hero-section .swiper {
-    width: 100%;
-    height: auto;
-  }
-
-  .hero-section .swiper-slide {
-    width: 100%;
-    height: auto;
-    overflow: hidden;
-  }
-
-  .hero-image {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    object-position: center center;
-    display: block;
-    user-select: none;
-    pointer-events: none;
-    transform: none;
-    
-  }
-
-  .hero-section .swiper-slide-active .hero-image {
-    transform: none;
-  }
-
-  .hero-section .swiper-pagination {
-    bottom: 12px !important;
-  }
-}
-
-/* =========================
-   DESKTOP
-   ========================= */
-
-@media (min-width: 1024px) {
-  .hero-section {
-    width: 100%;
-    height: auto;
-    overflow: hidden;
+  .hero-image-mobile {
+    opacity: 1;
     position: relative;
-    background: #FBF5EA;
   }
 
-  .hero-section .swiper {
-    width: 100%;
-    height: auto;
-  }
-
-  .hero-section .swiper-slide {
-    width: 100%;
-    height: auto;
-    overflow: hidden;
-  }
-
-  .hero-image {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    object-position: center center;
-    display: block;
-    user-select: none;
-    pointer-events: none;
-    transform: none;
-  }
-
-  .hero-section .swiper-slide-active .hero-image {
-    transform: none;
-  }
-
-  .hero-section .swiper-pagination {
-    bottom: 12px !important;
+  .hero-image-wrapper {
+    aspect-ratio: 4 / 3;
   }
 }
 
+/* =========================
+   TABLET / DESKTOP
+   ========================= */
+
+@media (min-width: 640px) {
+  .hero-image-desktop {
+    opacity: 1;
+    position: relative;
+  }
+
+  .hero-image-mobile {
+    opacity: 0;
+    position: absolute;
+    inset: 0;
+  }
+}
 
 /* =========================
    PAGINATION
    ========================= */
+
+.hero-section .swiper-pagination {
+  bottom: 12px !important;
+}
 
 .hero-section .swiper-pagination-bullet {
   width: 8px;

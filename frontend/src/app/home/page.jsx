@@ -88,6 +88,7 @@ export default async function HomePage() {
             key={section.id}
             title={section.title}
             subtitle={section.subtitle}
+            rowCount={section.rowCount ?? 1}
             products={data.showcaseProducts?.[section.id] || []}
             backgroundColor={section.backgroundColor || undefined}
             backgroundImage={section.backgroundImage || undefined}
@@ -109,10 +110,14 @@ export default async function HomePage() {
   };
 
   return (
-    <main className="bg-[#FBF5EA]">
-      <Navbar />
+    <>
+      <main className="bg-[#FBF5EA]">
+        <Navbar />
 
-      {sections.map(renderSection)}
-    </main>
+        {sections.map(renderSection)}
+      </main>
+
+      <ConditionalFooter />
+    </>
   );
 }

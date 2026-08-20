@@ -12,32 +12,46 @@ function validQuantity(value) {
   return Number.isInteger(Number(value)) && Number(value) > 0 && Number(value) <= 99;
 }
 
-async function trustedItems(db, checkoutType, productId, quantity, cartUserId) {
+async function trustedItems(db, checkoutType, productId, variantId, quantity, cartUserId) {
   if (checkoutType === "BUY_NOW") {
     if (!validQuantity(quantity) || !Number.isInteger(Number(productId)) || Number(productId) <= 0) {
       throw new CheckoutError("Choose a valid product and quantity.");
     }
     const product = await db.prepare("SELECT id, price, stock, is_active FROM products WHERE id = ?").bind(Number(productId)).first();
     if (!product || Number(product.is_active) !== 1) throw new CheckoutError("This product is no longer available.", 404);
+    const normalizedVariantId = variantId === null || variantId === undefined || variantId === "" ? null : Number(variantId);
+    if (normalizedVariantId !== null) {
+      if (!Number.isInteger(normalizedVariantId) || normalizedVariantId <= 0) throw new CheckoutError("Choose a valid product variant.");
+      const variant = await db.prepare("SELECT id, price, stock, is_active FROM product_variants WHERE id = ? AND product_id = ? LIMIT 1").bind(normalizedVariantId, product.id).first();
+      if (!variant || Number(variant.is_active) !== 1) throw new CheckoutError("This product variant is no longer available.", 404);
+      if (Number(variant.stock) <= 0 || Number(quantity) > Number(variant.stock)) throw new CheckoutError("The requested quantity is unavailable.", 409);
+      return [{ product_id: product.id, variant_id: variant.id, quantity: Number(quantity), price: Number(variant.price) }];
+    }
     if (!Number.isFinite(Number(product.price)) || Number(product.price) < 0) throw new CheckoutError("This product has an invalid price.", 409);
     if (product.stock !== null && Number(product.stock) > 0 && Number(quantity) > Number(product.stock)) {
       throw new CheckoutError("The requested quantity is unavailable.", 409);
     }
-    return [{ product_id: product.id, quantity: Number(quantity), price: Number(product.price) }];
+    return [{ product_id: product.id, variant_id: null, quantity: Number(quantity), price: Number(product.price) }];
   }
 
   if (checkoutType !== "CART") throw new CheckoutError("Invalid checkout type.");
   const { results } = await db.prepare(`
-    SELECT ci.product_id, ci.quantity, p.id AS resolved_product_id, p.price, p.stock, p.is_active
-    FROM cart_items ci LEFT JOIN products p ON p.id = ci.product_id WHERE ci.user_id = ?
+    SELECT ci.product_id, ci.variant_id, ci.quantity, p.id AS resolved_product_id, p.price, p.stock, p.is_active,
+      v.id AS resolved_variant_id, v.price AS variant_price, v.stock AS variant_stock, v.is_active AS variant_active
+    FROM cart_items ci LEFT JOIN products p ON p.id = ci.product_id LEFT JOIN product_variants v ON v.id = ci.variant_id
+    WHERE ci.user_id = ?
   `).bind(cartUserId).all();
   if (!results.length) throw new CheckoutError("Cart is empty", 409);
   return results.map((item) => {
     if (!item.resolved_product_id || Number(item.is_active) !== 1) throw new CheckoutError("One of the products in your cart is no longer available.", 409);
     if (!validQuantity(item.quantity)) throw new CheckoutError("Your cart contains an invalid quantity.", 409);
-    if (!Number.isFinite(Number(item.price)) || Number(item.price) < 0) throw new CheckoutError("A cart item has an invalid price.", 409);
-    if (item.stock !== null && Number(item.stock) > 0 && Number(item.quantity) > Number(item.stock)) throw new CheckoutError("A cart item quantity is unavailable.", 409);
-    return { product_id: item.product_id, quantity: Number(item.quantity), price: Number(item.price) };
+    const isVariant = item.variant_id !== null;
+    const stock = isVariant ? Number(item.variant_stock) : Number(item.stock);
+    const price = isVariant ? Number(item.variant_price) : Number(item.price);
+    if (isVariant && (!item.resolved_variant_id || Number(item.variant_active) !== 1)) throw new CheckoutError("One of the selected variants is no longer available.", 409);
+    if (!Number.isFinite(price) || price < 0) throw new CheckoutError("A cart item has an invalid price.", 409);
+    if (stock <= 0 || Number(item.quantity) > stock) throw new CheckoutError("A cart item quantity is unavailable.", 409);
+    return { product_id: item.product_id, variant_id: item.variant_id, quantity: Number(item.quantity), price };
   });
 }
 
@@ -64,7 +78,7 @@ async function insertOrder(db, { userId, addressId, items, paymentMethod, paymen
     VALUES (?, ?, ?, ?, ?, 'placed', ?, ?, ?, ?)
   `).bind(userId, addressId, total(items), paymentMethod, paymentStatus, razorpay?.orderId || null, razorpay?.paymentId || null, razorpay?.signature || null, paymentStatus === "paid" ? new Date().toISOString() : null).run();
   const orderId = result.meta.last_row_id;
-  const statements = items.map((item) => db.prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)").bind(orderId, item.product_id, item.quantity, item.price));
+  const statements = items.map((item) => db.prepare("INSERT INTO order_items (order_id, product_id, variant_id, quantity, price) VALUES (?, ?, ?, ?, ?)").bind(orderId, item.product_id, item.variant_id ?? null, item.quantity, item.price));
   if (clearCartUserId) {
     statements.push(db.prepare("DELETE FROM cart_items WHERE user_id = ?").bind(clearCartUserId));
   }
@@ -74,14 +88,14 @@ async function insertOrder(db, { userId, addressId, items, paymentMethod, paymen
 
 export async function createCodOrder(db, checkout) {
   const cartUserId = checkout.cartUserId || checkout.userId;
-  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.quantity, cartUserId);
+  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.variantId, checkout.quantity, cartUserId);
   const addressId = await findOrCreateAddress(db, checkout);
   const orderId = await insertOrder(db, { userId: checkout.userId, addressId, items, paymentMethod: "COD", paymentStatus: "pending", clearCartUserId: checkout.checkoutType === "CART" ? cartUserId : null });
   return { success: true, orderId, totalAmount: total(items), orderStatus: "placed", paymentMethod: "COD", paymentStatus: "pending" };
 }
 
 export async function prepareOnlineCheckout(db, checkout, razorpayOrder, publicKey) {
-  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.quantity, checkout.cartUserId || checkout.userId);
+  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.variantId, checkout.quantity, checkout.cartUserId || checkout.userId);
   const addressId = await findOrCreateAddress(db, checkout);
   const amountPaise = Math.round(total(items) * 100);
   const sessionId = crypto.randomUUID();

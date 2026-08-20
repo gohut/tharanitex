@@ -84,24 +84,36 @@ export default function InitialLoadingShell() {
   useEffect(() => {
     if (stage !== "skeleton") return;
 
-    let loaded = document.readyState === "complete";
+    let minimumTimePassed = false;
+    let pageLoaded = document.readyState === "complete";
+    let finished = false;
 
-    const handleLoad = () => {
-      loaded = true;
+    const finishLoading = () => {
+      if (finished || !minimumTimePassed || !pageLoaded) {
+        return;
+      }
+
+      finished = true;
+      setFadeOut(true);
+
+      setTimeout(() => {
+        setStage("done");
+      }, 350);
     };
 
-    if (!loaded) {
+    const handleLoad = () => {
+      pageLoaded = true;
+      finishLoading();
+    };
+
+    if (!pageLoaded) {
       window.addEventListener("load", handleLoad, { once: true });
     }
 
     const minimumTimer = setTimeout(() => {
-      if (loaded || document.readyState === "complete") {
-        setFadeOut(true);
-
-        setTimeout(() => {
-          setStage("done");
-        }, 350);
-      }
+      minimumTimePassed = true;
+      pageLoaded = document.readyState === "complete";
+      finishLoading();
     }, SKELETON_MIN_TIME);
 
     return () => {
@@ -142,11 +154,7 @@ export default function InitialLoadingShell() {
         overflow-y-auto
         bg-[#FBF5EA]
         transition-opacity duration-350
-        ${
-          fadeOut
-            ? "pointer-events-none opacity-0"
-            : "opacity-100"
-        }
+        ${fadeOut ? "pointer-events-none opacity-0" : "opacity-100"}
       `}
     >
       {getSkeleton(pathname)}

@@ -135,7 +135,7 @@ export default function CheckoutModal({ open, onClose, onOrderCreated, checkoutT
     }
   };
 
-  const payload = () => ({ customerName: details.name.trim(), phone: details.phone.trim(), deliveryAddress: details.address.trim(), paymentMethod: details.paymentMethod, checkoutType, ...(checkoutType === "BUY_NOW" ? { productId: buyNowItem?.productId, quantity: buyNowItem?.quantity } : {}) });
+  const payload = () => ({ customerName: details.name.trim(), phone: details.phone.trim(), deliveryAddress: details.address.trim(), paymentMethod: details.paymentMethod, checkoutType, ...(checkoutType === "BUY_NOW" ? { productId: buyNowItem?.productId, variantId: buyNowItem?.variantId ?? null, quantity: buyNowItem?.quantity } : {}) });
 
   async function submit(event) {
     event.preventDefault();

@@ -10,6 +10,7 @@ export default function ProductSection({
   products = [],
   backgroundImage,
   backgroundColor = "#FBF5EA",
+  rowCount = 1,
 }) {
   const visibleCount = 4;
 
@@ -33,104 +34,94 @@ export default function ProductSection({
     }
   };
 
-  // --------------------------------------------------
-  // MOBILE â€” TWO INDEPENDENT ROW SLIDERS
-  // --------------------------------------------------
+// --------------------------------------------------
+// MOBILE — DYNAMIC CMS ROW SLIDERS
+// --------------------------------------------------
 
-  const mobileVisibleCount = 2;
-  const mobileStep = 2;
+const mobileVisibleCount = 2;
+const mobileStep = 2;
 
-  /*
-   * Split the products into two rows.
-   *
-   * Example with 8 products:
-   *
-   * Row 1 â†’ 1  2  3  4
-   * Row 2 â†’ 5  6  7  8
-   */
-  const mobileRowSize = Math.ceil(products.length / 2);
+const safeRowCount = Math.max(1, Number(rowCount) || 1);
 
-  const mobileRow1Products = products.slice(0, mobileRowSize);
-  const mobileRow2Products = products.slice(mobileRowSize);
+const mobileRows = Array.from(
+  { length: safeRowCount },
+  (_, rowIndex) => {
+    const rowSize = Math.ceil(products.length / safeRowCount);
 
-  const [mobileRow1Index, setMobileRow1Index] = useState(0);
-  const [mobileRow2Index, setMobileRow2Index] = useState(0);
+    return products.slice(
+      rowIndex * rowSize,
+      (rowIndex + 1) * rowSize
+    );
+  }
+);
 
-  const mobileRow1Ref = useRef(null);
-  const mobileRow2Ref = useRef(null);
+const mobileRowRefs = useRef([]);
 
+const [mobileRowIndexes, setMobileRowIndexes] = useState({});
 
-  // Row 1 controls
-  const row1CanGoLeft = mobileRow1Index > 0;
+const getRowIndex = (rowIndex) => {
+  return mobileRowIndexes[rowIndex] || 0;
+};
 
-  const row1CanGoRight =
-    mobileRow1Index + mobileVisibleCount <
-    mobileRow1Products.length;
+const setRowIndex = (rowIndex, value) => {
+  setMobileRowIndexes((prev) => ({
+    ...prev,
+    [rowIndex]: value,
+  }));
+};
 
-  // Row 2 controls
-  const row2CanGoLeft = mobileRow2Index > 0;
+const handleMobilePrevious = (rowIndex) => {
+  const currentIndex = getRowIndex(rowIndex);
 
-  const row2CanGoRight =
-    mobileRow2Index + mobileVisibleCount <
-    mobileRow2Products.length;
+  if (currentIndex <= 0) return;
 
-  const handleMobileRow1Previous = () => {
-    if (!row1CanGoLeft) return;
+  const nextIndex = Math.max(
+    0,
+    currentIndex - mobileStep
+  );
 
-    mobileRow1Ref.current?.scrollBy({
-      left: -mobileRow1Ref.current.clientWidth,
+  const container = mobileRowRefs.current[rowIndex];
+
+  if (container) {
+    container.scrollBy({
+      left: -container.clientWidth,
       behavior: "smooth",
     });
+  }
 
-    setMobileRow1Index((prev) =>
-      Math.max(0, prev - mobileStep)
-    );
-  };
+  setRowIndex(rowIndex, nextIndex);
+};
 
-  const handleMobileRow1Next = () => {
-    if (!row1CanGoRight) return;
+const handleMobileNext = (rowIndex) => {
+  const row = mobileRows[rowIndex];
 
-    mobileRow1Ref.current?.scrollBy({
-      left: mobileRow1Ref.current.clientWidth,
+  if (!row) return;
+
+  const currentIndex = getRowIndex(rowIndex);
+
+  const maxIndex = Math.max(
+    0,
+    row.length - mobileVisibleCount
+  );
+
+  if (currentIndex >= maxIndex) return;
+
+  const nextIndex = Math.min(
+    maxIndex,
+    currentIndex + mobileStep
+  );
+
+  const container = mobileRowRefs.current[rowIndex];
+
+  if (container) {
+    container.scrollBy({
+      left: container.clientWidth,
       behavior: "smooth",
     });
+  }
+  setRowIndex(rowIndex, nextIndex);
+};
 
-    setMobileRow1Index((prev) =>
-      Math.min(
-        mobileRow1Products.length - mobileVisibleCount,
-        prev + mobileStep
-      )
-    );
-  };
-
-  const handleMobileRow2Previous = () => {
-    if (!row2CanGoLeft) return;
-
-    mobileRow2Ref.current?.scrollBy({
-      left: -mobileRow2Ref.current.clientWidth,
-      behavior: "smooth",
-    });
-
-    setMobileRow2Index((prev) =>
-      Math.max(0, prev - mobileStep)
-    );
-  };
-
-  const handleMobileRow2Next = () => {
-    if (!row2CanGoRight) return;
-
-    mobileRow2Ref.current?.scrollBy({
-      left: mobileRow2Ref.current.clientWidth,
-      behavior: "smooth",
-    });
-
-    setMobileRow2Index((prev) =>
-      Math.min(
-        mobileRow2Products.length - mobileVisibleCount,
-        prev + mobileStep
-      )
-    );
-  };
 
   return (
     <section
@@ -164,259 +155,153 @@ export default function ProductSection({
 
 
         {/* ================================================= */}
-        {/* MOBILE / TABLET â€” TWO INDEPENDENT SCROLLABLE ROWS */}
+        {/* MOBILE / TABLET — DYNAMIC CMS ROWS */}
         {/* ================================================= */}
 
         <div className="mt-3 space-y-6 sm:mt-4 sm:space-y-8 lg:hidden">
 
-          {/* ================= ROW 1 ================= */}
+          {mobileRows.map((rowProducts, rowIndex) => {
+            if (!rowProducts.length) return null;
 
-          <div className="relative">
+            const currentIndex =
+              mobileRowIndexes[rowIndex] || 0;
 
-            <div
-              ref={mobileRow1Ref}
-              className="
-                flex
-                gap-3
-                overflow-x-auto
-                scroll-smooth
-                snap-x
-                snap-mandatory
-                scrollbar-hide
-                sm:gap-6
-              "
-            >
-              {mobileRow1Products.map((product) => (
+            const canGoLeft = currentIndex > 0;
+
+            const canGoRight =
+              currentIndex + mobileVisibleCount <
+              rowProducts.length;
+
+            return (
+              <div
+                key={rowIndex}
+                className="relative"
+              >
+
+                {/* PRODUCTS */}
+
                 <div
-                  key={product.id}
+                  ref={(el) => {
+                    mobileRowRefs.current[rowIndex] = el;
+                  }}
                   className="
-                    w-[calc((100%-12px)/2)]
-                    min-w-[calc((100%-12px)/2)]
-                    shrink-0
-                    snap-start
-                    sm:w-[calc((100%-24px)/2)]
-                    sm:min-w-[calc((100%-24px)/2)]
+                    flex
+                    gap-3
+                    overflow-x-auto
+                    scroll-smooth
+                    snap-x
+                    snap-mandatory
+                    scrollbar-hide
+                    sm:gap-6
                   "
                 >
-                  <ProductCard
-                    product={product}
-                    isHomepageCard={true}
-                  />
+                  {rowProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      className="
+                        w-[calc((100%-12px)/2)]
+                        min-w-[calc((100%-12px)/2)]
+                        shrink-0
+                        snap-start
+                        sm:w-[calc((100%-24px)/2)]
+                        sm:min-w-[calc((100%-24px)/2)]
+                      "
+                    >
+                      <ProductCard
+                        product={product}
+                        isHomepageCard={true}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            {/* ROW 1 â€” LEFT ARROW */}
-            {row1CanGoLeft && (
-              <button
-                type="button"
-                onClick={() =>
-                  mobileRow1Ref.current?.scrollBy({
-                    left: -mobileRow1Ref.current.clientWidth,
-                    behavior: "smooth",
-                  })
-                }
-                aria-label="Previous products in first row"
-                className="
-                  absolute
-                  left-0
-                  top-[110px]
-                  z-30
-                  flex
-                  h-10
-                  w-10
-                  -translate-y-1/2
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-white
-                  shadow-md
-                  transition-transform
-                  duration-200
-                  hover:scale-105
-                  active:scale-95
-                  sm:top-[120px]
-                  sm:h-10
-                  sm:w-10
-                "
-              >
-                <ArrowLeft
-                  size={18}
-                  strokeWidth={1.8}
-                  color="#D69E2E"
-                />
-              </button>
-            )}
+                {/* LEFT ARROW */}
 
-            {/* ROW 1 â€” RIGHT ARROW */}
-            {row1CanGoRight && (
-              <button
-                type="button"
-                onClick={() =>
-                  mobileRow1Ref.current?.scrollBy({
-                    left: mobileRow1Ref.current.clientWidth,
-                    behavior: "smooth",
-                  })
-                }
-                aria-label="Next products in first row"
-                className="
-                  absolute
-                  right-0
-                  top-[110px]
-                  z-30
-                  flex
-                  h-10
-                  w-10
-                  -translate-y-1/2
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-white
-                  shadow-md
-                  transition-transform
-                  duration-200
-                  hover:scale-105
-                  active:scale-95
-                  sm:top-[120px]
-                  sm:h-10
-                  sm:w-10
-                "
-              >
-                <ArrowRight
-                  size={18}
-                  strokeWidth={1.8}
-                  color="#D69E2E"
-                />
-              </button>
-            )}
-
-          </div>
-
-
-          {/* ================= ROW 2 ================= */}
-
-          {mobileRow2Products.length > 0 && (
-            <div className="relative">
-
-              <div
-                ref={mobileRow2Ref}
-                className="
-                  flex
-                  gap-3
-                  overflow-x-auto
-                  scroll-smooth
-                  snap-x
-                  snap-mandatory
-                  scrollbar-hide
-                  sm:gap-6
-                "
-              >
-                {mobileRow2Products.map((product) => (
-                  <div
-                    key={product.id}
+                {canGoLeft && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleMobilePrevious(rowIndex)
+                    }
+                    aria-label={`Previous products in row ${
+                      rowIndex + 1
+                    }`}
                     className="
-                      w-[calc((100%-12px)/2)]
-                      min-w-[calc((100%-12px)/2)]
-                      shrink-0
-                      snap-start
-                      sm:w-[calc((100%-24px)/2)]
-                      sm:min-w-[calc((100%-24px)/2)]
+                      absolute
+                      left-0
+                      top-[110px]
+                      z-30
+                      flex
+                      h-8
+                      w-8
+                      -translate-y-1/2
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-white
+                      shadow-md
+                      transition-transform
+                      duration-200
+                      hover:scale-105
+                      active:scale-95
+                      sm:top-[120px]
+                      sm:h-8
+                      sm:w-8
                     "
                   >
-                    <ProductCard
-                      product={product}
-                      isHomepageCard={true}
+                    <ArrowLeft
+                      size={18}
+                      strokeWidth={1.8}
+                      color="#D69E2E"
                     />
-                  </div>
-                ))}
+                  </button>
+                )}
+
+                {/* RIGHT ARROW */}
+
+                {canGoRight && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleMobileNext(rowIndex)
+                    }
+                    aria-label={`Next products in row ${
+                      rowIndex + 1
+                    }`}
+                    className="
+                      absolute
+                      right-0
+                      top-[110px]
+                      z-30
+                      flex
+                      h-8
+                      w-8
+                      -translate-y-1/2
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-white
+                      shadow-md
+                      transition-transform
+                      duration-200
+                      hover:scale-105
+                      active:scale-95
+                      sm:top-[120px]
+                      sm:h-8
+                      sm:w-8
+                    "
+                  >
+                    <ArrowRight
+                      size={18}
+                      strokeWidth={1.8}
+                      color="#D69E2E"
+                    />
+                  </button>
+                )}
+
               </div>
-
-              {/* ROW 2 â€” LEFT ARROW */}
-              {row2CanGoLeft && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    mobileRow2Ref.current?.scrollBy({
-                      left: -mobileRow2Ref.current.clientWidth,
-                      behavior: "smooth",
-                    })
-                  }
-                  aria-label="Previous products in second row"
-                  className="
-                    absolute
-                    left-0
-                    top-[110px]
-                    z-30
-                    flex
-                    h-10
-                    w-10
-                    -translate-y-1/2
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-white
-                    shadow-md
-                    transition-transform
-                    duration-200
-                    hover:scale-105
-                    active:scale-95
-                    sm:top-[120px]
-                    sm:h-10
-                    sm:w-10
-                  "
-                >
-                  <ArrowLeft
-                    size={18}
-                    strokeWidth={1.8}
-                    color="#D69E2E"
-                  />
-                </button>
-              )}
-
-              {/* ROW 2 â€” RIGHT ARROW */}
-              {row2CanGoRight && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    mobileRow2Ref.current?.scrollBy({
-                      left: mobileRow2Ref.current.clientWidth,
-                      behavior: "smooth",
-                    })
-                  }
-                  aria-label="Next products in second row"
-                  className="
-                    absolute
-                    right-0
-                    top-[110px]
-                    z-30
-                    flex
-                    h-10
-                    w-10
-                    -translate-y-1/2
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-white
-                    shadow-md
-                    transition-transform
-                    duration-200
-                    hover:scale-105
-                    active:scale-95
-                    sm:top-[120px]
-                    sm:h-10
-                    sm:w-10
-                  "
-                >
-                  <ArrowRight
-                    size={18}
-                    strokeWidth={1.8}
-                    color="#D69E2E"
-                  />
-                </button>
-              )}
-
-            </div>
-          )}
+            );
+          })}
 
         </div>
 

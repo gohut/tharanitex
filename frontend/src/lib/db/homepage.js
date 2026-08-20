@@ -15,6 +15,7 @@ export async function getHeroSlides(db, { activeOnly = false } = {}) {
       SELECT
         id,
         image_url AS image,
+        mobile_image_url AS mobileImage,
         title,
         subtitle,
         button_text AS buttonText,
@@ -33,8 +34,16 @@ export async function getHeroSlides(db, { activeOnly = false } = {}) {
 export async function getHeroSlideById(db, id) {
   return db
     .prepare(`
-      SELECT id, image_url AS image, title, subtitle, button_text AS buttonText,
-             button_link AS buttonLink, sort_order AS sortOrder, is_active AS isActive
+      SELECT
+        id,
+        image_url AS image,
+        mobile_image_url AS mobileImage,
+        title,
+        subtitle,
+        button_text AS buttonText,
+        button_link AS buttonLink,
+        sort_order AS sortOrder,
+        is_active AS isActive
       FROM homepage_hero_slides
       WHERE id = ?
       LIMIT 1
@@ -47,11 +56,21 @@ export async function createHeroSlide(db, data) {
   const result = await db
     .prepare(`
       INSERT INTO homepage_hero_slides
-        (image_url, title, subtitle, button_text, button_link, sort_order, is_active)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+        (
+          image_url,
+          mobile_image_url,
+          title,
+          subtitle,
+          button_text,
+          button_link,
+          sort_order,
+          is_active
+        )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `)
     .bind(
       data.image,
+      data.mobileImage || "",
       data.title || "",
       data.subtitle || "",
       data.buttonText || "",
@@ -68,12 +87,20 @@ export async function updateHeroSlide(db, id, data) {
   await db
     .prepare(`
       UPDATE homepage_hero_slides
-      SET image_url = ?, title = ?, subtitle = ?, button_text = ?,
-          button_link = ?, sort_order = ?, is_active = ?
+      SET
+        image_url = ?,
+        mobile_image_url = ?,
+        title = ?,
+        subtitle = ?,
+        button_text = ?,
+        button_link = ?,
+        sort_order = ?,
+        is_active = ?
       WHERE id = ?
     `)
     .bind(
       data.image,
+      data.mobileImage || "",
       data.title || "",
       data.subtitle || "",
       data.buttonText || "",
@@ -98,6 +125,7 @@ export async function getPromoBanners(db, { activeOnly = false } = {}) {
       SELECT
         id,
         image_url AS image,
+        mobile_image_url AS mobileImage,
         title,
         subtitle,
         link,
@@ -116,8 +144,16 @@ export async function getPromoBanners(db, { activeOnly = false } = {}) {
 export async function getPromoBannerById(db, id) {
   return db
     .prepare(`
-      SELECT id, image_url AS image, title, subtitle, link, placement,
-             sort_order AS sortOrder, is_active AS isActive
+      SELECT
+      id,
+      image_url AS image,
+      mobile_image_url AS mobileImage,
+      title,
+      subtitle,
+      link,
+      placement,
+      sort_order AS sortOrder,
+      is_active AS isActive
       FROM homepage_banners
       WHERE id = ?
       LIMIT 1
@@ -130,11 +166,12 @@ export async function createPromoBanner(db, data) {
   const result = await db
     .prepare(`
       INSERT INTO homepage_banners
-        (image_url, title, subtitle, link, placement, sort_order, is_active)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+        (image_url, mobile_image_url, title, subtitle, link, placement, sort_order, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `)
     .bind(
       data.image,
+      data.mobileImage || "",
       data.title || "",
       data.subtitle || "",
       data.link || "",
@@ -151,12 +188,13 @@ export async function updatePromoBanner(db, id, data) {
   await db
     .prepare(`
       UPDATE homepage_banners
-      SET image_url = ?, title = ?, subtitle = ?, link = ?,
+      SET image_url = ?, mobile_image_url = ?, title = ?, subtitle = ?, link = ?,
           placement = ?, sort_order = ?, is_active = ?
       WHERE id = ?
     `)
     .bind(
       data.image,
+      data.mobileImage || "",
       data.title || "",
       data.subtitle || "",
       data.link || "",
@@ -238,6 +276,7 @@ export async function getHomepageSections(db) {
         hs.product_ids AS productIds,
         hs.background_color AS backgroundColor,
         hs.background_image AS backgroundImage,
+        hs.row_count AS rowCount,
 
         CASE
           WHEN hs.section_type = 'banner'
@@ -286,9 +325,10 @@ export async function createHomepageSection(db, data) {
         subtitle,
         product_ids,
         background_color,
-        background_image
+        background_image,
+        row_count
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
     .bind(
       data.sectionType,
@@ -299,7 +339,8 @@ export async function createHomepageSection(db, data) {
       data.subtitle || null,
       JSON.stringify(data.productIds || []),
       data.backgroundColor || null,
-      data.backgroundImage || null
+      data.backgroundImage || null,
+      Number(data.rowCount) || 1
     )
     .run();
 
@@ -325,6 +366,7 @@ export async function updateHomepageSection(db, id, data) {
         product_ids = ?,
         background_color = ?,
         background_image = ?,
+        row_count = ?,
         updated_at = CURRENT_TIMESTAMP
 
       WHERE id = ?
@@ -339,6 +381,7 @@ export async function updateHomepageSection(db, id, data) {
       JSON.stringify(data.productIds || []),
       data.backgroundColor || null,
       data.backgroundImage || null,
+      Number(data.rowCount) || 1,
       Number(id)
     )
     .run();

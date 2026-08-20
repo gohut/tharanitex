@@ -105,7 +105,7 @@ export default function Categories({ categories }) {
                 key={item.id}
                 href={`/collections/${item.slug}`}
                 data-category-card
-                className="group flex w-[58vw] shrink-0 snap-start cursor-pointer flex-col sm:w-[44vw] lg:w-[calc((100%-96px)/4)]"
+                className="group flex w-[calc((100%-12px)/2)] min-w-[calc((100%-12px)/2)] shrink-0 snap-start cursor-pointer flex-col sm:w-[calc((100%-24px)/2)] sm:min-w-[calc((100%-24px)/2)] lg:w-[calc((100%-96px)/4)] lg:min-w-0"
               >
                 <div className="overflow-hidden bg-white transition-all duration-500">
                   <img
@@ -133,7 +133,7 @@ export default function Categories({ categories }) {
             <Link
               href="/collections"
               data-category-card
-              className="group flex w-[58vw] shrink-0 snap-start cursor-pointer flex-col sm:w-[44vw] lg:w-[calc((100%-96px)/4)]"
+              className="group flex w-[calc((100%-12px)/2)] min-w-[calc((100%-12px)/2)] shrink-0 snap-start cursor-pointer flex-col sm:w-[calc((100%-20px)/2)] sm:min-w-[calc((100%-20px)/2)] lg:w-[calc((100%-96px)/4)]"
             >
               <div className="flex aspect-[3/4] items-center justify-center border border-[#D4A437]/40 bg-[#F7EEDC] transition-all duration-500 group-hover:bg-[#4A433C] md:h-[360px] md:aspect-auto lg:h-[400px]">
                 <div className="text-center">
