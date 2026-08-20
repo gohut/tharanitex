@@ -6,6 +6,7 @@ export default function StatusBadge({ status }) {
     "Out of Stock": "bg-red-900/50 text-red-300 border-red-800",
     Pending: "bg-yellow-900/50 text-yellow-300 border-yellow-700",
     Placed: "bg-yellow-900/50 text-yellow-300 border-yellow-700",
+    Processing: "bg-blue-900/50 text-blue-300 border-blue-800",
     Confirmed: "bg-cyan-900/50 text-cyan-300 border-cyan-800",
     Packed: "bg-indigo-900/50 text-indigo-300 border-indigo-800",
     Shipped: "bg-blue-900/50 text-blue-300 border-blue-800",

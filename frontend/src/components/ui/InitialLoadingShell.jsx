@@ -66,14 +66,17 @@ export default function InitialLoadingShell() {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    setStage("logo");
-    setFadeOut(false);
+    const startTimer = setTimeout(() => {
+      setStage("logo");
+      setFadeOut(false);
+    }, 0);
 
     const logoTimer = setTimeout(() => {
       setStage("skeleton");
     }, LOGO_SCREEN_TIME);
 
     return () => {
+      clearTimeout(startTimer);
       clearTimeout(logoTimer);
     };
   }, [pathname]);

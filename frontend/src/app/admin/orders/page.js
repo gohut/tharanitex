@@ -1,42 +1,84 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight, Search, RefreshCw } from "lucide-react";
 import Pagination from "../../../components/ui/Pagination";
 import StatusBadge from "../../../components/ui/StatusBadge";
-import { orders as initialOrders } from "../../../data/orders";
 
-const TABS = ["All", "Placed", "Confirmed", "Packed", "Shipped", "Delivered", "Cancelled", "Returned"];
+const TABS = ["All", "Placed", "Processing", "Shipped", "Delivered", "Cancelled"];
 const PAGE_SIZE = 8;
-const ORDERS_STORAGE_KEY = "tharani-admin-orders";
-
-const normalizeOrder = (order) => ({
-  ...order,
-  status: order.status === "Pending" ? "Placed" : order.status,
-});
 
 export default function OrdersPage() {
   const router = useRouter();
-  const [orders, setOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [tab, setTab] = useState("All");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
-      const savedOrders = JSON.parse(localStorage.getItem(ORDERS_STORAGE_KEY) || "null");
-      if (Array.isArray(savedOrders)) {
-        setOrders(savedOrders.map(normalizeOrder));
+      const res = await fetch("/api/admin/orders");
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || "Failed to load orders");
       }
-    } catch {
-      setOrders(initialOrders);
+      const data = await res.json();
+      setOrders(data);
+    } catch (err) {
+      setError(err.message || "Failed to load orders");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  const filtered = orders.filter((order) => {
+  useEffect(() => {
+    let ignore = false;
+
+    async function load() {
+      try {
+        const res = await fetch("/api/admin/orders");
+        if (!res.ok) {
+          const json = await res.json().catch(() => ({}));
+          throw new Error(json.error || "Failed to load orders");
+        }
+        const data = await res.json();
+        if (!ignore) {
+          setOrders(data);
+          setError("");
+        }
+      } catch (err) {
+        if (!ignore) setError(err.message || "Failed to load orders");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const normalizedOrders = orders.map((o) => ({
+    id: String(o.id),
+    customer: o.full_name || "Customer",
+    email: o.city ? `${o.city}, ${o.state}` : "",
+    date: new Date(o.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
+    items: o.items || [],
+    total: o.total_amount || 0,
+    status: o.order_status ? o.order_status.charAt(0).toUpperCase() + o.order_status.slice(1) : "Placed",
+    payment: o.payment_status ? o.payment_status.charAt(0).toUpperCase() + o.payment_status.slice(1) : "Pending",
+  }));
+
+  const filtered = normalizedOrders.filter((order) => {
     const normalizedSearch = search.toLowerCase();
-    const matchTab = tab === "All" || order.status === tab;
+    const matchTab = tab === "All" || order.status.toLowerCase() === tab.toLowerCase();
     const matchSearch =
       order.id.toLowerCase().includes(normalizedSearch) ||
       order.customer.toLowerCase().includes(normalizedSearch);
@@ -53,9 +95,18 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <div>
-        <h1 className="text-white text-2xl font-bold">Orders</h1>
-        <p className="text-green-400 text-sm mt-0.5">Manage and track all customer orders</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-white text-2xl font-bold">Orders</h1>
+          <p className="text-green-400 text-sm mt-0.5">Manage and track all customer orders</p>
+        </div>
+        <button
+          onClick={fetchOrders}
+          disabled={loading}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-green-800 text-green-200 hover:text-white rounded-lg text-xs font-medium transition"
+        >
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
+        </button>
       </div>
 
       <div className="flex gap-1 flex-wrap bg-green-900 p-1 rounded-xl w-fit">
@@ -72,7 +123,7 @@ export default function OrdersPage() {
           >
             {tabName}
             <span className="ml-1.5 text-[10px] opacity-70">
-              ({tabName === "All" ? orders.length : orders.filter((order) => order.status === tabName).length})
+              ({tabName === "All" ? normalizedOrders.length : normalizedOrders.filter((o) => o.status.toLowerCase() === tabName.toLowerCase()).length})
             </span>
           </button>
         ))}
@@ -91,6 +142,12 @@ export default function OrdersPage() {
         />
       </div>
 
+      {error && (
+        <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-xl text-sm">
+          {error}
+        </div>
+      )}
+
       <div className="bg-green-900 border border-green-800 rounded-2xl shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -107,7 +164,13 @@ export default function OrdersPage() {
               </tr>
             </thead>
             <tbody>
-              {paginated.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="px-5 py-12 text-center text-green-400 animate-pulse">
+                    Loading orders...
+                  </td>
+                </tr>
+              ) : paginated.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-5 py-12 text-center text-green-500">
                     No orders found
@@ -127,7 +190,7 @@ export default function OrdersPage() {
                     }}
                     className="border-b border-green-800/50 hover:bg-green-800/30 transition-colors cursor-pointer focus-visible:bg-green-800/40"
                   >
-                    <td className="px-4 py-3 text-gold-400 font-medium text-xs whitespace-nowrap">{order.id}</td>
+                    <td className="px-4 py-3 text-gold-400 font-medium text-xs whitespace-nowrap">#{order.id}</td>
                     <td className="px-4 py-3 min-w-44">
                       <p className="text-white text-xs font-medium">{order.customer}</p>
                       <p className="text-green-500 text-xs">{order.email}</p>

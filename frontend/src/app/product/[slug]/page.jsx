@@ -4,6 +4,7 @@ import Breadcrumb from "@/components/product/Breadcrumb";
 import ProductGallery from "@/components/product/ProductGallery";
 import ProductDetails from "@/components/product/ProductDetails";
 import ReviewSection from "@/components/product/ReviewSection";
+import { ReviewService } from "@/services/ReviewService";
 
 import { notFound } from "next/navigation";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -44,6 +45,21 @@ export default async function ProductPage({ params }) {
       product.id,
       8
     );
+  const rawReviews = await ReviewService.getProductReviews(product.id);
+
+  const reviews = rawReviews.map((review) => ({
+    id: review.id,
+    name: review.reviewer_name || "Verified Customer",
+    rating: Number(review.rating || 0),
+    comment: review.comment || review.review_text || "",
+    date: review.created_at
+      ? new Date(review.created_at).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : "",
+  }));
 
   return (
     <>
@@ -90,6 +106,7 @@ export default async function ProductPage({ params }) {
         {/* REAL D1 REVIEWS */}
         <ReviewSection
           product={product}
+          reviews={reviews}
         />
 
       </main>

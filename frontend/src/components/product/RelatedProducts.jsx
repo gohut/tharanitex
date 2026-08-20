@@ -1,6 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -63,7 +65,80 @@ export default function RelatedProducts({ products }) {
 }
 
 function RelatedCard({ product }) {
-  const [wishlisted, setWishlisted] = useState(false);
+  const [wishlisted, setWishlisted] = useState(
+    initiallyWishlisted ?? false
+  );
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadWishlistState = async () => {
+      try {
+        const response = await fetch("/api/wishlist", {
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        if (cancelled) return;
+
+        const wishlistItems = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
+
+        setWishlisted(
+          wishlistItems.some(
+            (item) => String(item.product_id ?? item.id) === String(product.id)
+          )
+        );
+      } catch (error) {
+        console.error("Failed to load wishlist state:", error);
+      }
+    };
+
+    loadWishlistState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id]);
+
+  const toggleWishlist = async () => {
+    if (wishlistLoading) return;
+
+    try {
+      setWishlistLoading(true);
+
+      const response = await fetch("/api/wishlist", {
+        method: wishlisted ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          productId: product.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Unable to update wishlist");
+      }
+
+      setWishlisted((prev) => !prev);
+      router.refresh();
+    } catch (error) {
+      console.error("Wishlist update failed:", error);
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   const formatPrice = (value) =>
     new Intl.NumberFormat("en-IN", {
@@ -73,7 +148,10 @@ function RelatedCard({ product }) {
     }).format(value);
 
   return (
-    <div className="group cursor-pointer">
+    <Link
+      href={`/product/${product.slug}`}
+      className="group block cursor-pointer"
+    >
       <div className="relative overflow-hidden border border-[#E6D9C6] bg-[#F7EFE3]">
         <div className="relative aspect-[0.85] overflow-hidden">
           <Image
@@ -85,7 +163,8 @@ function RelatedCard({ product }) {
         </div>
 
         <button
-          onClick={() => setWishlisted(!wishlisted)}
+          onClick={toggleWishlist}
+          disabled={wishlistLoading}
           aria-label="Add to wishlist"
           className={`absolute top-2 right-2 z-20 flex h-7 w-7 items-center justify-center rounded-full shadow-md transition-all duration-300 hover:scale-110 active:scale-95 sm:h-8 sm:w-8 ${
             wishlisted ? "bg-[#5B2333]" : "bg-white"
@@ -110,6 +189,6 @@ function RelatedCard({ product }) {
       <p className="mt-1 text-[15px] font-medium text-[#D38E2E]">
         {formatPrice(product.price)}
       </p>
-    </div>
+    </Link>
   );
 }

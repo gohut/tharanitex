@@ -83,7 +83,8 @@ export default function OrderSummary({
       <CheckoutModal
         open={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
-        onOrderCreated={() => router.push("/orders")}
+        checkoutType="CART"
+        onOrderCreated={(order) => router.push(`/orders/${order.orderId}`)}
       />
 
     </div>

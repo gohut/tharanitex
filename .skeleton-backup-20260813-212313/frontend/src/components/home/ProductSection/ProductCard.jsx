@@ -4,6 +4,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { ShoppingBag } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function ProductCard({
   product,
@@ -11,92 +12,55 @@ export default function ProductCard({
   isHomepageCard = false,
 }) {
   const [wishlisted, setWishlisted] = useState(initiallyWishlisted);
+  const router = useRouter();
 
   async function toggleWishlist() {
     try {
-      if (!wishlisted) {
-        const res = await fetch("/api/wishlist", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: "guest",
-            productId: product.id,
-          }),
-        });
+      const method = wishlisted ? "DELETE" : "POST";
 
-        if (!res.ok) throw new Error();
-
-        setWishlisted(true);
-
-        toast.success("Added to wishlist", {
-          style: {
-            background: "#D4A437",
-            color: "#FFFFFF",
-            border: "1px solid #C29128",
-          },
-          iconTheme: {
-            primary: "#FFFFFF",
-            secondary: "#D4A437",
-          },
-        });
-      } else {
-        const res = await fetch("/api/wishlist", {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: "guest",
-            productId: product.id,
-          }),
-        });
-
-        if (!res.ok) throw new Error();
-
-        setWishlisted(false);
-
-        toast.success("Removed from wishlist", {
-          style: {
-            background: "#D4A437",
-            color: "#FFFFFF",
-            border: "1px solid #C29128",
-          },
-          iconTheme: {
-            primary: "#FFFFFF",
-            secondary: "#D4A437",
-          },
-        });
-      }
-    } catch (err) {
-      toast.error("Something went wrong.");
-    }
-  }
-
-  async function addToCart() {
-    try {
-      const res = await fetch("/api/cart", {
-        method: "POST",
+      const res = await fetch("/api/wishlist", {
+        method,
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
-          userId: "guest",
           productId: product.id,
-          quantity: 1,
         }),
       });
 
+      const data = await res.json().catch(() => null);
+
       if (!res.ok) {
-        throw new Error("Failed to add to cart");
+        throw new Error(data?.error || "Unable to update wishlist");
       }
 
-      toast.success(`${product.name} added to cart`);
-    } catch (error) {
-      console.error(error);
-      toast.error("Unable to add product to cart");
+      setWishlisted(!wishlisted);
+
+      toast.success(
+        wishlisted ? "Removed from wishlist" : "Added to wishlist",
+        {
+          style: {
+            background: "#D4A437",
+            color: "#FFFFFF",
+            border: "1px solid #C29128",
+          },
+          iconTheme: {
+            primary: "#FFFFFF",
+            secondary: "#D4A437",
+          },
+        }
+      );
+
+      router.refresh();
+    } catch (err) {
+      console.error("Wishlist update failed:", err);
+      toast.error(err.message || "Something went wrong.");
     }
+  }
+
+  function addToCart() {
+    router.push(`/product/${product.slug}`);
   }
 
   const formattedPrice = new Intl.NumberFormat("en-IN").format(

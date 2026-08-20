@@ -3,8 +3,13 @@
 import { useState } from "react";
 import { Star } from "lucide-react";
 
-export default function ReviewSection({ reviews }) {
+export default function ReviewSection({ reviews, product }) {
   const [visibleReviews, setVisibleReviews] = useState(4);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [reviewMessage, setReviewMessage] = useState("");
 
   const safeReviews = Array.isArray(reviews) ? reviews : [];
 
@@ -19,6 +24,65 @@ export default function ReviewSection({ reviews }) {
       (review) => Number(review.rating) === rating
     ).length
   );
+
+  const submitReview = async () => {
+    if (!product?.id) {
+      setReviewMessage("Product information is missing.");
+      return;
+    }
+
+    if (!reviewRating) {
+      setReviewMessage("Please select a rating.");
+      return;
+    }
+
+    if (!reviewComment.trim()) {
+      setReviewMessage("Please write a review.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setReviewMessage("");
+
+      const response = await fetch("/api/customer/reviews", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          product_id: product.id,
+          rating: reviewRating,
+          comment: reviewComment.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+          data?.error ||
+          "Unable to submit your review."
+        );
+      }
+
+      setReviewComment("");
+      setReviewRating(0);
+      setShowReviewForm(false);
+      setReviewMessage(
+        "Your review has been submitted and is awaiting approval."
+      );
+    } catch (error) {
+      console.error("Review submission failed:", error);
+      setReviewMessage(
+        error.message || "Unable to submit your review."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <section className="mx-auto max-w-[1420px] px-5 pb-20 pt-16 md:px-8 lg:px-10">
@@ -82,9 +146,65 @@ export default function ReviewSection({ reviews }) {
             })}
           </div>
 
-          <button className="mt-8 h-[36px] w-full border border-[#E2BB6A] bg-white text-xs font-medium text-[#D38E2E] transition hover:bg-[#FFF3D9]">
-            Write a Review
+          <button
+            type="button"
+            onClick={() => {
+              setShowReviewForm((prev) => !prev);
+              setReviewMessage("");
+            }}
+            className="mt-8 h-[36px] w-full border border-[#E2BB6A] bg-white text-xs font-medium text-[#D38E2E] transition hover:bg-[#FFF3D9]"
+          >
+            {showReviewForm ? "Close Review Form" : "Write a Review"}
           </button>
+
+          {showReviewForm && (
+            <div className="mt-5 border border-[#E8D8C3] bg-white p-4">
+              <h4 className="text-sm font-semibold text-[#5E4933]">
+                Write your review
+              </h4>
+
+              <div className="mt-3 flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setReviewRating(star)}
+                    aria-label={`Rate ${star} out of 5`}
+                  >
+                    <Star
+                      size={20}
+                      fill={star <= reviewRating ? "#F3A900" : "transparent"}
+                      color="#F3A900"
+                    />
+                  </button>
+                ))}
+              </div>
+
+              <textarea
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                placeholder="Share your experience with this product..."
+                rows={4}
+                className="mt-4 w-full resize-none border border-[#E2D5C4] bg-[#FCF8F1] p-3 text-sm text-[#5E4933] outline-none focus:border-[#D38E2E]"
+              />
+
+              {reviewMessage && (
+                <p className="mt-3 text-xs text-[#8B6A43]">
+                  {reviewMessage}
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={submitReview}
+                disabled={submitting}
+                className="mt-4 w-full bg-[#D38E2E] px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[#B77719] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {submitting ? "Submitting..." : "Submit Review"}
+              </button>
+            </div>
+          )}
+
         </div>
 
         <div className="border border-[#ECDDC7] bg-[#FCF6EC] p-4 md:p-6">

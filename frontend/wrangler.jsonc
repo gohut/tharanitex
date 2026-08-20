@@ -13,19 +13,27 @@
 		{
 			"binding": "DB",
 			"database_name": "tharani-db",
-			"database_id": "dff51ca2-b626-4cb4-85d5-87ca19e71c6a"
+			"database_id": "dff51ca2-b626-4cb4-85d5-87ca19e71c6a",
+			"remote": true
 		}
 	],
 	"kv_namespaces": [
 		{
 			"binding": "KV",
-			"id": "fb0749b3812945bf9254861f77cbaf23"
+			"id": "fb0749b3812945bf9254861f77cbaf23",
+			"remote": true
 		}
 	],
 	"r2_buckets": [
 		{
 			"bucket_name": "tharani-product-images",
-			"binding": "tharani_product_images"
+			"binding": "PRODUCT_IMAGES",
+			"remote": true
+		},
+		{
+			"bucket_name": "tharani-product-images",
+			"binding": "tharani_product_images",
+			"remote": true
 		}
 	]
 }

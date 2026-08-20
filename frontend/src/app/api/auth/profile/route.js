@@ -1,11 +1,12 @@
 import { AuthController } from "@/controllers/AuthController";
-
-export const runtime = "edge";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export async function GET(request) {
-  return await AuthController.getProfile(request);
+  const { env } = await getCloudflareContext({ async: true });
+  return await AuthController.getProfile(request, env);
 }
 
 export async function PUT(request) {
-  return await AuthController.updateProfile(request);
+  const { env } = await getCloudflareContext({ async: true });
+  return await AuthController.updateProfile(request, env);
 }

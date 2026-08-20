@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import QuantitySelector from "./QuantitySelector";
 
 export default function CartItem({ product }) {
-
+  const itemPrice = Number(product.final_price ?? product.price ?? 0);
   const formatPrice = (value) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -14,11 +14,22 @@ export default function CartItem({ product }) {
 
   const router = useRouter();
   async function removeItem() {
-    await fetch(`/api/cart?cartId=${product.id}`, {
-      method: "DELETE",
-    });
+    try {
+      const res = await fetch(`/api/cart?cartId=${product.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
 
-    router.refresh();
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Unable to remove item.");
+      }
+
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+    }
   }
   return (
     <div className="relative grid grid-cols-[80px_minmax(0,1fr)] gap-x-3 gap-y-1 border-b border-[#E8DCCB] py-4 sm:grid-cols-[104px_minmax(0,1fr)] sm:gap-x-4 sm:py-5 lg:grid-cols-[140px_1fr_160px_120px_60px] lg:items-center lg:gap-8 lg:py-8">
@@ -41,6 +52,14 @@ export default function CartItem({ product }) {
         <p className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[#C69A39] sm:mt-1.5 sm:text-[10px] lg:tracking-[0.18em] lg:text-[11px]">
           {product.category}
         </p>
+        {product.variant_name && (
+          <p className="mt-2 text-[10px] text-[#7D7267] sm:text-xs">
+            Variant:{" "}
+            <span className="font-medium text-[#5A1F2F]">
+              {product.variant_name}
+            </span>
+          </p>
+        )}
 
         {/* Quantity + Price grouped together (mobile / tablet) */}
         <div className="mt-2.5 flex items-center justify-between gap-3 sm:mt-3 lg:hidden">
@@ -49,13 +68,13 @@ export default function CartItem({ product }) {
             quantity={product.quantity}
           />
           <p className="text-[16px] font-medium text-[#D49E28] sm:text-[19px]">
-            {formatPrice(product.price * product.quantity)}
+            {formatPrice(itemPrice * product.quantity)}
           </p>
         </div>
 
         {/* Price only (desktop keeps its own column) */}
         <p className="mt-4 hidden text-[26px] font-medium text-[#D49E28] lg:block">
-          {formatPrice(product.price)}
+          {formatPrice(itemPrice)}
         </p>
       </div>
 
@@ -70,7 +89,7 @@ export default function CartItem({ product }) {
       {/* Total (desktop column) */}
       <div className="hidden lg:block lg:text-center">
         <p className="text-[22px] font-medium text-[#3E3A39]">
-          {formatPrice(product.price * product.quantity)}
+          {formatPrice(itemPrice)}
         </p>
       </div>
 

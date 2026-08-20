@@ -102,36 +102,71 @@ export async function addToCart(
     .first();
 
   if (existing) {
-    await db
+  const newQuantity =
+    Number(existing.quantity) + normalizedQuantity;
+
+  let availableStock;
+
+  if (normalizedVariantId !== null) {
+    const variant = await db
       .prepare(`
-        UPDATE cart_items
-        SET quantity = quantity + ?
+        SELECT stock, is_active
+        FROM product_variants
         WHERE id = ?
+          AND product_id = ?
+        LIMIT 1
       `)
       .bind(
-        normalizedQuantity,
-        existing.id
-      )
-      .run();
-  } else {
-    await db
-      .prepare(`
-        INSERT INTO cart_items (
-          user_id,
-          product_id,
-          variant_id,
-          quantity
-        )
-        VALUES (?, ?, ?, ?)
-      `)
-      .bind(
-        userId,
-        Number(productId),
         normalizedVariantId,
-        normalizedQuantity
+        Number(productId)
       )
-      .run();
+      .first();
+
+    if (!variant) {
+      throw new Error("Invalid product variant");
+    }
+
+    if (!variant.is_active) {
+      throw new Error("This variant is unavailable");
+    }
+
+    availableStock = Number(variant.stock);
+  } else {
+    const product = await db
+      .prepare(`
+        SELECT stock
+        FROM products
+        WHERE id = ?
+        LIMIT 1
+      `)
+      .bind(Number(productId))
+      .first();
+
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    availableStock = Number(product.stock);
   }
+
+  if (newQuantity > availableStock) {
+    throw new Error(
+      `Only ${availableStock} available`
+    );
+  }
+
+  await db
+    .prepare(`
+      UPDATE cart_items
+      SET quantity = ?
+      WHERE id = ?
+    `)
+    .bind(
+      newQuantity,
+      existing.id
+    )
+    .run();
+}
 
   return {
     success: true,
@@ -198,6 +233,7 @@ export async function getCart(db, userId) {
 
 export async function updateCartQuantity(
   db,
+  userId,
   cartId,
   quantity
 ) {

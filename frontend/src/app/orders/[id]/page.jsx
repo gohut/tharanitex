@@ -1,4 +1,4 @@
-import Link from "next/link";
+ import Link from "next/link";
 import {
   ChevronRight,
   Headphones,
@@ -9,9 +9,13 @@ import Navbar from "@/components/home/Navbar/Navbar";
 import CustomerPageHeader from "@/components/orders/CustomerPageHeader";
 import OrderStatusPill from "@/components/orders/OrderStatusPill";
 import OrderTimeline from "@/components/orders/OrderTimeline";
+import CustomerOrderActions from "@/components/orders/CustomerOrderActions";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { getOrderById as getMockOrderById } from "@/data/customerOrders";
 import { getOrderById as getDatabaseOrderById } from "@/lib/db/order";
+import { validateSession } from "@/lib/auth";
+import { SESSION_COOKIE_NAME } from "@/types/auth";
+import { verifyJWT } from "@/utils/jwt";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -21,16 +25,36 @@ export default async function OrderDetailsPage({ params }) {
 
   try {
     const { env } = await getCloudflareContext({ async: true });
-    databaseOrder = await getDatabaseOrderById(env.DB, resolvedParams.id, 1);
+    const cookieStore = await cookies();
+    let userId = null;
+
+    // 1. Try JWT authentication (auth_token or token)
+    const jwtToken = cookieStore.get("auth_token")?.value || cookieStore.get("token")?.value;
+    if (jwtToken) {
+      const secret = process.env.JWT_SECRET || "tharanitex_super_secret_key_123!";
+      const payload = await verifyJWT(jwtToken, secret);
+      if (payload && (payload.role === "customer" || !payload.role) && payload.id) {
+        userId = String(payload.id);
+      }
+    }
+
+    // 2. Fall back to session authentication (tharanitex_session)
+    if (!userId) {
+      const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value || "";
+      if (sessionToken) {
+        const user = await validateSession(sessionToken, env);
+        if (user?.userType === "customer" && user.userId) {
+          userId = String(user.userId);
+        }
+      }
+    }
+
+    if (userId) databaseOrder = await getDatabaseOrderById(env.DB, resolvedParams.id, userId);
   } catch (error) {
     console.error("Order details error:", error);
   }
 
-  // Retain the existing static order examples when an older demo order URL is
-  // opened, while newly created checkout orders come from the database.
-  const order = databaseOrder
-    ? mapDatabaseOrder(databaseOrder)
-    : getMockOrderById(resolvedParams.id);
+  const order = databaseOrder ? mapDatabaseOrder(databaseOrder) : null;
 
   if (!order) {
     return (
@@ -47,7 +71,7 @@ export default async function OrderDetailsPage({ params }) {
               Order Not Found
             </p>
             <p className="mt-4 text-[#7D7267]">
-              The requested order could not be located.
+              The requested order could not be located or does not belong to your account.
             </p>
             <Link
               href="/orders"
@@ -60,6 +84,8 @@ export default async function OrderDetailsPage({ params }) {
       </main>
     );
   }
+
+  const displayItems = order.items || [{ id: order.productName, image: order.image, name: order.productName, quantity: order.quantity, price: order.itemPrice, slug: "" }];
 
   return (
     <main className="min-h-screen bg-[#FBF5EA]">
@@ -83,31 +109,41 @@ export default async function OrderDetailsPage({ params }) {
               />
             </div>
 
-            <div className="mt-8 grid gap-6 border-b border-[#DDCFBD] pb-8 md:grid-cols-[140px_1fr_auto] md:items-center">
-              <img
-                src={order.image}
-                alt={order.productName}
-                className="h-[154px] w-[122px] object-cover"
-              />
+            <div className="mt-8 space-y-6 border-b border-[#DDCFBD] pb-8">
+              {displayItems.map((item) => (
+                <div key={item.id} className="grid gap-6 md:grid-cols-[140px_1fr_auto] md:items-center">
+                  <img src={item.image} alt={item.name} className="h-[154px] w-[122px] object-cover" />
+                  <div>
+                    <h3 className="text-[26px] font-semibold text-[#211D19]">{item.name}</h3>
+                    {item.variant_name && (
+                      <p className="mt-2 text-sm text-[#8A8175]">
+                        Variant: {item.variant_name}
+                      </p>
+                    )}
+                    <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-[#8A8175]">
+                      <span>Qty : {item.quantity}</span>
+                      <span>{typeof item.price === "number" ? formatPrice(item.price) : item.price}</span>
+                    </div>
+                    {/* Date placed directly below saree name and details */}
+                    <p className="mt-2.5 text-sm font-medium text-[#8A8175]">{order.placedOn}</p>
+                  </div>
 
-              <div>
-                <h3 className="text-[26px] font-semibold text-[#211D19]">
-                  {order.productName}
-                </h3>
-                <p className="mt-2 text-[18px] font-semibold text-[#6C6258]">
-                  {order.variant}
-                </p>
+                  <div className="flex flex-col items-end gap-3">
+                    {/* Status pill placed directly above Buy Again button */}
+                    <OrderStatusPill status={order.status} />
 
-                <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-[#8A8175]">
-                  <span>Qty : {order.quantity}</span>
-                  <span>{order.itemPrice}</span>
+                    {item.slug ? (
+                      <Link
+                        href={`/product/${item.slug}`}
+                        className="inline-flex items-center justify-center gap-3 border border-[#CDBCA2] px-6 py-4 text-[17px] font-semibold text-[#231F1A] transition hover:border-[#E0A22E] hover:text-[#E0A22E]"
+                      >
+                        <ShoppingBag size={20} />
+                        <span>Buy Again</span>
+                      </Link>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-
-              <button className="inline-flex items-center justify-center gap-3 border border-[#CDBCA2] px-6 py-4 text-[17px] font-semibold text-[#231F1A] transition hover:border-[#E0A22E] hover:text-[#E0A22E]">
-                <ShoppingBag size={20} />
-                <span>Buy Again</span>
-              </button>
+              ))}
             </div>
 
             <div className="mx-auto mt-10 max-w-[430px]">
@@ -116,12 +152,7 @@ export default async function OrderDetailsPage({ params }) {
           </section>
 
           <section className="border border-[#DDCFBD] bg-[#FCF7EF] p-5 md:p-8">
-            <div className="flex flex-col gap-4 border-b border-[#DDCFBD] pb-5 text-sm text-[#8A8175] md:flex-row md:items-center md:justify-between">
-              <p>{order.placedOn}</p>
-              <OrderStatusPill status={order.status} />
-            </div>
-
-            <div className="grid gap-8 pt-7 md:grid-cols-[220px_1fr]">
+            <div className="grid gap-8 pt-2 md:grid-cols-[220px_1fr]">
               <h3 className="text-[20px] font-semibold text-[#211D19]">
                 Shipping Address
               </h3>
@@ -160,6 +191,15 @@ export default async function OrderDetailsPage({ params }) {
             )}
           </section>
 
+          {/* Standalone Section Card for Cancellation Request & Tax Invoice */}
+          <CustomerOrderActions
+            orderId={order.rawId}
+            rawStatus={order.rawStatus}
+            cancellationStatus={order.cancellationStatus}
+            cancellationReason={order.cancellationReason}
+            refundStatus={order.refundStatus}
+          />
+
           <section className="border border-[#DDCFBD] bg-[#FCF7EF] p-5 md:p-8">
             <h2 className="text-[22px] font-semibold text-[#201C18]">
               Order Summary
@@ -167,7 +207,7 @@ export default async function OrderDetailsPage({ params }) {
 
             <div className="mt-6 space-y-6">
               <SummaryRow
-                label="Subtotal(1 Item)"
+                label={`Subtotal (${displayItems.length} Item${displayItems.length === 1 ? "" : "s"})`}
                 value={order.summary.subtotal}
               />
               <SummaryRow
@@ -219,30 +259,32 @@ export default async function OrderDetailsPage({ params }) {
 }
 
 function mapDatabaseOrder(order) {
-  const firstItem = order.items?.[0] || {};
   const createdAt = new Date(order.created_at);
   const date = createdAt.toLocaleDateString("en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
-  const totalQuantity = order.items?.reduce(
-    (total, item) => total + Number(item.quantity),
-    0
-  ) || 0;
-  const status = order.order_status || "placed";
+  const rawStatus = order.order_status || "placed";
+
+  const status =
+    rawStatus.toLowerCase() === "confirmed" ||
+    rawStatus.toLowerCase() === "packed"
+      ? "processing"
+      : rawStatus.toLowerCase();
 
   return {
-    image: firstItem.image,
-    productName: firstItem.name || "Order",
-    variant: order.items?.length > 1 ? `Includes ${order.items.length} items` : "",
-    quantity: totalQuantity,
-    itemPrice: formatPrice(firstItem.price),
+    rawId: order.id,
+    rawStatus: rawStatus,
+    cancellationStatus: order.cancellation_status || "NONE",
+    cancellationReason: order.cancellation_reason || "",
+    refundStatus: order.refund_status || "NOT_REQUESTED",
+    items: (order.items || []).map((item) => ({ ...item, id: item.id || item.product_id })),
     placedOn: `Placed On ${date}`,
     status: `${status.charAt(0).toUpperCase()}${status.slice(1)}`,
     trackingSteps: buildTrackingSteps(status, date),
     shippingAddress: {
-      lines: order.address_line1.split(/\n|,/).map((line) => line.trim()).filter(Boolean),
+      lines: (order.address_line1 || "").split(/\n|,/).map((line) => line.trim()).filter(Boolean),
       phone: order.phone,
     },
     summary: {
@@ -258,8 +300,12 @@ function mapDatabaseOrder(order) {
 
 function buildTrackingSteps(status, date) {
   const stages = ["placed", "processing", "shipped", "delivered"];
-  const completedIndex = status === "cancelled" ? 0 : Math.max(0, stages.indexOf(status));
-  const timelineStages = status === "cancelled" ? ["placed", "cancelled"] : stages;
+  let normalizedStatus = (status || "placed").toLowerCase();
+  if (normalizedStatus === "confirmed" || normalizedStatus === "packed") {
+    normalizedStatus = "processing";
+  }
+  const completedIndex = normalizedStatus === "cancelled" ? 0 : Math.max(0, stages.indexOf(normalizedStatus));
+  const timelineStages = normalizedStatus === "cancelled" ? ["placed", "cancelled"] : stages;
 
   return timelineStages.map((stage, index) => ({
     id: stage,

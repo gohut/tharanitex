@@ -5,68 +5,83 @@ import {
   updateCartQuantity,
   removeFromCart,
 } from "@/lib/db/cart";
+import { requireCustomer } from "@/lib/checkout-auth";
 
 export async function GET(request) {
-  const { env } = getCloudflareContext();
+  const { env } = await getCloudflareContext({ async: true });
 
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get("userId") || "guest";
-
-  return Response.json(await getCart(env.DB, userId));
+  try {
+    const userId = await requireCustomer(request, env);
+    return Response.json(await getCart(env.DB, userId));
+  } catch (error) {
+    return Response.json(
+      { error: error.message },
+      { status: error.status || 401 }
+    );
+  }
 }
 
 export async function POST(request) {
+  const { env } = await getCloudflareContext({ async: true });
+
   try {
-    const { env } = getCloudflareContext();
-
     const body = await request.json();
-
-    const result = await addToCart(
-      env.DB,
-      body.userId || "guest",
-      body.productId,
-      body.variantId ?? null,
-      body.quantity
-    );
-
-    return Response.json(result);
-  } catch (error) {
-    console.error("Cart POST error:", error);
+    const userId = await requireCustomer(request, env);
 
     return Response.json(
-      {
-        success: false,
-        error:
-          error.message ||
-          "Unable to add item to cart",
-      },
-      { status: 400 }
+      await addToCart(
+        env.DB,
+        userId,
+        body.productId,
+        body.variantId ?? null,
+        body.quantity
+      )
+    );
+  } catch (error) {
+    return Response.json(
+      { error: error.message },
+      { status: error.status || 400 }
     );
   }
 }
 
 export async function PATCH(request) {
-  const { env } = getCloudflareContext();
+  const { env } = await getCloudflareContext({ async: true });
 
-  const body = await request.json();
+  try {
+    const body = await request.json();
+    const userId = await requireCustomer(request, env);
 
-  return Response.json(
-    await updateCartQuantity(
-      env.DB,
-      body.cartId,
-      body.quantity
-    )
-  );
+    return Response.json(
+      await updateCartQuantity(
+        env.DB,
+        userId,
+        body.cartId,
+        body.quantity
+      )
+    );
+  } catch (error) {
+    return Response.json(
+      { error: error.message },
+      { status: error.status || 400 }
+    );
+  }
 }
 
 export async function DELETE(request) {
-  const { env } = getCloudflareContext();
+  const { env } = await getCloudflareContext({ async: true });
 
-  const { searchParams } = new URL(request.url);
+  try {
+    const userId = await requireCustomer(request, env);
+    const cartId = new URL(request.url).searchParams.get("cartId");
 
-  const cartId = searchParams.get("cartId");
-
-  return Response.json(
-    await removeFromCart(env.DB, cartId)
-  );
+    return Response.json(
+      await removeFromCart(env.DB, userId, cartId)
+    );
+  } catch (error) {
+    return Response.json(
+      { error: error.message },
+      { status: error.status || 400 }
+    );
+  }
 }

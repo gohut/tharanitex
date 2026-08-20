@@ -1,5 +1,5 @@
-﻿"use client";
-import { useState, useEffect } from "react";
+"use client";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Search, Edit2, Trash2, Star, Package, Upload } from "lucide-react";
 import StatusBadge from "../../../components/ui/StatusBadge";
@@ -113,7 +113,7 @@ export default function ProductsPage() {
   const [catError, setCatError] = useState("");
   const [catUploading, setCatUploading] = useState(false);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
       try {
         setLoading(true);
 
@@ -161,13 +161,66 @@ export default function ProductsPage() {
       } finally {
         setLoading(false);
       }
-  };
-
-  useEffect(() => {
-    loadData();
   }, []);
 
-  // â”€â”€ Filtered Products â”€â”€
+  useEffect(() => {
+    let ignore = false;
+
+    async function load() {
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch("/api/admin/products", { cache: "no-store" }),
+          fetch("/api/admin/categories", { cache: "no-store" }),
+        ]);
+
+        if (!productsRes.ok) {
+          throw new Error("Failed to load products");
+        }
+
+        if (!categoriesRes.ok) {
+          throw new Error("Failed to load categories");
+        }
+
+        const [data, categoryData] = await Promise.all([
+          productsRes.json(),
+          categoriesRes.json(),
+        ]);
+
+        const formattedProducts = data.map((product) => ({
+          ...product,
+          price: Number(product.price),
+          stock: Number(product.stock),
+          status:
+            product.isActive === 0 || product.isActive === false
+              ? "Inactive"
+              : Number(product.stock) === 0
+              ? "Out of Stock"
+              : Number(product.stock) <= 5
+                ? "Low Stock"
+                : "Active",
+          rating: 0,
+          reviews: 0,
+        }));
+
+        if (!ignore) {
+          setProducts(formattedProducts);
+          setCategories(categoryData);
+        }
+      } catch (error) {
+        console.error("Admin products load error:", error);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  // ––– Filtered Products –––
   const filtered = products.filter((p) => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.category.toLowerCase().includes(search.toLowerCase());

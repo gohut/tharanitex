@@ -1,7 +1,9 @@
+
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Navbar from "@/components/home/Navbar/Navbar";
 import { ArrowRight, Mail, Lock, User, Phone, MapPin, Hash, X, Info } from "lucide-react";
 import toast from "react-hot-toast";
 import { GOOGLE_CLIENT_ID } from "../../config/google";
@@ -26,10 +28,16 @@ export default function LoginPage() {
 
   // Redirect if already logged in or process incoming Google hash redirect
   useEffect(() => {
-    // Check local session
+    // Local storage only drives UI state; require a server-verified cookie
+    // before treating the browser as signed in.
     const loggedInUser = localStorage.getItem("currentUser");
     if (loggedInUser) {
-      router.push("/profile");
+      fetch("/api/auth/profile")
+        .then((response) => {
+          if (response.ok) router.push("/profile");
+          else localStorage.removeItem("currentUser");
+        })
+        .catch(() => localStorage.removeItem("currentUser"));
       return;
     }
 
@@ -51,7 +59,7 @@ export default function LoginPage() {
             if (!res.ok) throw new Error("Authentication failed");
             return res.json();
           })
-          .then((data) => {
+          .then(async (data) => {
             // Save user details
             const googleUser = {
               name: data.name || "Google User",
@@ -63,6 +71,29 @@ export default function LoginPage() {
               joinedDate: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
               provider: "google",
             };
+
+            const googlePassword = "google_oauth_" + (data.sub || data.email);
+
+            // Establish server authentication cookie
+            try {
+              let res = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: googleUser.email, password: googlePassword }),
+              });
+              if (!res.ok) {
+                await fetch("/api/auth/register", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    name: googleUser.name,
+                    email: googleUser.email,
+                    password: googlePassword,
+                    phone: "0000000000",
+                  }),
+                });
+              }
+            } catch (e) {}
 
             // Save user session
             localStorage.setItem("currentUser", JSON.stringify(googleUser));
@@ -93,11 +124,26 @@ export default function LoginPage() {
     }
   }, [router]);
 
-  const handleSignIn = (e) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
 
     // Check for admin
     if (loginEmail === "admin@tharanitextiles.com") {
+      try {
+        const res = await fetch("/api/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+        });
+        if (!res.ok) {
+          const json = await res.json().catch(() => ({}));
+          toast.error(json.message || json.error || "Admin login failed");
+          return;
+        }
+      } catch (err) {
+        toast.error("Admin login failed");
+        return;
+      }
       localStorage.setItem("currentUser", JSON.stringify({
         name: "Admin User",
         email: "admin@tharanitextiles.com",
@@ -109,23 +155,34 @@ export default function LoginPage() {
       return;
     }
 
-    // Normal customer login
-    const savedUsers = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
-    const user = savedUsers.find(
-      (u) => u.email.toLowerCase() === loginEmail.toLowerCase() && u.password === loginPassword
-    );
+    // Normal customer login via server API ONLY
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      });
 
-    if (user) {
-      localStorage.setItem("currentUser", JSON.stringify(user));
-      window.dispatchEvent(new Event("auth-change"));
-      toast.success(`Welcome back, ${user.name}!`);
-      router.push("/profile");
-    } else {
-      toast.error("Invalid email or password");
+      if (res.ok) {
+        const json = await res.json().catch(() => ({}));
+        const user = json.data || { name: "Customer", email: loginEmail };
+        localStorage.setItem("currentUser", JSON.stringify(user));
+        window.dispatchEvent(new Event("auth-change"));
+        toast.success(`Welcome back, ${user.name || "Customer"}!`);
+        router.push("/profile");
+        router.refresh();
+        return;
+      } else {
+        const json = await res.json().catch(() => ({}));
+        toast.error(json.message || json.error || "Invalid email or password");
+      }
+    } catch (err) {
+      console.error("Login request error:", err);
+      toast.error("Unable to log in. Please check your connection and try again.");
     }
   };
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
 
     if (!name || !email || !password || !contact || !address || !pincode) {
@@ -133,31 +190,47 @@ export default function LoginPage() {
       return;
     }
 
-    const savedUsers = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
-    const userExists = savedUsers.some((u) => u.email.toLowerCase() === email.toLowerCase());
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, phone: contact }),
+      });
 
-    if (userExists) {
-      toast.error("An account with this email already exists");
-      return;
+      if (res.ok) {
+        const json = await res.json().catch(() => ({}));
+        const registeredUser = json.data || {
+          name,
+          email,
+          contact,
+          address,
+          pincode,
+          joinedDate: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+        };
+
+        const newUser = {
+          ...registeredUser,
+          contact,
+          address,
+          pincode,
+          joinedDate: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+        };
+
+        localStorage.setItem("currentUser", JSON.stringify(newUser));
+
+        window.dispatchEvent(new Event("auth-change"));
+        toast.success("Account created successfully!");
+        router.push("/profile");
+        router.refresh();
+        return;
+      } else {
+        const json = await res.json().catch(() => ({}));
+        toast.error(json.message || json.error || "Account creation failed");
+      }
+    } catch (err) {
+      console.error("Register request error:", err);
+      toast.error("Unable to create account. Please check your connection and try again.");
     }
-
-    const newUser = {
-      name,
-      email,
-      password,
-      contact,
-      address,
-      pincode,
-      joinedDate: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
-    };
-
-    const updatedUsers = [...savedUsers, newUser];
-    localStorage.setItem("registeredUsers", JSON.stringify(updatedUsers));
-    localStorage.setItem("currentUser", JSON.stringify(newUser));
-
-    window.dispatchEvent(new Event("auth-change"));
-    toast.success("Account created successfully!");
-    router.push("/profile");
   };
 
   const handleGoogleLogin = () => {
@@ -208,7 +281,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F2E8] flex items-center justify-center p-4 md:p-8 font-sans relative overflow-hidden">
+    <main className="min-h-screen bg-[#FBF5EA]">
+      <Navbar />
+      <div className="flex items-center justify-center p-4 py-12 md:p-12 font-sans relative overflow-hidden">
       {/* Decorative saree-like wave gradients */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute -top-48 -right-48 w-96 h-96 bg-[#5A1F2F]/5 rounded-full blur-3xl"></div>
@@ -450,5 +525,6 @@ export default function LoginPage() {
         </div>
       )}
     </div>
-  );
+  </main>
+);
 }

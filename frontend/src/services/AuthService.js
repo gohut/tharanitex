@@ -1,19 +1,17 @@
 import { UserRepository } from "../repositories/UserRepository";
 import { Hash } from "../utils/hash";
 import { signJWT } from "../utils/jwt";
+import { getJwtSecret } from "../utils/jwt-secret";
 
 export class AuthService {
-  static async register({ name, email, password, phone }) {
+  static async register({ name, email, password, phone }, env) {
     const existing = await UserRepository.findByEmail(email);
     if (existing) {
       throw new Error("Email already registered");
     }
 
     const hashedPassword = await Hash.hash(password);
-    const id = "usr_" + crypto.randomUUID();
-
     const user = await UserRepository.create({
-      id,
       name,
       email,
       password: hashedPassword,
@@ -21,12 +19,12 @@ export class AuthService {
       role: "customer",
     });
 
-    const token = await this.generateToken(user);
+    const token = await this.generateToken(user, env);
     const { password: _, ...safeUser } = user;
     return { user: safeUser, token };
   }
 
-  static async login(email, password) {
+  static async login(email, password, env) {
     const user = await UserRepository.findByEmail(email);
     if (!user) {
       throw new Error("Invalid email or password");
@@ -37,12 +35,12 @@ export class AuthService {
       throw new Error("Invalid email or password");
     }
 
-    const token = await this.generateToken(user);
+    const token = await this.generateToken(user, env);
     const { password: _, ...safeUser } = user;
     return { user: safeUser, token };
   }
 
-  static async adminLogin(email, password) {
+  static async adminLogin(email, password, env) {
     const user = await UserRepository.findByEmail(email);
     if (!user || user.role !== "admin") {
       throw new Error("Access denied or invalid credentials");
@@ -53,13 +51,13 @@ export class AuthService {
       throw new Error("Access denied or invalid credentials");
     }
 
-    const token = await this.generateToken(user);
+    const token = await this.generateToken(user, env);
     const { password: _, ...safeUser } = user;
     return { user: safeUser, token };
   }
 
-  static async generateToken(user) {
-    const secret = process.env.JWT_SECRET || "tharanitex_super_secret_key_123!";
+  static async generateToken(user, env) {
+    const secret = getJwtSecret(env);
     return await signJWT({ id: user.id, email: user.email, role: user.role }, secret);
   }
 

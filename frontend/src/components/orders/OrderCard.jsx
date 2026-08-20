@@ -33,11 +33,8 @@ export default function OrderCard({ order }) {
     ) || 0;
 
   return (
-    <Link
-      href={`/orders/${order.id}`}
-      className="block border border-[#DDCFBD] bg-[#FCF7EF] p-5 transition hover:-translate-y-0.5 hover:shadow-sm md:p-6"
-    >
-      <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+  <div className="block border border-[#DDCFBD] bg-[#FCF7EF] p-5 transition hover:-translate-y-0.5 hover:shadow-sm md:p-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.16em] text-[#B5986B]">
             Order ID
@@ -46,22 +43,13 @@ export default function OrderCard({ order }) {
           <p className="mt-1 text-sm font-semibold text-[#25211C]">
             #{order.id}
           </p>
-
-          <p className="mt-2 text-sm text-[#8A8175]">
-            Ordered on {formatDate(order.created_at)}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <OrderStatusPill status={status} />
-
-          <span className="text-sm capitalize text-[#8A8175]">
-            {order.order_status}
-          </span>
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-[96px_minmax(0,1fr)] gap-4 border-t border-[#E7DAC8] pt-5 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-5 lg:mt-6 lg:grid-cols-[120px_1fr_auto] lg:items-center">
+      <Link
+        href={`/orders/${order.id}`}
+        className="mt-5 grid grid-cols-[96px_minmax(0,1fr)] gap-4 border-t border-[#E7DAC8] pt-5 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-5 lg:mt-6 lg:grid-cols-[120px_1fr_auto] lg:items-center"
+      >
 
         {firstItem?.image ? (
           <img
@@ -102,16 +90,29 @@ export default function OrderCard({ order }) {
               Total : {formatPrice(order.total_amount)}
             </span>
           </div>
+
+          {/* Date placed below saree name & details */}
+          <p className="mt-2.5 text-sm font-medium text-[#8A8175]">
+            Placed On {formatDate(order.created_at)}
+          </p>
         </div>
 
-        <div className="col-span-2 justify-self-stretch pt-1 lg:col-span-1 lg:justify-self-end lg:pt-0">
-          <div className="inline-flex min-h-11 w-full items-center justify-center gap-3 border border-[#CDBCA2] px-5 py-3 text-[15px] font-semibold text-[#231F1A] transition hover:border-[#E0A22E] hover:text-[#E0A22E] lg:w-auto lg:px-6 lg:py-4 lg:text-[17px]">
-            <ShoppingBag size={20} />
-            <span>Buy Again</span>
-          </div>
+        <div className="col-span-2 flex flex-col items-end gap-2.5 justify-self-stretch pt-1 lg:col-span-1 lg:justify-self-end lg:pt-0">
+          {/* Status pill above Buy Again button */}
+          <OrderStatusPill status={status} />
+
+          {firstItem?.slug && (
+            <Link
+              href={`/product/${firstItem.slug}`}
+              className="inline-flex min-h-11 w-full items-center justify-center gap-3 border border-[#CDBCA2] px-5 py-3 text-[15px] font-semibold text-[#231F1A] transition hover:border-[#E0A22E] hover:text-[#E0A22E] lg:w-auto lg:px-6 lg:py-4 lg:text-[17px]"
+            >
+              <ShoppingBag size={20} />
+              <span>Buy Again</span>
+            </Link>
+          )}
         </div>
 
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }

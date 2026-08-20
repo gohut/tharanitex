@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { Minus, Plus } from "lucide-react";
 import ProductAccordion from "./ProductAccordion";
 import toast from "react-hot-toast";
+import CheckoutModal from "@/components/Cart/CheckoutModal";
 
 export default function ProductDetails({ product }) {
   const router = useRouter();
+    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const variants = Array.isArray(product.variants)
     ? product.variants
@@ -94,7 +96,7 @@ export default function ProductDetails({ product }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: "guest",
+          credentials: "include",
           productId: product.id,
           variantId: selectedVariant?.id || null,
           quantity: qty,
@@ -124,6 +126,27 @@ export default function ProductDetails({ product }) {
           "Unable to add product to cart."
       );
     }
+  }
+
+  function handleBuyNow() {
+    if (currentStock <= 0) {
+      toast.error(
+        selectedVariant
+          ? `${selectedVariant.name} is out of stock`
+          : "This product is out of stock"
+      );
+      return;
+    }
+
+    if (qty > currentStock) {
+      toast.error(
+        `Only ${currentStock} item${currentStock === 1 ? "" : "s"} available`
+      );
+      setQty(currentStock);
+      return;
+    }
+
+    setIsCheckoutOpen(true);
   }
 
   function increaseQty() {
@@ -281,12 +304,27 @@ export default function ProductDetails({ product }) {
       </div>
 
       {/* Buy Now */}
-      <button
-        disabled={currentStock <= 0}
-        className="mt-3 h-11 w-full border-2 border-[#5A1F2F] bg-[#5A1F2F] text-sm font-semibold tracking-[0.06em] text-white transition hover:bg-[#471825] disabled:cursor-not-allowed disabled:border-[#D7CDBD] disabled:bg-[#D7CDBD] sm:h-[50px]"
-      >
-        BUY NOW
-      </button>
+<button
+  onClick={handleBuyNow}
+  disabled={currentStock <= 0}
+  className="mt-3 h-11 w-full border-2 border-[#5A1F2F] bg-[#5A1F2F] text-sm font-semibold tracking-[0.06em] text-white transition hover:bg-[#471825] disabled:cursor-not-allowed disabled:border-[#D7CDBD] disabled:bg-[#D7CDBD] sm:h-[50px]"
+>
+  BUY NOW
+</button>
+
+<CheckoutModal
+  open={isCheckoutOpen}
+  onClose={() => setIsCheckoutOpen(false)}
+  checkoutType="BUY_NOW"
+  buyNowItem={{
+    productId: product.id,
+    variantId: selectedVariant?.id || null,
+    quantity: qty,
+  }}
+  onOrderCreated={(order) =>
+    router.push(`/orders/${order.orderId}`)
+  }
+/>
 
       {/* Details */}
       <div className="mt-5">

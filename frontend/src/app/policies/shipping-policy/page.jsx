@@ -77,14 +77,14 @@ export default function ShippingPolicyPage() {
         5. Tracking Your Shipment
       </h3>
       <p className="text-[#2F2B27]/80 text-[15px] leading-relaxed mb-4 font-sans">
-        As soon as your order is handed over to the courier partner, we will email you the tracking details, tracking number, and a direct link to follow your shipment's journey. You can also view shipment statuses in your Account Dashboard.
+        As soon as your order is handed over to the courier partner, we will email you the tracking details, tracking number, and a direct link to follow your shipment&apos;s journey. You can also view shipment statuses in your Account Dashboard.
       </p>
 
       <h3 className="text-xl md:text-2xl font-cormorant font-bold text-[#5A1F2F] mt-8 mb-4 border-b border-[#E8DCC8]/60 pb-2">
         6. Customs, Duties & Taxes (International Orders)
       </h3>
       <p className="text-[#2F2B27]/80 text-[15px] leading-relaxed mb-4 font-sans">
-        For orders shipped outside India, the buyer is responsible for paying import duties, custom fees, or local sales taxes imposed by the destination country's custom departments. Tharani Textiles is not liable for custom delays or duties.
+        For orders shipped outside India, the buyer is responsible for paying import duties, custom fees, or local sales taxes imposed by the destination country&apos;s custom departments. Tharani Textiles is not liable for custom delays or duties.
       </p>
 
       <h3 className="text-xl md:text-2xl font-cormorant font-bold text-[#5A1F2F] mt-8 mb-4 border-b border-[#E8DCC8]/60 pb-2">

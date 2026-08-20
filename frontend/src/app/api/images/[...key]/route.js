@@ -2,7 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export async function GET(request, { params }) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
 
     const { key } = await params;
 
@@ -10,7 +10,14 @@ export async function GET(request, { params }) {
       ? key.join("/")
       : key;
 
-    const object = await env.tharani_product_images.get(objectKey);
+    const bucket = env.PRODUCT_IMAGES || env.tharani_product_images;
+
+    if (!bucket) {
+      console.error("R2 bucket binding not found");
+      return new Response("Storage binding not found", { status: 500 });
+    }
+
+    const object = await bucket.get(objectKey);
 
     if (!object) {
       return new Response("Image not found", {
@@ -20,9 +27,19 @@ export async function GET(request, { params }) {
 
     const headers = new Headers();
 
-    object.writeHttpMetadata(headers);
+    if (object.httpMetadata?.contentType) {
+      headers.set("content-type", object.httpMetadata.contentType);
+    } else if (objectKey.endsWith(".png")) {
+      headers.set("content-type", "image/png");
+    } else if (objectKey.endsWith(".jpg") || objectKey.endsWith(".jpeg")) {
+      headers.set("content-type", "image/jpeg");
+    } else if (objectKey.endsWith(".webp")) {
+      headers.set("content-type", "image/webp");
+    }
 
-    headers.set("etag", object.httpEtag);
+    if (object.httpEtag) {
+      headers.set("etag", object.httpEtag);
+    }
     headers.set("content-length", String(object.size));
     headers.set(
       "cache-control",

@@ -28,7 +28,7 @@ export default function OrdersPage() {
         setLoading(true);
         setError("");
 
-        const res = await fetch("/api/orders?userId=1", {
+        const res = await fetch("/api/orders", {
           cache: "no-store",
         });
 
@@ -50,15 +50,26 @@ export default function OrdersPage() {
     loadOrders();
   }, []);
 
+  const normalizeOrderStatus = (status) => {
+    const normalized = String(status || "").toLowerCase();
+
+    if (normalized === "confirmed" || normalized === "packed") {
+      return "processing";
+    }
+
+    return normalized;
+  };
+
   const filteredOrders = useMemo(() => {
     if (activeTab === "All Orders") {
       return orders;
     }
 
+    const targetStatus = activeTab.toLowerCase();
+
     return orders.filter(
       (order) =>
-        order.order_status?.toLowerCase() ===
-        activeTab.toLowerCase()
+        normalizeOrderStatus(order.order_status) === targetStatus
     );
   }, [orders, activeTab]);
 

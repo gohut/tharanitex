@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -8,15 +8,7 @@ export default function Categories({ categories }) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  if (!categories) {
-    return null;
-  }
-
-  const items = categories.items || [];
-
-  if (!items.length) {
-    return null;
-  }
+  const items = categories?.items || [];
 
   const updateScrollButtons = () => {
     const slider = sliderRef.current;
@@ -44,6 +36,10 @@ export default function Categories({ categories }) {
       window.removeEventListener("resize", updateScrollButtons);
     };
   }, [items.length]);
+
+  if (!categories || !items.length) {
+    return null;
+  }
 
   const scrollSlider = (direction) => {
     const slider = sliderRef.current;
@@ -137,7 +133,7 @@ export default function Categories({ categories }) {
             <Link
               href="/collections"
               data-category-card
-              className="group flex w-[calc((100%-12px)/2)] min-w-[calc((100%-12px)/2)] shrink-0 snap-start cursor-pointer flex-col sm:w-[calc((100%-20px)/2)] sm:min-w-[calc((100%-20px)/2)] lg:w-[calc((100%-96px)/4)]"
+              className="group flex w-[calc((100%-12px)/2)] min-w-[calc((100%-12px)/2)] shrink-0 snap-start cursor-pointer flex-col sm:w-[calc((100%-24px)/2)] sm:min-w-[calc((100%-24px)/2)] lg:w-[calc((100%-96px)/4)]"
             >
               <div className="flex aspect-[3/4] items-center justify-center border border-[#D4A437]/40 bg-[#F7EEDC] transition-all duration-500 group-hover:bg-[#4A433C] md:h-[360px] md:aspect-auto lg:h-[400px]">
                 <div className="text-center">

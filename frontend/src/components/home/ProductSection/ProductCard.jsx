@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { ShoppingBag } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ImageWithSkeleton from "@/components/ui/ImageWithSkeleton";
 
 export default function ProductCard({
@@ -12,6 +13,7 @@ export default function ProductCard({
   isHomepageCard = false,
 }) {
   const [wishlisted, setWishlisted] = useState(initiallyWishlisted);
+  const router = useRouter();
 
   async function toggleWishlist() {
     try {
@@ -22,7 +24,6 @@ export default function ProductCard({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            userId: "guest",
             productId: product.id,
           }),
         });
@@ -30,6 +31,7 @@ export default function ProductCard({
         if (!res.ok) throw new Error();
 
         setWishlisted(true);
+        router.refresh();
 
         toast.success("Added to wishlist", {
           style: {
@@ -49,7 +51,6 @@ export default function ProductCard({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            userId: "guest",
             productId: product.id,
           }),
         });
@@ -57,6 +58,7 @@ export default function ProductCard({
         if (!res.ok) throw new Error();
 
         setWishlisted(false);
+        router.refresh();
 
         toast.success("Removed from wishlist", {
           style: {
@@ -75,30 +77,9 @@ export default function ProductCard({
     }
   }
 
-  async function addToCart() {
-    try {
-      const res = await fetch("/api/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: "guest",
-          productId: product.id,
-          quantity: 1,
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to add to cart");
-      }
-
-      toast.success(`${product.name} added to cart`);
-    } catch (error) {
-      console.error(error);
-      toast.error("Unable to add product to cart");
-    }
-  }
+  function addToCart() {
+  router.push(`/product/${product.slug}`);
+}
 
   const formattedPrice = new Intl.NumberFormat("en-IN").format(
     Number(String(product.price).replace(/[^0-9.]/g, "")) || 0
@@ -143,9 +124,9 @@ export default function ProductCard({
 
         {/* Add To Cart */}
         {!isHomepageCard && (
-          <button
-            onClick={addToCart}
-            aria-label={`Add ${product.name} to cart`}
+          <Link
+            href={`/product/${product.slug}`}
+            aria-label={`View ${product.name}`}
             className="
               absolute bottom-2 right-2 z-20
               flex h-9 w-9 items-center justify-center rounded-full
@@ -157,7 +138,7 @@ export default function ProductCard({
             "
           >
             <ShoppingBag size={14} strokeWidth={2} />
-          </button>
+          </Link>
         )}
       </div>
 
