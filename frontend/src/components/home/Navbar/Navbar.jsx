@@ -328,12 +328,12 @@ export default function Navbar() {
                 aria-label="Open Menu"
                 aria-expanded={isSidebarOpen}
                 onClick={() => setIsSidebarOpen(true)}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95 sm:h-10 sm:w-10"
               >
                 <Menu
-                  size={24}
+                  size={22}
                   strokeWidth={1.8}
-                  className="text-[#2F2B27]"
+                  className="text-[#2F2B27] sm:h-6 sm:w-6"
                 />
               </button>
 
@@ -345,7 +345,7 @@ export default function Navbar() {
                 <img
                   src="/assets/logo.png"
                   alt="Tharani Textiles"
-                  className="h-10 w-auto object-contain md:h-[52px]"
+                  className="h-8 w-auto object-contain sm:h-10 md:h-[52px]"
                   draggable={false}
                 />
               </Link>
@@ -520,17 +520,17 @@ export default function Navbar() {
 
             {/* RIGHT — SEARCH MODE */}
 
-            <div className="ml-auto flex shrink-0 items-center gap-1 md:gap-5 lg:gap-7">
+            <div className="ml-auto flex shrink-0 items-center gap-0 sm:gap-1 md:gap-5 lg:gap-7">
               <button
                 type="button"
                 aria-label="Wishlist"
                 onClick={() => router.push("/wishlist")}
-                className="hidden h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95 md:flex"
+                className="hidden h-9 w-9 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95 md:flex md:h-10 md:w-10"
               >
                 <img
                   src="/assets/wishlist_icon.png"
                   alt="Wishlist"
-                  className="h-6 w-6 object-contain md:h-7 md:w-7"
+                  className="h-5 w-5 object-contain md:h-7 md:w-7"
                   draggable={false}
                 />
               </button>
@@ -539,12 +539,12 @@ export default function Navbar() {
                 type="button"
                 aria-label="Cart"
                 onClick={() => router.push("/cart")}
-                className="hidden h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95 md:flex"
+                className="hidden h-9 w-9 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95 md:flex md:h-10 md:w-10"
               >
                 <ShoppingBag
-                  size={22}
+                  size={20}
                   strokeWidth={1.8}
-                  className="text-[#2F2B27]"
+                  className="text-[#2F2B27] md:h-[22px] md:w-[22px]"
                 />
               </button>
             </div>
@@ -571,20 +571,25 @@ export default function Navbar() {
               aria-label="Open Menu"
               aria-expanded={isSidebarOpen}
               onClick={() => setIsSidebarOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95 sm:h-10 sm:w-10"
             >
               <Menu
-                size={24}
+                size={22}
                 strokeWidth={1.8}
-                className="text-[#2F2B27]"
+                className="text-[#2F2B27] sm:h-6 sm:w-6"
               />
             </button>
           </div>
 
-          {/* CENTER — LOGO
-              This is absolutely centered against the viewport/header,
-              independent of the menu and right-side icons.
-          */}
+          {/* =================================================
+              CENTERED LOGO
+
+              IMPORTANT:
+              This is absolutely positioned against the navbar
+              itself, so it remains mathematically centered even
+              though the left and right groups have different
+              widths.
+              ================================================= */}
 
           <div className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2">
             <Link
@@ -595,15 +600,17 @@ export default function Navbar() {
               <img
                 src="/assets/logo.png"
                 alt="Tharani Textiles"
-                className="h-10 w-auto max-w-[140px] object-contain transition-transform duration-300 hover:scale-[1.02] sm:h-11 sm:max-w-[150px] md:h-[60px] md:max-w-none"
+                className="h-8 w-auto max-w-[100px] object-contain transition-transform duration-300 hover:scale-[1.02] sm:h-9 sm:max-w-[115px] md:h-[60px] md:max-w-none"
                 draggable={false}
               />
             </Link>
           </div>
 
-          {/* RIGHT — ICONS */}
+          {/* =================================================
+              RIGHT ICON GROUP
+              ================================================= */}
 
-          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2 md:gap-5 lg:gap-7">
+          <div className="ml-auto flex shrink-0 items-center gap-0 sm:gap-1 md:gap-5 lg:gap-7">
 
             {/* SEARCH */}
 
@@ -611,12 +618,12 @@ export default function Navbar() {
               type="button"
               aria-label="Search"
               onClick={activateSearch}
-              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95 sm:h-10 sm:w-10"
             >
               <Search
-                size={21}
+                size={19}
                 strokeWidth={1.8}
-                className="text-[#2F2B27]"
+                className="text-[#2F2B27] sm:h-[21px] sm:w-[21px]"
               />
             </button>
 
@@ -626,12 +633,12 @@ export default function Navbar() {
               type="button"
               aria-label="Wishlist"
               onClick={() => router.push("/wishlist")}
-              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95 sm:h-10 sm:w-10"
             >
               <img
                 src="/assets/wishlist_icon.png"
                 alt="Wishlist"
-                className="h-5 w-5 object-contain md:h-7 md:w-7"
+                className="h-[18px] w-[18px] object-contain sm:h-5 sm:w-5 md:h-7 md:w-7"
                 draggable={false}
               />
             </button>
@@ -642,12 +649,12 @@ export default function Navbar() {
               type="button"
               aria-label="Cart"
               onClick={() => router.push("/cart")}
-              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95 sm:h-10 sm:w-10"
             >
               <ShoppingBag
-                size={21}
+                size={19}
                 strokeWidth={1.8}
-                className="text-[#2F2B27]"
+                className="text-[#2F2B27] sm:h-[21px] sm:w-[21px]"
               />
             </button>
           </div>
