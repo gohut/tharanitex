@@ -427,8 +427,12 @@ export async function enforceAdminPermission(
   action,
   env
 ) {
+  
   const sessionToken =
-    request.cookies.get(SESSION_COOKIE_NAME)?.value || request.headers.get('x-session-token') || '';
+  request.cookies.get(SESSION_COOKIE_NAME)?.value ||
+  request.cookies.get('admin_token')?.value ||
+  request.headers.get('x-session-token') ||
+  '';
 
   if (!sessionToken) {
     return {
