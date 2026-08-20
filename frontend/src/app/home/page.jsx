@@ -110,10 +110,14 @@ export default async function HomePage() {
   };
 
   return (
-    <main className="bg-[#FBF5EA]">
-      <Navbar />
+    <>
+      <main className="bg-[#FBF5EA]">
+        <Navbar />
 
-      {sections.map(renderSection)}
-    </main>
+        {sections.map(renderSection)}
+      </main>
+
+      <ConditionalFooter />
+    </>
   );
 }

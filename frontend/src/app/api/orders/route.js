@@ -35,6 +35,7 @@ export async function POST(request) {
       cartUserId,
       checkoutType,
       productId: body.productId,
+      variantId: body.variantId ?? null,
       quantity: body.quantity,
       customerName: details.name.trim(),
       phone: details.phone.trim(),
