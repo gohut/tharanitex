@@ -156,4 +156,40 @@ export class AuthController {
       return ApiResponse.error(error.message, 400);
     }
   }
+
+  static async googleLogin(request, env) {
+    try {
+      const body = await request.json();
+
+      if (!body.accessToken) {
+        return ApiResponse.badRequest("Google access token is required");
+      }
+
+      const { user, token } = await AuthService.googleLogin(
+        body.accessToken,
+        env
+      );
+
+      const response = ApiResponse.success(
+        user,
+        "Google login successful"
+      );
+
+      response.headers.append(
+        "Set-Cookie",
+        `token=${token}${cookieOptions}`
+      );
+
+      response.headers.append(
+        "Set-Cookie",
+        `auth_token=${token}${cookieOptions}`
+      );
+
+      return response;
+    } catch (error) {
+      console.error("Google login error:", error);
+      return ApiResponse.error(error.message, 401);
+    }
+  }
 }
+

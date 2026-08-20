@@ -72,28 +72,65 @@ export default function LoginPage() {
               provider: "google",
             };
 
-            const googlePassword = "google_oauth_" + (data.sub || data.email);
-
-            // Establish server authentication cookie
             try {
-              let res = await fetch("/api/auth/login", {
+              const authResponse = await fetch("/api/auth/google", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: googleUser.email, password: googlePassword }),
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                  accessToken,
+                }),
               });
-              if (!res.ok) {
-                await fetch("/api/auth/register", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    name: googleUser.name,
-                    email: googleUser.email,
-                    password: googlePassword,
-                    phone: "0000000000",
-                  }),
-                });
+
+              const authData = await authResponse.json().catch(() => ({}));
+
+              if (!authResponse.ok) {
+                throw new Error(
+                  authData.message ||
+                  authData.error ||
+                  "Google authentication failed"
+                );
               }
-            } catch (e) {}
+
+              const authenticatedUser =
+                authData.data || {
+                  name: data.name || "Google User",
+                  email: data.email,
+                  avatar: data.picture,
+                  provider: "google",
+                };
+
+              localStorage.setItem(
+                "currentUser",
+                JSON.stringify(authenticatedUser)
+              );
+
+              window.dispatchEvent(new Event("auth-change"));
+
+              toast.dismiss();
+              toast.success(
+                `Successfully signed in as ${
+                  data.name || data.email
+                }!`
+              );
+
+              window.history.replaceState(
+                null,
+                null,
+                window.location.pathname
+              );
+
+              router.push("/profile");
+              router.refresh();
+            } catch (error) {
+              toast.dismiss();
+              toast.error(
+                error.message || "Failed to authenticate with Google."
+              );
+              console.error("Google authentication error:", error);
+            }
 
             // Save user session
             localStorage.setItem("currentUser", JSON.stringify(googleUser));

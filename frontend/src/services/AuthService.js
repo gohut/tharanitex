@@ -84,4 +84,66 @@ export class AuthService {
     // Simulate email dispatch
     return true;
   }
+
+  static async googleLogin(accessToken, env) {
+    const googleResponse = await fetch(
+      "https://www.googleapis.com/oauth2/v3/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!googleResponse.ok) {
+      throw new Error("Invalid Google authentication");
+    }
+
+    const googleUser = await googleResponse.json();
+
+    if (!googleUser.email) {
+      throw new Error("Google account email not available");
+    }
+
+    if (googleUser.email_verified === false) {
+      throw new Error("Google email is not verified");
+    }
+
+    let user = await UserRepository.findByEmail(
+      googleUser.email.toLowerCase()
+    );
+
+    // Existing customer
+    if (user) {
+      if (user.role !== "customer") {
+        throw new Error("This Google account is not a customer account");
+      }
+    } else {
+      // New Google customer.
+      // Generate an unusable random password because authentication
+      // happens through Google.
+      const randomPassword =
+        crypto.randomUUID() +
+        crypto.randomUUID();
+
+      const hashedPassword = await Hash.hash(randomPassword);
+
+      user = await UserRepository.create({
+        name: googleUser.name || "Google Customer",
+        email: googleUser.email.toLowerCase(),
+        password: hashedPassword,
+        phone: null,
+        role: "customer",
+      });
+    }
+
+    const token = await this.generateToken(user, env);
+
+    const { password: _, ...safeUser } = user;
+
+    return {
+      user: safeUser,
+      token,
+    };
+  }
 }
