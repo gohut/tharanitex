@@ -320,9 +320,9 @@ export default function Navbar() {
         >
           <div className="relative mx-auto flex h-full w-full max-w-[1440px] items-center justify-between gap-3">
 
-            {/* LEFT */}
-            <div className="flex shrink-0 items-center gap-2 md:gap-3">
+            {/* LEFT — MENU + LOGO WHEN SEARCH IS ACTIVE */}
 
+            <div className="flex shrink-0 items-center gap-2 md:gap-3">
               <button
                 type="button"
                 aria-label="Open Menu"
@@ -379,7 +379,6 @@ export default function Navbar() {
                 />
 
                 <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1">
-
                   {navbarSearch ? (
                     <button
                       type="button"
@@ -433,7 +432,6 @@ export default function Navbar() {
 
                     {searchMatches.length > 0 ? (
                       <div className="max-h-[280px] divide-y divide-[#F3E8D5] overflow-y-auto">
-
                         {searchMatches.map((product, index) => {
                           const fallbackImg = "/assets/logo.png";
 
@@ -520,10 +518,9 @@ export default function Navbar() {
                 )}
             </div>
 
-            {/* RIGHT */}
+            {/* RIGHT — SEARCH MODE */}
 
             <div className="ml-auto flex shrink-0 items-center gap-1 md:gap-5 lg:gap-7">
-
               <button
                 type="button"
                 aria-label="Wishlist"
@@ -558,20 +555,23 @@ export default function Navbar() {
             NORMAL NAVBAR
             ===================================================== */}
 
-        <div className="mx-auto flex h-full w-full max-w-[1440px] items-center justify-between px-4 sm:px-6 md:px-8 lg:px-10">
+        <div
+          className={`relative mx-auto flex h-full w-full max-w-[1440px] items-center px-4 sm:px-6 md:px-8 lg:px-10 transition-opacity duration-200 ${
+            showActiveSearch
+              ? "pointer-events-none opacity-0"
+              : "pointer-events-auto opacity-100"
+          }`}
+        >
 
-          {/* LEFT GROUP
-              MENU + LOGO ARE NOW ONE GROUP
-          */}
+          {/* LEFT — MENU */}
 
-          <div className="flex shrink-0 items-center gap-3 sm:gap-4 md:gap-5">
-
+          <div className="relative z-10 flex shrink-0 items-center">
             <button
               type="button"
               aria-label="Open Menu"
               aria-expanded={isSidebarOpen}
               onClick={() => setIsSidebarOpen(true)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95"
             >
               <Menu
                 size={24}
@@ -579,22 +579,29 @@ export default function Navbar() {
                 className="text-[#2F2B27]"
               />
             </button>
+          </div>
 
+          {/* CENTER — LOGO
+              This is absolutely centered against the viewport/header,
+              independent of the menu and right-side icons.
+          */}
+
+          <div className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2">
             <Link
               href="/home"
               aria-label="Go to home"
-              className="shrink-0"
+              className="pointer-events-auto block"
             >
               <img
                 src="/assets/logo.png"
                 alt="Tharani Textiles"
-                className="h-10 w-auto object-contain sm:h-11 md:h-[60px]"
+                className="h-10 w-auto max-w-[140px] object-contain transition-transform duration-300 hover:scale-[1.02] sm:h-11 sm:max-w-[150px] md:h-[60px] md:max-w-none"
                 draggable={false}
               />
             </Link>
           </div>
 
-          {/* RIGHT ICON GROUP */}
+          {/* RIGHT — ICONS */}
 
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2 md:gap-5 lg:gap-7">
 
@@ -682,7 +689,6 @@ export default function Navbar() {
           {/* Sidebar Header */}
 
           <div className="flex items-center justify-between">
-
             <Link
               href="/home"
               onClick={closeSidebar}
@@ -713,9 +719,7 @@ export default function Navbar() {
             className="mt-6"
           >
             <div className="relative flex w-full flex-col">
-
               <div className="relative flex w-full items-center border-b border-[#2F2B27]/40 pb-1 transition-colors focus-within:border-[#2F2B27]">
-
                 <input
                   type="search"
                   value={sidebarSearch}
@@ -743,7 +747,6 @@ export default function Navbar() {
           {/* Sidebar Navigation */}
 
           <nav className="mt-8 space-y-3">
-
             {sidebarLinks.map(
               ({ label, href, icon: Icon }) => (
                 <Link
