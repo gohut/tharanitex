@@ -597,54 +597,55 @@ function AddProductContent() {
   // DELETE PRODUCT
   // ============================================================
 
-  const handleDelete =
-    async () => {
-      if (!editId) return;
+  const handleDelete = async () => {
+    if (!editId) return;
 
-      try {
-        setIsDeleting(true);
+    try {
+      setIsDeleting(true);
 
-        const res =
-          await fetch(
-            `/api/admin/products/${editId}`,
-            {
-              method: "DELETE",
-            }
-          );
-
-        const data =
-          await res.json();
-
-        if (!res.ok) {
-          throw new Error(
-            data.error ||
-              "Failed to delete product"
-          );
+      const res = await fetch(
+        `/api/admin/products/${editId}`,
+        {
+          method: "DELETE",
         }
+      );
 
-        setShowDeleteModal(
-          false
-        );
+      const data = await res.json();
 
-        router.push(
-          "/admin/products"
+      if (!res.ok) {
+        throw new Error(
+          data.error || "Failed to delete product"
         );
-
-        router.refresh();
-      } catch (error) {
-        console.error(
-          "Delete product error:",
-          error
-        );
-
-        alert(
-          error.message ||
-            "Failed to delete product"
-        );
-      } finally {
-        setIsDeleting(false);
       }
-    };
+
+      setShowDeleteModal(false);
+
+      if (data.archived) {
+        alert(
+          "This product has existing orders, so it cannot be permanently deleted.\n\nThe product has been archived and is now inactive. Existing customer orders will remain intact."
+        );
+      } else {
+        alert(
+          "Product deleted successfully."
+        );
+      }
+
+      router.push("/admin/products");
+      router.refresh();
+    } catch (error) {
+      console.error(
+        "Delete product error:",
+        error
+      );
+
+      alert(
+        error.message ||
+          "Failed to delete product"
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // ============================================================
   // GENERIC R2 UPLOAD
