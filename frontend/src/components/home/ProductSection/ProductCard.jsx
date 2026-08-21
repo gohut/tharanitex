@@ -104,7 +104,7 @@ export default function ProductCard({
             flex h-9 w-9 min-h-0 min-w-0 items-center justify-center rounded-full shadow-md
             transition-all duration-300 hover:scale-110 active:scale-95
             sm:right-2.5 sm:top-2.5 sm:h-9 sm:w-9
-            ${wishlisted ? "bg-[#D4A437]" : "bg-white"}
+            ${wishlisted ? "bg-[#00361f]" : "bg-white"}
           `}
           aria-label={`Toggle wishlist for ${product.name}`}
         >

@@ -168,6 +168,26 @@ export async function addToCart(
     .run();
 }
 
+if (!existing) {
+    await db
+        .prepare(`
+            INSERT INTO cart_items (
+                user_id,
+                product_id,
+                variant_id,
+                quantity
+            )
+            VALUES (?, ?, ?, ?)
+        `)
+        .bind(
+            userId,
+            Number(productId),
+            normalizedVariantId,
+            normalizedQuantity
+        )
+        .run();
+}
+
   return {
     success: true,
   };
