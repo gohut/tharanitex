@@ -19,6 +19,7 @@ export class UserRepository {
           phone,
           address,
           pincode,
+          avatar_url AS avatarUrl,
           password_hash AS password,
           role,
           created_at,
@@ -48,6 +49,7 @@ export class UserRepository {
           phone,
           address,
           pincode,
+          avatar_url AS avatarUrl,
           password_hash AS password,
           role,
           created_at,
@@ -66,6 +68,7 @@ export class UserRepository {
     phone,
     address,
     pincode,
+    avatarUrl,
     role,
   }) {
     const db = getDB();
@@ -85,10 +88,11 @@ export class UserRepository {
           phone,
           address,
           pincode,
+          avatar_url,
           password_hash,
           role
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .bind(
         firstName,
@@ -97,6 +101,7 @@ export class UserRepository {
         phone || null,
         address || null,
         pincode || null,
+        avatarUrl || null,
         password,
         role || "customer"
       )
@@ -146,6 +151,21 @@ export class UserRepository {
     return await this.findById(id);
   }
 
+  static async updateAvatar(id, avatarUrl) {
+    const db = getDB();
+
+    await db
+      .prepare(`
+        UPDATE users
+        SET avatar_url = ?
+        WHERE id = ?
+      `)
+      .bind(avatarUrl || null, id)
+      .run();
+
+    return await this.findById(id);
+  }
+
   static async delete(id) {
     const db = getDB();
 
@@ -177,6 +197,7 @@ export class UserRepository {
           phone,
           address,
           pincode,
+          avatar_url AS avatarUrl,
           role,
           created_at,
           created_at AS updated_at
@@ -205,6 +226,7 @@ export class UserRepository {
           phone,
           address,
           pincode,
+          avatar_url AS avatarUrl,
           created_at,
           created_at AS updated_at
         FROM users

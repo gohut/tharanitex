@@ -1,495 +1,146 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  useEffect,
+  useRef,
+} from "react";
 
-export default function RelatedProducts({ products = [] }) {
-  const scrollerRef = useRef(null);
+import ProductCard from "@/components/home/ProductSection/ProductCard";
 
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-
-  /*
-   * ============================================================
-   * SCROLL STATE
-   * ============================================================
-   */
-
-  const updateScrollButtons = () => {
-    const element = scrollerRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    const maxScrollLeft =
-      element.scrollWidth - element.clientWidth;
-
-    setCanScrollLeft(element.scrollLeft > 2);
-    setCanScrollRight(element.scrollLeft < maxScrollLeft - 2);
-  };
+export default function RelatedProducts({
+  products = [],
+}) {
+  const scrollerRef =
+    useRef(null);
 
   useEffect(() => {
-    const element = scrollerRef.current;
+    const element =
+      scrollerRef.current;
 
     if (!element) {
       return;
     }
 
-    updateScrollButtons();
+    const handleWheel = (
+      event
+    ) => {
+      if (
+        Math.abs(event.deltaY) >
+        Math.abs(event.deltaX)
+      ) {
+        element.scrollLeft +=
+          event.deltaY;
+      }
+    };
 
     element.addEventListener(
-      "scroll",
-      updateScrollButtons,
-      { passive: true }
-    );
-
-    window.addEventListener(
-      "resize",
-      updateScrollButtons
+      "wheel",
+      handleWheel,
+      {
+        passive: true,
+      }
     );
 
     return () => {
       element.removeEventListener(
-        "scroll",
-        updateScrollButtons
-      );
-
-      window.removeEventListener(
-        "resize",
-        updateScrollButtons
+        "wheel",
+        handleWheel
       );
     };
-  }, [products]);
+  }, []);
 
-  /*
-   * ============================================================
-   * SCROLL CARDS
-   * ============================================================
-   */
-
-  const scrollCards = (direction) => {
-    const element = scrollerRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    /*
-     * Scroll approximately one viewport at a time.
-     * This works correctly across desktop and mobile widths.
-     */
-    const amount = Math.min(
-      element.clientWidth * 0.9,
-      1100
-    );
-
-    element.scrollBy({
-      left:
-        direction === "left"
-          ? -amount
-          : amount,
-      behavior: "smooth",
-    });
-  };
-
-  /*
-   * Don't render an empty recommendation section.
-   */
   if (!products.length) {
     return null;
   }
 
   return (
-    <section className="pt-10 sm:pt-12">
-      <div className="mx-auto max-w-[1420px] px-5 md:px-8 lg:px-10">
+    <section className="bg-[#FBF5EA] pb-14 pt-8 sm:pb-16 sm:pt-10">
 
-        {/* ======================================================
-            TITLE
-        ====================================================== */}
+      <div className="mx-auto max-w-[1420px]">
 
-        <h2 className="text-center font-klaristha text-[34px] uppercase tracking-[0.02em] text-[#D38E2E] md:text-[46px]">
-          You May Also Like
-        </h2>
-
-        {/* ======================================================
-            CAROUSEL
-        ====================================================== */}
-
-        <div className="relative mt-4 sm:mt-5">
-
-          {/* LEFT ARROW */}
-
-          <button
-            type="button"
-            onClick={() => scrollCards("left")}
-            disabled={!canScrollLeft}
-            aria-label="Previous related products"
-            className={`
-              absolute left-0 top-1/2 z-20
-              hidden h-11 w-11
-              -translate-x-1/2
-              -translate-y-1/2
-              items-center justify-center
-              rounded-full
-              border border-[#D9C7A4]
-              bg-[#FBF5EA]/95
-              text-[#6E5738]
-              shadow-sm
-              transition
-              md:flex
-              ${
-                canScrollLeft
-                  ? "cursor-pointer hover:bg-white"
-                  : "cursor-default opacity-30"
-              }
-            `}
-          >
-            <ChevronLeft size={20} />
-          </button>
-
-          {/* ====================================================
-              PRODUCT SCROLLER
-          ==================================================== */}
-
-          <div
-            ref={scrollerRef}
+        {/* TITLE */}
+        <div className="px-5 md:px-8 lg:px-10">
+          <h2
             className="
-              flex
-              gap-5
-              overflow-x-auto
-              scroll-smooth
-              pb-2
-              [-ms-overflow-style:none]
-              [scrollbar-width:none]
-              [&::-webkit-scrollbar]:hidden
+              text-center
+              font-klaristha
+              text-[34px]
+              uppercase
+              tracking-[0.02em]
+              text-[#D4A437]
+              md:text-[46px]
             "
           >
-            {products.map((product) => (
+            You May Also Like
+          </h2>
+        </div>
+
+        {/* PRODUCT STRIP */}
+        <div
+          ref={scrollerRef}
+          className="
+            relative
+            mt-6
+            flex
+            gap-4
+            overflow-x-auto
+            scroll-smooth
+            px-5
+            pb-4
+            md:gap-6
+            md:px-8
+            lg:px-10
+            [-ms-overflow-style:none]
+            [scrollbar-width:none]
+            [&::-webkit-scrollbar]:hidden
+          "
+        >
+          {products.map(
+            (product) => (
               <div
                 key={product.id}
                 className="
-                  min-w-[calc(50%-10px)]
-                  flex-none
-                  md:min-w-[calc((100%-40px)/3)]
-                  xl:min-w-[calc((100%-60px)/4)]
+                  w-[calc(50vw-30px)]
+                  min-w-[calc(50vw-30px)]
+                  shrink-0
+
+                  sm:w-[calc(33.333vw-32px)]
+                  sm:min-w-[calc(33.333vw-32px)]
+
+                  lg:w-[calc(25vw-32px)]
+                  lg:min-w-[calc(25vw-32px)]
+
+                  xl:w-[calc((1420px-72px)/4)]
+                  xl:min-w-[calc((1420px-72px)/4)]
                 "
               >
-                <RelatedCard product={product} />
+                <ProductCard
+                  product={product}
+                  isHomepageCard={true}
+                />
               </div>
-            ))}
-          </div>
+            )
+          )}
+        </div>
 
-          {/* RIGHT ARROW */}
+        {/* FADED RIGHT CONTINUATION */}
+        <div className="pointer-events-none relative -mt-8 h-12">
 
-          <button
-            type="button"
-            onClick={() => scrollCards("right")}
-            disabled={!canScrollRight}
-            aria-label="Next related products"
-            className={`
-              absolute right-0 top-1/2 z-20
-              hidden h-11 w-11
-              translate-x-1/2
-              -translate-y-1/2
-              items-center justify-center
-              rounded-full
-              border border-[#D9C7A4]
-              bg-[#FBF5EA]/95
-              text-[#6E5738]
-              shadow-sm
-              transition
-              md:flex
-              ${
-                canScrollRight
-                  ? "cursor-pointer hover:bg-white"
-                  : "cursor-default opacity-30"
-              }
-            `}
-          >
-            <ChevronRight size={20} />
-          </button>
+          <div
+            className="
+              absolute
+              right-0
+              top-0
+              h-full
+              w-24
+              bg-gradient-to-l
+              from-[#FBF5EA]
+              to-transparent
+            "
+          />
 
         </div>
       </div>
     </section>
-  );
-}
-
-
-/* ================================================================
-   RELATED PRODUCT CARD
-   ================================================================ */
-
-function RelatedCard({ product }) {
-  const [wishlisted, setWishlisted] = useState(false);
-  const [wishlistLoading, setWishlistLoading] = useState(false);
-
-  /*
-   * ============================================================
-   * LOAD WISHLIST STATE
-   * ============================================================
-   */
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadWishlistState() {
-      try {
-        const response = await fetch("/api/wishlist", {
-          credentials: "include",
-          cache: "no-store",
-        });
-
-        if (!response.ok) {
-          return;
-        }
-
-        const data = await response.json();
-
-        if (cancelled) {
-          return;
-        }
-
-        const wishlistItems = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.data)
-            ? data.data
-            : [];
-
-        const exists = wishlistItems.some(
-          (item) =>
-            String(
-              item.product_id ?? item.id
-            ) === String(product.id)
-        );
-
-        setWishlisted(exists);
-      } catch (error) {
-        console.error(
-          "Failed to load wishlist state:",
-          error
-        );
-      }
-    }
-
-    loadWishlistState();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [product.id]);
-
-  /*
-   * ============================================================
-   * WISHLIST
-   * ============================================================
-   */
-
-  const toggleWishlist = async (event) => {
-    /*
-     * Important:
-     * This button is intentionally outside the product Link,
-     * but stop propagation anyway so it can never accidentally
-     * trigger product navigation.
-     */
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (wishlistLoading) {
-      return;
-    }
-
-    try {
-      setWishlistLoading(true);
-
-      const response = await fetch(
-        "/api/wishlist",
-        {
-          method: wishlisted
-            ? "DELETE"
-            : "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          credentials: "include",
-
-          body: JSON.stringify({
-            productId: product.id,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          "Unable to update wishlist"
-        );
-      }
-
-      setWishlisted((previous) => !previous);
-    } catch (error) {
-      console.error(
-        "Wishlist update failed:",
-        error
-      );
-    } finally {
-      setWishlistLoading(false);
-    }
-  };
-
-  /*
-   * ============================================================
-   * PRICE
-   * ============================================================
-   */
-
-  const formatPrice = (value) => {
-    const numericValue = Number(value);
-
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(
-      Number.isFinite(numericValue)
-        ? numericValue
-        : 0
-    );
-  };
-
-  return (
-    <div className="group relative">
-
-      {/* ========================================================
-          PRODUCT IMAGE
-      ======================================================== */}
-
-      <div className="relative overflow-hidden border border-[#E6D9C6] bg-[#F7EFE3]">
-
-        {/* Product navigation */}
-        <Link
-          href={`/product/${product.slug}`}
-          className="block"
-          aria-label={`View ${product.name}`}
-        >
-          <div className="relative aspect-[0.85] overflow-hidden">
-            <Image
-              src={product.image}
-              alt={product.name}
-              fill
-              sizes="
-                (max-width: 767px) 50vw,
-                (max-width: 1279px) 33vw,
-                25vw
-              "
-              className="
-                object-cover
-                transition
-                duration-500
-                group-hover:scale-105
-              "
-            />
-          </div>
-        </Link>
-
-        {/* ======================================================
-            WISHLIST BUTTON
-
-            IMPORTANT:
-            This is NOT inside the Link.
-            Therefore clicking the heart will NEVER navigate
-            to the product page.
-        ====================================================== */}
-
-        <button
-          type="button"
-          onClick={toggleWishlist}
-          disabled={wishlistLoading}
-          aria-label={
-            wishlisted
-              ? `Remove ${product.name} from wishlist`
-              : `Add ${product.name} to wishlist`
-          }
-          className={`
-            absolute
-            right-2
-            top-2
-            z-20
-            flex
-            h-7
-            w-7
-            items-center
-            justify-center
-            rounded-full
-            shadow-md
-            transition-all
-            duration-300
-            sm:right-2.5
-            sm:top-2.5
-            sm:h-8
-            sm:w-8
-            ${
-              wishlisted
-                ? "bg-[#00361f]"
-                : "bg-white"
-            }
-            ${
-              wishlistLoading
-                ? "cursor-wait opacity-60"
-                : "hover:scale-110 active:scale-95"
-            }
-          `}
-        >
-          <Image
-            src="/assets/wishlist_icon.png"
-            alt=""
-            width={16}
-            height={16}
-            className={`
-              object-contain
-              transition-all
-              duration-300
-              ${
-                wishlisted
-                  ? "brightness-0 invert"
-                  : ""
-              }
-            `}
-          />
-        </button>
-      </div>
-
-      {/* ========================================================
-          PRODUCT INFORMATION
-      ======================================================== */}
-
-      <div className="mt-3">
-
-        {/* Product name is also clickable */}
-        <Link
-          href={`/product/${product.slug}`}
-          className="
-            block
-            line-clamp-2
-            text-[15px]
-            leading-snug
-            text-[#5A4A39]
-            transition-colors
-            hover:text-[#C79127]
-          "
-        >
-          {product.name}
-        </Link>
-
-        {/* Price */}
-        <p className="mt-1 text-[15px] font-medium text-[#D38E2E]">
-          {formatPrice(product.price)}
-        </p>
-      </div>
-    </div>
   );
 }

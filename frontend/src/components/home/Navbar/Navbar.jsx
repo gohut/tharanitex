@@ -524,6 +524,7 @@ export default function Navbar() {
               <button
                 type="button"
                 aria-label="Wishlist"
+                data-requires-auth="true"
                 onClick={() => router.push("/wishlist")}
                 className="hidden h-9 w-9 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95 md:flex md:h-10 md:w-10"
               >
@@ -538,6 +539,7 @@ export default function Navbar() {
               <button
                 type="button"
                 aria-label="Cart"
+                data-requires-auth="true"
                 onClick={() => router.push("/cart")}
                 className="hidden h-9 w-9 items-center justify-center rounded-full transition-all duration-300 hover:bg-[#F1E6D5] active:scale-95 md:flex md:h-10 md:w-10"
               >

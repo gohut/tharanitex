@@ -5,30 +5,50 @@ import { getJwtSecret } from "../utils/jwt-secret";
 
 export class AuthService {
   static async register(
-    { name, email, password, phone, address, pincode },
-    env
-  ) {
-    const existing = await UserRepository.findByEmail(email);
-
-    if (existing) {
-      throw new Error("Email already registered");
-    }
-
-    const hashedPassword = await Hash.hash(password);
-
-    const user = await UserRepository.create({
+    {
       name,
       email,
-      password: hashedPassword,
+      password,
       phone,
       address,
       pincode,
-      role: "customer",
-    });
+    },
+    env
+  ) {
+    const existing =
+      await UserRepository.findByEmail(email);
 
-    const token = await this.generateToken(user, env);
+    if (existing) {
+      throw new Error(
+        "Email already registered"
+      );
+    }
 
-    const { password: _, ...safeUser } = user;
+    const hashedPassword =
+      await Hash.hash(password);
+
+    const user =
+      await UserRepository.create({
+        name,
+        email,
+        password: hashedPassword,
+        phone,
+        address,
+        pincode,
+        avatarUrl: null,
+        role: "customer",
+      });
+
+    const token =
+      await this.generateToken(
+        user,
+        env
+      );
+
+    const {
+      password: _,
+      ...safeUser
+    } = user;
 
     return {
       user: safeUser,
@@ -36,25 +56,44 @@ export class AuthService {
     };
   }
 
-  static async login(email, password, env) {
-    const user = await UserRepository.findByEmail(email);
+  static async login(
+    email,
+    password,
+    env
+  ) {
+    const user =
+      await UserRepository.findByEmail(
+        email
+      );
 
     if (!user) {
-      throw new Error("Invalid email or password");
+      throw new Error(
+        "Invalid email or password"
+      );
     }
 
-    const isMatch = await Hash.compare(
-      password,
-      user.password
-    );
+    const isMatch =
+      await Hash.compare(
+        password,
+        user.password
+      );
 
     if (!isMatch) {
-      throw new Error("Invalid email or password");
+      throw new Error(
+        "Invalid email or password"
+      );
     }
 
-    const token = await this.generateToken(user, env);
+    const token =
+      await this.generateToken(
+        user,
+        env
+      );
 
-    const { password: _, ...safeUser } = user;
+    const {
+      password: _,
+      ...safeUser
+    } = user;
 
     return {
       user: safeUser,
@@ -62,19 +101,30 @@ export class AuthService {
     };
   }
 
-  static async adminLogin(email, password, env) {
-    const user = await UserRepository.findByEmail(email);
+  static async adminLogin(
+    email,
+    password,
+    env
+  ) {
+    const user =
+      await UserRepository.findByEmail(
+        email
+      );
 
-    if (!user || user.role !== "admin") {
+    if (
+      !user ||
+      user.role !== "admin"
+    ) {
       throw new Error(
         "Access denied or invalid credentials"
       );
     }
 
-    const isMatch = await Hash.compare(
-      password,
-      user.password
-    );
+    const isMatch =
+      await Hash.compare(
+        password,
+        user.password
+      );
 
     if (!isMatch) {
       throw new Error(
@@ -82,9 +132,16 @@ export class AuthService {
       );
     }
 
-    const token = await this.generateToken(user, env);
+    const token =
+      await this.generateToken(
+        user,
+        env
+      );
 
-    const { password: _, ...safeUser } = user;
+    const {
+      password: _,
+      ...safeUser
+    } = user;
 
     return {
       user: safeUser,
@@ -92,8 +149,12 @@ export class AuthService {
     };
   }
 
-  static async generateToken(user, env) {
-    const secret = getJwtSecret(env);
+  static async generateToken(
+    user,
+    env
+  ) {
+    const secret =
+      getJwtSecret(env);
 
     return await signJWT(
       {
@@ -105,63 +166,107 @@ export class AuthService {
     );
   }
 
-  static async getProfile(userId) {
-    const user = await UserRepository.findById(userId);
+  static async getProfile(
+    userId
+  ) {
+    const user =
+      await UserRepository.findById(
+        userId
+      );
 
     if (!user) {
-      throw new Error("User not found");
+      throw new Error(
+        "User not found"
+      );
     }
 
-    const { password: _, ...safeUser } = user;
+    const {
+      password: _,
+      ...safeUser
+    } = user;
 
     return safeUser;
   }
 
   static async updateProfile(
     userId,
-    { name, phone, address, pincode }
+    {
+      name,
+      phone,
+      address,
+      pincode,
+    }
   ) {
-    if (!name || !name.trim()) {
-      throw new Error("Name is required");
+    if (
+      !name ||
+      !name.trim()
+    ) {
+      throw new Error(
+        "Name is required"
+      );
     }
 
-    const user = await UserRepository.update(userId, {
-      name: name.trim(),
-      phone: phone?.trim() || null,
-      address: address?.trim() || null,
-      pincode: pincode?.trim() || null,
-    });
+    const user =
+      await UserRepository.update(
+        userId,
+        {
+          name: name.trim(),
+          phone:
+            phone?.trim() || null,
+          address:
+            address?.trim() || null,
+          pincode:
+            pincode?.trim() || null,
+        }
+      );
 
-    const { password: _, ...safeUser } = user;
+    const {
+      password: _,
+      ...safeUser
+    } = user;
 
     return safeUser;
   }
 
-  static async forgotPassword(email) {
-    const user = await UserRepository.findByEmail(email);
+  static async forgotPassword(
+    email
+  ) {
+    const user =
+      await UserRepository.findByEmail(
+        email
+      );
 
     if (!user) {
-      throw new Error("User not found");
+      throw new Error(
+        "User not found"
+      );
     }
 
     return true;
   }
 
-  static async googleLogin(accessToken, env) {
-    const googleResponse = await fetch(
-      "https://www.googleapis.com/oauth2/v3/userinfo",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+  static async googleLogin(
+    accessToken,
+    env
+  ) {
+    const googleResponse =
+      await fetch(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
     if (!googleResponse.ok) {
-      throw new Error("Invalid Google authentication");
+      throw new Error(
+        "Invalid Google authentication"
+      );
     }
 
-    const googleUser = await googleResponse.json();
+    const googleUser =
+      await googleResponse.json();
 
     if (!googleUser.email) {
       throw new Error(
@@ -169,21 +274,38 @@ export class AuthService {
       );
     }
 
-    if (googleUser.email_verified === false) {
+    if (
+      googleUser.email_verified === false
+    ) {
       throw new Error(
         "Google email is not verified"
       );
     }
 
-    let user = await UserRepository.findByEmail(
-      googleUser.email.toLowerCase()
-    );
+    let user =
+      await UserRepository.findByEmail(
+        googleUser.email.toLowerCase()
+      );
 
     if (user) {
-      if (user.role !== "customer") {
+      if (
+        user.role !== "customer"
+      ) {
         throw new Error(
           "This Google account is not a customer account"
         );
+      }
+
+      /*
+       * Keep the Google profile picture
+       * updated when Google provides one.
+       */
+      if (googleUser.picture) {
+        user =
+          await UserRepository.updateAvatar(
+            user.id,
+            googleUser.picture
+          );
       }
     } else {
       const randomPassword =
@@ -191,28 +313,44 @@ export class AuthService {
         crypto.randomUUID();
 
       const hashedPassword =
-        await Hash.hash(randomPassword);
+        await Hash.hash(
+          randomPassword
+        );
 
-      user = await UserRepository.create({
-        name:
-          googleUser.name ||
-          "Google Customer",
-        email:
-          googleUser.email.toLowerCase(),
-        password: hashedPassword,
-        phone: null,
-        address: null,
-        pincode: null,
-        role: "customer",
-      });
+      user =
+        await UserRepository.create({
+          name:
+            googleUser.name ||
+            "Google Customer",
+
+          email:
+            googleUser.email.toLowerCase(),
+
+          password:
+            hashedPassword,
+
+          phone: null,
+          address: null,
+          pincode: null,
+
+          avatarUrl:
+            googleUser.picture ||
+            null,
+
+          role: "customer",
+        });
     }
 
-    const token = await this.generateToken(
-      user,
-      env
-    );
+    const token =
+      await this.generateToken(
+        user,
+        env
+      );
 
-    const { password: _, ...safeUser } = user;
+    const {
+      password: _,
+      ...safeUser
+    } = user;
 
     return {
       user: safeUser,
