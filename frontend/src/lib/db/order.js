@@ -17,83 +17,175 @@ async function trustedItems(
   checkoutType,
   productId,
   quantity,
-  cartUserId
+  cartUserId,
+  variantId = null
 ) {
-  /*
-   * BUY NOW
-   */
-  if (checkoutType === "BUY_NOW") {
-    if (
-      !validQuantity(quantity) ||
-      !Number.isInteger(Number(productId)) ||
-      Number(productId) <= 0
-    ) {
-      throw new CheckoutError(
-        "Choose a valid product and quantity."
-      );
+    /*
+    * BUY NOW
+    *
+    * Variant-aware:
+    * - If variantId exists, use variant price/stock.
+    * - Otherwise use product price/stock.
+    */
+    if (checkoutType === "BUY_NOW") {
+      if (
+        !validQuantity(quantity) ||
+        !Number.isInteger(Number(productId)) ||
+        Number(productId) <= 0
+      ) {
+        throw new CheckoutError(
+          "Choose a valid product and quantity."
+        );
+      }
+
+      const product = await db
+        .prepare(`
+          SELECT
+            id,
+            price,
+            stock,
+            is_active
+          FROM products
+          WHERE id = ?
+        `)
+        .bind(Number(productId))
+        .first();
+
+      if (
+        !product ||
+        Number(product.is_active) !== 1
+      ) {
+        throw new CheckoutError(
+          "This product is no longer available.",
+          404
+        );
+      }
+
+      /*
+      * BUY NOW WITH VARIANT
+      */
+      if (
+        variantId !== null &&
+        variantId !== undefined &&
+        variantId !== ""
+      ) {
+        if (
+          !Number.isInteger(Number(variantId)) ||
+          Number(variantId) <= 0
+        ) {
+          throw new CheckoutError(
+            "Invalid product variant."
+          );
+        }
+
+        const variant = await db
+          .prepare(`
+            SELECT
+              id,
+              product_id,
+              price,
+              stock,
+              is_active
+            FROM product_variants
+            WHERE id = ?
+              AND product_id = ?
+          `)
+          .bind(
+            Number(variantId),
+            Number(productId)
+          )
+          .first();
+
+        if (
+          !variant ||
+          Number(variant.is_active) !== 1
+        ) {
+          throw new CheckoutError(
+            "This product variant is no longer available.",
+            404
+          );
+        }
+
+        if (
+          !Number.isFinite(
+            Number(variant.price)
+          ) ||
+          Number(variant.price) < 0
+        ) {
+          throw new CheckoutError(
+            "This product variant has an invalid price.",
+            409
+          );
+        }
+
+        if (
+          variant.stock === null ||
+          Number(variant.stock) < 0 ||
+          Number(quantity) >
+            Number(variant.stock)
+        ) {
+          throw new CheckoutError(
+            "The requested variant quantity is unavailable.",
+            409
+          );
+        }
+
+        return [
+          {
+            product_id: product.id,
+
+            variant_id: variant.id,
+
+            quantity:
+              Number(quantity),
+
+            price:
+              Number(variant.price),
+          },
+        ];
+      }
+
+      /*
+      * BUY NOW WITHOUT VARIANT
+      */
+      if (
+        !Number.isFinite(
+          Number(product.price)
+        ) ||
+        Number(product.price) < 0
+      ) {
+        throw new CheckoutError(
+          "This product has an invalid price.",
+          409
+        );
+      }
+
+      if (
+        product.stock !== null &&
+        Number(product.stock) >= 0 &&
+        Number(quantity) >
+          Number(product.stock)
+      ) {
+        throw new CheckoutError(
+          "The requested quantity is unavailable.",
+          409
+        );
+      }
+
+      return [
+        {
+          product_id: product.id,
+
+          variant_id: null,
+
+          quantity:
+            Number(quantity),
+
+          price:
+            Number(product.price),
+        },
+      ];
     }
-
-    const product = await db
-      .prepare(`
-        SELECT
-          id,
-          price,
-          stock,
-          is_active
-        FROM products
-        WHERE id = ?
-      `)
-      .bind(Number(productId))
-      .first();
-
-    if (
-      !product ||
-      Number(product.is_active) !== 1
-    ) {
-      throw new CheckoutError(
-        "This product is no longer available.",
-        404
-      );
-    }
-
-    if (
-      !Number.isFinite(
-        Number(product.price)
-      ) ||
-      Number(product.price) < 0
-    ) {
-      throw new CheckoutError(
-        "This product has an invalid price.",
-        409
-      );
-    }
-
-    if (
-      product.stock !== null &&
-      Number(product.stock) >= 0 &&
-      Number(quantity) >
-        Number(product.stock)
-    ) {
-      throw new CheckoutError(
-        "The requested quantity is unavailable.",
-        409
-      );
-    }
-
-    return [
-      {
-        product_id: product.id,
-
-        variant_id: null,
-
-        quantity:
-          Number(quantity),
-
-        price:
-          Number(product.price),
-      },
-    ];
-  }
 
   /*
    * CART
@@ -505,7 +597,14 @@ async function insertOrder(
 
 export async function createCodOrder(db, checkout) {
   const cartUserId = checkout.cartUserId || checkout.userId;
-  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.quantity, cartUserId);
+  const items = await trustedItems(
+    db,
+    checkout.checkoutType,
+    checkout.productId,
+    checkout.quantity,
+    checkout.cartUserId || checkout.userId,
+    checkout.variantId
+  );
   const addressId = await findOrCreateAddress(db, checkout);
   const orderId = await insertOrder(db, { userId: checkout.userId, addressId, items, paymentMethod: "COD", paymentStatus: "pending", clearCartUserId: checkout.checkoutType === "CART" ? cartUserId : null });
   return { success: true, orderId, totalAmount: total(items), orderStatus: "placed", paymentMethod: "COD", paymentStatus: "pending" };
