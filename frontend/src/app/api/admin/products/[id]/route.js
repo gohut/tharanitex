@@ -29,10 +29,7 @@ export async function GET(request, { params }) {
       );
     }
 
-    const variants = await getAllProductVariants(
-      env.DB,
-      id
-    );
+    const variants = await getAllProductVariants(env.DB, id);
 
     product.variants = variants;
 
@@ -53,7 +50,6 @@ export async function GET(request, { params }) {
 export async function PATCH(request, { params }) {
   try {
     const { env } = getCloudflareContext();
-
     const { id } = await params;
     const body = await request.json();
 
@@ -78,7 +74,7 @@ export async function PATCH(request, { params }) {
       isActive: body.isActive !== false,
     });
 
-    // If images were supplied, replace the existing image list.
+    // Update product images
     if (Array.isArray(body.images)) {
       await deleteProductImages(env.DB, id);
 
@@ -92,15 +88,8 @@ export async function PATCH(request, { params }) {
       }
     }
 
-        // -----------------------------------
     // Update product variants
-    // -----------------------------------
-
     if (Array.isArray(body.variants)) {
-      console.log(
-        "VARIANTS RECEIVED BY PATCH:",
-        JSON.stringify(body.variants, null, 2)
-      );
       const existingVariants = await getAllProductVariants(
         env.DB,
         id
@@ -110,7 +99,7 @@ export async function PATCH(request, { params }) {
         .filter((variant) => variant?.id)
         .map((variant) => Number(variant.id));
 
-      // Delete variants removed from the editor
+      // Delete variants removed from editor
       for (const existing of existingVariants) {
         if (!incomingIds.includes(Number(existing.id))) {
           await deleteProductVariant(
@@ -170,7 +159,11 @@ export async function DELETE(request, { params }) {
     const { env } = getCloudflareContext();
     const { id } = await params;
 
-    // Get image URLs before deleting database records
+    /*
+     * Get image URLs before deletion/archiving.
+     * We only remove them from R2 if the product is
+     * actually permanently deleted.
+     */
     const { results: images } = await env.DB
       .prepare(`
         SELECT image_url
@@ -180,23 +173,39 @@ export async function DELETE(request, { params }) {
       .bind(Number(id))
       .all();
 
-    // Delete images from R2
-    for (const image of images) {
+    /*
+     * deleteProduct() decides whether this is:
+     *
+     * 1. Permanent deletion
+     * 2. Soft deletion / archival
+     */
+    const result = await deleteProduct(env.DB, id);
+
+    /*
+     * Only delete R2 images when the database product
+     * was actually permanently deleted.
+     *
+     * Archived products keep their images.
+     */
+    if (result.deleted) {
       const prefix = "/api/images/";
 
-      if (image.image_url?.startsWith(prefix)) {
-        const key = image.image_url.slice(prefix.length);
+      for (const image of images) {
+        if (image.image_url?.startsWith(prefix)) {
+          const key = image.image_url.slice(prefix.length);
 
-        await env.tharani_product_images.delete(key);
+          await env.tharani_product_images.delete(key);
+        }
       }
     }
 
-    // deleteProduct() already removes product_images,
-    // then removes the product
-    await deleteProduct(env.DB, id);
-
     return Response.json({
       success: true,
+      deleted: result.deleted,
+      archived: result.archived,
+      message: result.archived
+        ? "Product has existing orders and was archived instead of permanently deleted."
+        : "Product deleted successfully.",
     });
   } catch (error) {
     console.error("Admin product DELETE error:", error);

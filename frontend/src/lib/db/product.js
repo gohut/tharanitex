@@ -329,8 +329,74 @@ export async function updateProduct(db, id, data) {
 export async function deleteProduct(db, id) {
   const productId = Number(id);
 
-  // Delete variants first because product_variants.product_id
-  // has a foreign key pointing to products.id.
+  if (!Number.isInteger(productId) || productId <= 0) {
+    throw new Error("Invalid product ID");
+  }
+
+  /*
+   * Products referenced by existing orders must NOT be physically
+   * deleted because order_items.product_id references products.id.
+   *
+   * In that situation we archive the product instead.
+   */
+  const orderReference = await db
+    .prepare(`
+      SELECT COUNT(*) AS count
+      FROM order_items
+      WHERE product_id = ?
+    `)
+    .bind(productId)
+    .first();
+
+  const hasOrders = Number(orderReference?.count || 0) > 0;
+
+  /*
+   * Product has historical orders.
+   *
+   * Keep the product row so existing orders remain valid.
+   * Just hide it from the storefront.
+   */
+  if (hasOrders) {
+    await db
+      .prepare(`
+        UPDATE products
+        SET is_active = 0
+        WHERE id = ?
+      `)
+      .bind(productId)
+      .run();
+
+    return {
+      success: true,
+      deleted: false,
+      archived: true,
+    };
+  }
+
+  /*
+   * Product has never been ordered.
+   * It is safe to permanently remove its dependent records.
+   */
+
+  // Remove cart references.
+  await db
+    .prepare(`
+      DELETE FROM cart_items
+      WHERE product_id = ?
+    `)
+    .bind(productId)
+    .run();
+
+  // Remove wishlist references.
+  await db
+    .prepare(`
+      DELETE FROM wishlist_items
+      WHERE product_id = ?
+    `)
+    .bind(productId)
+    .run();
+
+  // Remove product variants.
   await db
     .prepare(`
       DELETE FROM product_variants
@@ -339,7 +405,7 @@ export async function deleteProduct(db, id) {
     .bind(productId)
     .run();
 
-  // Delete product images.
+  // Remove product images.
   await db
     .prepare(`
       DELETE FROM product_images
@@ -348,7 +414,7 @@ export async function deleteProduct(db, id) {
     .bind(productId)
     .run();
 
-  // Finally delete the product.
+  // Finally remove the product.
   await db
     .prepare(`
       DELETE FROM products
@@ -359,6 +425,8 @@ export async function deleteProduct(db, id) {
 
   return {
     success: true,
+    deleted: true,
+    archived: false,
   };
 }
 
