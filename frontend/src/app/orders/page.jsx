@@ -23,14 +23,26 @@ export default function OrdersPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadOrders() {
       try {
         setLoading(true);
         setError("");
 
         const res = await fetch("/api/orders", {
+          method: "GET",
+          credentials: "include",
           cache: "no-store",
         });
+
+        if (res.status === 401) {
+          if (!cancelled) {
+            setOrders([]);
+            setError("Please sign in to view your orders.");
+          }
+          return;
+        }
 
         if (!res.ok) {
           throw new Error("Failed to load orders");
@@ -38,22 +50,37 @@ export default function OrdersPage() {
 
         const data = await res.json();
 
-        setOrders(data);
+        if (!cancelled) {
+          setOrders(Array.isArray(data) ? data : []);
+        }
       } catch (error) {
         console.error("Orders error:", error);
-        setError("Unable to load your orders.");
+
+        if (!cancelled) {
+          setOrders([]);
+          setError("Unable to load your orders.");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
     loadOrders();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const normalizeOrderStatus = (status) => {
     const normalized = String(status || "").toLowerCase();
 
-    if (normalized === "confirmed" || normalized === "packed") {
+    if (
+      normalized === "confirmed" ||
+      normalized === "packed"
+    ) {
       return "processing";
     }
 
@@ -69,7 +96,8 @@ export default function OrdersPage() {
 
     return orders.filter(
       (order) =>
-        normalizeOrderStatus(order.order_status) === targetStatus
+        normalizeOrderStatus(order.order_status) ===
+        targetStatus
     );
   }, [orders, activeTab]);
 
@@ -78,7 +106,6 @@ export default function OrdersPage() {
       <Navbar />
 
       <section className="mx-auto max-w-[1440px] px-5 pb-20 pt-10 md:px-8 md:pt-12 lg:px-10">
-
         <CustomerPageHeader
           title="My Orders"
           description="Track and manage your orders"
@@ -93,7 +120,6 @@ export default function OrdersPage() {
         </div>
 
         <div className="mt-10">
-
           {loading && (
             <div className="py-16 text-center text-[#8A8175]">
               Loading your orders...
@@ -106,33 +132,35 @@ export default function OrdersPage() {
             </div>
           )}
 
-          {!loading && !error && filteredOrders.length === 0 && (
-            <div className="py-20 text-center">
-              <h2 className="font-serif text-3xl text-[#5A1F2F]">
-                No Orders Found
-              </h2>
+          {!loading &&
+            !error &&
+            filteredOrders.length === 0 && (
+              <div className="py-20 text-center">
+                <h2 className="font-serif text-3xl text-[#5A1F2F]">
+                  No Orders Found
+                </h2>
 
-              <p className="mt-3 text-[#8A8175]">
-                {activeTab === "All Orders"
-                  ? "You haven't placed any orders yet."
-                  : `You don't have any ${activeTab.toLowerCase()} orders.`}
-              </p>
-            </div>
-          )}
+                <p className="mt-3 text-[#8A8175]">
+                  {activeTab === "All Orders"
+                    ? "You haven't placed any orders yet."
+                    : `You don't have any ${activeTab.toLowerCase()} orders.`}
+                </p>
+              </div>
+            )}
 
-          {!loading && !error && filteredOrders.length > 0 && (
-            <div className="space-y-6">
-              {filteredOrders.map((order) => (
-                <OrderCard
-                  key={order.id}
-                  order={order}
-                />
-              ))}
-            </div>
-          )}
-
+          {!loading &&
+            !error &&
+            filteredOrders.length > 0 && (
+              <div className="space-y-6">
+                {filteredOrders.map((order) => (
+                  <OrderCard
+                    key={order.id}
+                    order={order}
+                  />
+                ))}
+              </div>
+            )}
         </div>
-
       </section>
     </main>
   );
