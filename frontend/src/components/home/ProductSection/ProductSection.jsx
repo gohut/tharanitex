@@ -10,11 +10,11 @@ export default function ProductSection({
   backgroundColor = "#FBF5EA",
   rowCount = 1,
 }) {
-  const safeRowCount = Math.max(1, Number(rowCount) || 1);
+  // --------------------------------------------------
+  // MOBILE — DYNAMIC CMS ROWS
+  // --------------------------------------------------
 
-  // --------------------------------------------------
-  // MOBILE / TABLET — DYNAMIC CMS ROWS
-  // --------------------------------------------------
+  const safeRowCount = Math.max(1, Number(rowCount) || 1);
 
   const mobileRows = Array.from(
     { length: safeRowCount },
@@ -65,15 +65,15 @@ export default function ProductSection({
         )}
 
         {/* ================================================= */}
-        {/* MOBILE / TABLET */}
+        {/* MOBILE / TABLET — DYNAMIC CMS ROWS */}
         {/* ================================================= */}
 
         <div className="mt-3 space-y-6 sm:mt-4 sm:space-y-8 lg:hidden">
 
           {mobileRows.map((rowProducts, rowIndex) => {
-            if (!rowProducts.length) {
-              return null;
-            }
+            if (!rowProducts.length) return null;
+
+            const hasMoreProducts = rowProducts.length > 2;
 
             return (
               <div
@@ -92,22 +92,22 @@ export default function ProductSection({
                     snap-x
                     snap-mandatory
                     scrollbar-hide
+                    pr-1
                     sm:gap-6
-                    pr-3
-                    sm:pr-6
+                    sm:pr-2
                   "
                 >
                   {rowProducts.map((product) => (
                     <div
                       key={product.id}
                       className="
-                        w-[calc((100%-12px)/2)]
-                        min-w-[calc((100%-12px)/2)]
+                        w-[calc((100%-12px)/2.08)]
+                        min-w-[calc((100%-12px)/2.08)]
                         shrink-0
                         snap-start
 
-                        sm:w-[calc((100%-24px)/2)]
-                        sm:min-w-[calc((100%-24px)/2)]
+                        sm:w-[calc((100%-24px)/2.08)]
+                        sm:min-w-[calc((100%-24px)/2.08)]
                       "
                     >
                       <ProductCard
@@ -118,59 +118,61 @@ export default function ProductSection({
                   ))}
                 </div>
 
-                {/* VERY SUBTLE SCROLL FADE */}
+                {/* VERY SUBTLE RIGHT EDGE FADE */}
 
-                {rowProducts.length > 2 && (
+                {hasMoreProducts && (
                   <div
                     className="
                       pointer-events-none
                       absolute
                       right-0
                       top-0
-                      z-10
+                      z-20
                       h-full
-                      w-8
+                      w-5
                       bg-gradient-to-l
-                      from-[#FBF5EA]
+                      from-[#FBF5EA]/75
+                      via-[#FBF5EA]/25
                       to-transparent
-                      sm:w-10
+                      sm:w-6
                     "
                     aria-hidden="true"
                   />
                 )}
+
               </div>
             );
           })}
+
         </div>
 
         {/* ================================================= */}
-        {/* DESKTOP */}
+        {/* DESKTOP PRODUCT SLIDER */}
         {/* ================================================= */}
 
-        <div className="relative mt-4 hidden lg:block md:mt-5 lg:mt-6 overflow-hidden">
+        <div className="relative mt-4 hidden overflow-hidden md:mt-5 lg:mt-6 lg:block">
 
           {/* PRODUCT SCROLLER */}
 
           <div
             className="
               flex
-              gap-x-10
-              gap-y-12
+              gap-x-6
               overflow-x-auto
               scroll-smooth
               snap-x
               snap-mandatory
               scrollbar-hide
               pb-2
-              pr-8
+              pr-2
             "
           >
             {products.map((product) => (
               <div
                 key={product.id}
                 className="
-                  min-w-[calc((100%-120px)/4)]
-                  w-[calc((100%-120px)/4)]
+                  w-[calc((100%-72px)/4.15)]
+                  min-w-[calc((100%-72px)/4.15)]
                   shrink-0
                   snap-start
                 "
@@ -183,7 +185,7 @@ export default function ProductSection({
             ))}
           </div>
 
-          {/* VERY SUBTLE SCROLL FADE */}
+          {/* VERY SUBTLE RIGHT EDGE FADE */}
 
           {products.length > 4 && (
             <div
@@ -192,16 +194,18 @@ export default function ProductSection({
                 absolute
                 right-0
                 top-0
-                z-10
+                z-20
                 h-full
-                w-12
+                w-8
                 bg-gradient-to-l
-                from-[#FBF5EA]
+                from-[#FBF5EA]/75
+                via-[#FBF5EA]/25
                 to-transparent
               "
               aria-hidden="true"
             />
           )}
+
         </div>
       </div>
     </section>

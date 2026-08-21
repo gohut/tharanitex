@@ -12,32 +12,267 @@ function validQuantity(value) {
   return Number.isInteger(Number(value)) && Number(value) > 0 && Number(value) <= 99;
 }
 
-async function trustedItems(db, checkoutType, productId, quantity, cartUserId) {
+async function trustedItems(
+  db,
+  checkoutType,
+  productId,
+  quantity,
+  cartUserId
+) {
+  /*
+   * BUY NOW
+   */
   if (checkoutType === "BUY_NOW") {
-    if (!validQuantity(quantity) || !Number.isInteger(Number(productId)) || Number(productId) <= 0) {
-      throw new CheckoutError("Choose a valid product and quantity.");
+    if (
+      !validQuantity(quantity) ||
+      !Number.isInteger(Number(productId)) ||
+      Number(productId) <= 0
+    ) {
+      throw new CheckoutError(
+        "Choose a valid product and quantity."
+      );
     }
-    const product = await db.prepare("SELECT id, price, stock, is_active FROM products WHERE id = ?").bind(Number(productId)).first();
-    if (!product || Number(product.is_active) !== 1) throw new CheckoutError("This product is no longer available.", 404);
-    if (!Number.isFinite(Number(product.price)) || Number(product.price) < 0) throw new CheckoutError("This product has an invalid price.", 409);
-    if (product.stock !== null && Number(product.stock) > 0 && Number(quantity) > Number(product.stock)) {
-      throw new CheckoutError("The requested quantity is unavailable.", 409);
+
+    const product = await db
+      .prepare(`
+        SELECT
+          id,
+          price,
+          stock,
+          is_active
+        FROM products
+        WHERE id = ?
+      `)
+      .bind(Number(productId))
+      .first();
+
+    if (
+      !product ||
+      Number(product.is_active) !== 1
+    ) {
+      throw new CheckoutError(
+        "This product is no longer available.",
+        404
+      );
     }
-    return [{ product_id: product.id, quantity: Number(quantity), price: Number(product.price) }];
+
+    if (
+      !Number.isFinite(
+        Number(product.price)
+      ) ||
+      Number(product.price) < 0
+    ) {
+      throw new CheckoutError(
+        "This product has an invalid price.",
+        409
+      );
+    }
+
+    if (
+      product.stock !== null &&
+      Number(product.stock) >= 0 &&
+      Number(quantity) >
+        Number(product.stock)
+    ) {
+      throw new CheckoutError(
+        "The requested quantity is unavailable.",
+        409
+      );
+    }
+
+    return [
+      {
+        product_id: product.id,
+
+        variant_id: null,
+
+        quantity:
+          Number(quantity),
+
+        price:
+          Number(product.price),
+      },
+    ];
   }
 
-  if (checkoutType !== "CART") throw new CheckoutError("Invalid checkout type.");
-  const { results } = await db.prepare(`
-    SELECT ci.product_id, ci.quantity, p.id AS resolved_product_id, p.price, p.stock, p.is_active
-    FROM cart_items ci LEFT JOIN products p ON p.id = ci.product_id WHERE ci.user_id = ?
-  `).bind(cartUserId).all();
-  if (!results.length) throw new CheckoutError("Cart is empty", 409);
+  /*
+   * CART
+   */
+  if (checkoutType !== "CART") {
+    throw new CheckoutError(
+      "Invalid checkout type."
+    );
+  }
+
+  const { results } =
+    await db
+      .prepare(`
+        SELECT
+          ci.product_id,
+          ci.variant_id,
+          ci.quantity,
+
+          p.id AS resolved_product_id,
+          p.price AS product_price,
+          p.stock AS product_stock,
+          p.is_active AS product_is_active,
+
+          v.id AS resolved_variant_id,
+          v.price AS variant_price,
+          v.stock AS variant_stock,
+          v.is_active AS variant_is_active
+
+        FROM cart_items ci
+
+        LEFT JOIN products p
+          ON p.id = ci.product_id
+
+        LEFT JOIN product_variants v
+          ON v.id = ci.variant_id
+          AND v.product_id = ci.product_id
+
+        WHERE ci.user_id = ?
+      `)
+      .bind(cartUserId)
+      .all();
+
+  if (!results.length) {
+    throw new CheckoutError(
+      "Cart is empty",
+      409
+    );
+  }
+
   return results.map((item) => {
-    if (!item.resolved_product_id || Number(item.is_active) !== 1) throw new CheckoutError("One of the products in your cart is no longer available.", 409);
-    if (!validQuantity(item.quantity)) throw new CheckoutError("Your cart contains an invalid quantity.", 409);
-    if (!Number.isFinite(Number(item.price)) || Number(item.price) < 0) throw new CheckoutError("A cart item has an invalid price.", 409);
-    if (item.stock !== null && Number(item.stock) > 0 && Number(item.quantity) > Number(item.stock)) throw new CheckoutError("A cart item quantity is unavailable.", 409);
-    return { product_id: item.product_id, quantity: Number(item.quantity), price: Number(item.price) };
+    /*
+     * Product must still exist and be active.
+     */
+    if (
+      !item.resolved_product_id ||
+      Number(
+        item.product_is_active
+      ) !== 1
+    ) {
+      throw new CheckoutError(
+        "One of the products in your cart is no longer available.",
+        409
+      );
+    }
+
+    /*
+     * Quantity must be valid.
+     */
+    if (
+      !validQuantity(item.quantity)
+    ) {
+      throw new CheckoutError(
+        "Your cart contains an invalid quantity.",
+        409
+      );
+    }
+
+    /*
+     * CART ITEM WITH VARIANT
+     *
+     * This is the important fix.
+     *
+     * Previously checkout ignored
+     * variant_id and used p.price.
+     */
+    if (
+      item.variant_id !== null &&
+      item.variant_id !== undefined
+    ) {
+      if (
+        !item.resolved_variant_id ||
+        Number(
+          item.variant_is_active
+        ) !== 1
+      ) {
+        throw new CheckoutError(
+          "A selected product variant is no longer available.",
+          409
+        );
+      }
+
+      if (
+        !Number.isFinite(
+          Number(item.variant_price)
+        ) ||
+        Number(item.variant_price) < 0
+      ) {
+        throw new CheckoutError(
+          "A cart variant has an invalid price.",
+          409
+        );
+      }
+
+      if (
+        item.variant_stock !== null &&
+        Number(item.variant_stock) >= 0 &&
+        Number(item.quantity) >
+          Number(item.variant_stock)
+      ) {
+        throw new CheckoutError(
+          "A cart item quantity is unavailable.",
+          409
+        );
+      }
+
+      return {
+        product_id:
+          item.product_id,
+
+        variant_id:
+          item.variant_id,
+
+        quantity:
+          Number(item.quantity),
+
+        price:
+          Number(item.variant_price),
+      };
+    }
+
+    /*
+     * CART ITEM WITHOUT VARIANT
+     */
+    if (
+      !Number.isFinite(
+        Number(item.product_price)
+      ) ||
+      Number(item.product_price) < 0
+    ) {
+      throw new CheckoutError(
+        "A cart item has an invalid price.",
+        409
+      );
+    }
+
+    if (
+      item.product_stock !== null &&
+      Number(item.product_stock) >= 0 &&
+      Number(item.quantity) >
+        Number(item.product_stock)
+    ) {
+      throw new CheckoutError(
+        "A cart item quantity is unavailable.",
+        409
+      );
+    }
+
+    return {
+      product_id:
+        item.product_id,
+
+      variant_id: null,
+
+      quantity:
+        Number(item.quantity),
+
+      price:
+        Number(item.product_price),
+    };
   });
 }
 

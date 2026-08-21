@@ -237,13 +237,10 @@ export async function updateCartQuantity(
   cartId,
   quantity
 ) {
-  const normalizedQuantity =
-    Number(quantity);
+  const normalizedQuantity = Number(quantity);
 
   if (normalizedQuantity <= 0) {
-    throw new Error(
-      "Quantity must be greater than zero"
-    );
+    throw new Error("Quantity must be greater than zero");
   }
 
   const cartItem = await db
@@ -259,9 +256,10 @@ export async function updateCartQuantity(
       LEFT JOIN product_variants v
         ON v.id = c.variant_id
       WHERE c.id = ?
+        AND c.user_id = ?
       LIMIT 1
     `)
-    .bind(cartId)
+    .bind(cartId, userId)
     .first();
 
   if (!cartItem) {
@@ -274,9 +272,7 @@ export async function updateCartQuantity(
       : Number(cartItem.product_stock);
 
   if (normalizedQuantity > availableStock) {
-    throw new Error(
-      `Only ${availableStock} available`
-    );
+    throw new Error(`Only ${availableStock} available`);
   }
 
   await db
@@ -284,11 +280,33 @@ export async function updateCartQuantity(
       UPDATE cart_items
       SET quantity = ?
       WHERE id = ?
+        AND user_id = ?
     `)
     .bind(
       normalizedQuantity,
-      cartId
+      cartId,
+      userId
     )
+    .run();
+
+  return {
+    success: true,
+  };
+}
+
+
+export async function removeFromCart(
+  db,
+  userId,
+  cartId
+) {
+  await db
+    .prepare(`
+      DELETE FROM cart_items
+      WHERE id = ?
+        AND user_id = ?
+    `)
+    .bind(cartId, userId)
     .run();
 
   return {
