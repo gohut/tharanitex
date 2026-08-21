@@ -29,6 +29,7 @@ import Toggle from "../../../../components/ui/Toggle";
 
 function AddProductContent() {
   const router = useRouter();
+  const [deleteResult, setDeleteResult] = useState(null);
   const searchParams =
     useSearchParams();
 
@@ -621,13 +622,19 @@ function AddProductContent() {
       setShowDeleteModal(false);
 
       if (data.archived) {
-        alert(
-          "This product has existing orders, so it cannot be permanently deleted.\n\nThe product has been archived and is now inactive. Existing customer orders will remain intact."
-        );
+        setDeleteResult({
+          type: "archived",
+          title: "Product Archived",
+          message:
+            "This product has existing orders, so it cannot be permanently deleted. The product has been archived and is now inactive. Existing customer orders will remain intact.",
+        });
       } else {
-        alert(
-          "Product deleted successfully."
-        );
+        setDeleteResult({
+          type: "deleted",
+          title: "Product Deleted",
+          message:
+            "The product has been permanently deleted successfully.",
+        });
       }
 
       router.push("/admin/products");
@@ -2018,6 +2025,42 @@ function AddProductContent() {
           </div>
         </div>
       )}
+
+      {deleteResult && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-[520px] rounded-2xl border border-[#D4A437]/30 bg-[#003D2B] p-7 shadow-2xl">
+            
+            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#D4A437]/15">
+              <span className="text-2xl text-[#D4A437]">
+                {deleteResult.type === "archived"
+                  ? "!"
+                  : "✓"}
+              </span>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-[#F5EBD8]">
+              {deleteResult.title}
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-[#D7CDBD]">
+              {deleteResult.message}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteResult(null);
+                router.push("/admin/products");
+                router.refresh();
+              }}
+              className="mt-7 w-full rounded-lg bg-[#D4A437] px-5 py-3 text-sm font-semibold text-[#003D2B] transition hover:bg-[#C4952F]"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
