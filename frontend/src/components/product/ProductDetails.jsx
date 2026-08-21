@@ -5,198 +5,245 @@ import {
   useMemo,
   useState,
 } from "react";
-
 import { useRouter } from "next/navigation";
-
-import {
-  Minus,
-  Plus,
-} from "lucide-react";
-
+import { Minus, Plus } from "lucide-react";
 import ProductAccordion from "./ProductAccordion";
-
 import toast from "react-hot-toast";
 
-import CheckoutModal from "@/components/Cart/CheckoutModal";
-
-export default function ProductDetails({
-  product,
-}) {
+export default function ProductDetails({ product }) {
   const router = useRouter();
 
-  const [
-    isCheckoutOpen,
-    setIsCheckoutOpen,
-  ] = useState(false);
-
-  const variants =
-    Array.isArray(
-      product.variants
-    )
-      ? product.variants
-      : [];
-
-  const hasVariants =
-    variants.length > 0;
-
-  const [
-    selectedVariantId,
-    setSelectedVariantId,
-  ] = useState(
-    hasVariants
-      ? variants[0].id
-      : null
+  const variants = useMemo(
+    () =>
+      Array.isArray(product?.variants)
+        ? product.variants.filter(
+            (variant) =>
+              variant &&
+              variant.isActive !== false
+          )
+        : [],
+    [product?.variants]
   );
 
-  const [qty, setQty] =
-    useState(1);
-
-  const selectedVariant =
-    useMemo(() => {
-      if (!hasVariants) {
-        return null;
-      }
-
-      return (
-        variants.find(
-          (variant) =>
-            Number(variant.id) ===
-            Number(
-              selectedVariantId
-            )
-        ) ||
-        variants[0]
-      );
-    }, [
-      variants,
-      selectedVariantId,
-      hasVariants,
-    ]);
-
-  useEffect(() => {
-    if (
-      hasVariants &&
-      !selectedVariant
-    ) {
-      setSelectedVariantId(
-        variants[0].id
-      );
-    }
-  }, [
-    hasVariants,
-    selectedVariant,
-    variants,
-  ]);
-
-  const currentPrice =
-    selectedVariant
-      ? Number(
-          selectedVariant.price
-        ) || 0
-      : Number(
-          product.price
-        ) || 0;
-
-  const currentStock =
-    selectedVariant
-      ? Number(
-          selectedVariant.stock
-        ) || 0
-      : Number(
-          product.stock
-        ) || 0;
-
-  const formatPrice = (
-    value
-  ) =>
-    new Intl.NumberFormat(
-      "en-IN",
-      {
-        style: "currency",
-        currency: "INR",
-        maximumFractionDigits: 0,
-      }
-    ).format(value);
-
-  function selectVariant(
-    variant
-  ) {
-    setSelectedVariantId(
-      variant.id
+  const [selectedVariantId, setSelectedVariantId] =
+    useState(
+      variants.length > 0
+        ? Number(variants[0].id)
+        : null
     );
 
-    setQty(1);
-  }
+  const [qty, setQty] = useState(1);
 
-  async function addToCart() {
-    if (currentStock <= 0) {
-      toast.error(
-        selectedVariant
-          ? `${selectedVariant.name} is out of stock`
-          : "This product is out of stock"
+  /*
+   * Keep the first variant selected when the
+   * product/variant list changes.
+   */
+  useEffect(() => {
+    if (!variants.length) {
+      setSelectedVariantId(null);
+      return;
+    }
+
+    const stillExists = variants.some(
+      (variant) =>
+        Number(variant.id) ===
+        Number(selectedVariantId)
+    );
+
+    if (!stillExists) {
+      setSelectedVariantId(
+        Number(variants[0].id)
+      );
+    }
+  }, [variants, selectedVariantId]);
+
+  const selectedVariant = useMemo(() => {
+    if (!variants.length) return null;
+
+    return (
+      variants.find(
+        (variant) =>
+          Number(variant.id) ===
+          Number(selectedVariantId)
+      ) || variants[0]
+    );
+  }, [variants, selectedVariantId]);
+
+  /*
+   * The selected variant controls:
+   * - price
+   * - stock
+   * - SKU
+   * - main product image
+   */
+  const displayedPrice = selectedVariant
+    ? Number(selectedVariant.price) || 0
+    : Number(product.price) || 0;
+
+  const availableStock = selectedVariant
+    ? Number(selectedVariant.stock) || 0
+    : Number(product.stock) || 0;
+
+  const displayedSku =
+    selectedVariant?.sku || "";
+
+  /*
+   * Tell ProductGallery which variant has been
+   * selected.
+   *
+   * ProductDetails and ProductGallery are sibling
+   * components, so we use a browser event instead
+   * of introducing another state-management layer.
+   */
+  useEffect(() => {
+    if (!selectedVariant) {
+      window.dispatchEvent(
+        new CustomEvent(
+          "tharani-product-variant-change",
+          {
+            detail: {
+              variantId: null,
+              imageUrl: "",
+            },
+          }
+        )
       );
 
       return;
     }
 
-    if (qty > currentStock) {
+    window.dispatchEvent(
+      new CustomEvent(
+        "tharani-product-variant-change",
+        {
+          detail: {
+            variantId: Number(
+              selectedVariant.id
+            ),
+            imageUrl:
+              selectedVariant.imageUrl ||
+              selectedVariant.image_url ||
+              "",
+          },
+        }
+      )
+    );
+  }, [selectedVariant]);
+
+  /*
+   * Change variant.
+   */
+  const handleVariantSelect = (variant) => {
+    setSelectedVariantId(
+      Number(variant.id)
+    );
+
+    /*
+     * Reset quantity whenever the customer
+     * switches colour/variant.
+     */
+    setQty(1);
+  };
+
+  const formatPrice = (value) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(Number(value) || 0);
+
+  /*
+   * Quantity limits are based on the selected
+   * variant's stock.
+   */
+  const decreaseQty = () => {
+    setQty((current) =>
+      Math.max(1, current - 1)
+    );
+  };
+
+  const increaseQty = () => {
+    setQty((current) => {
+      if (
+        availableStock > 0 &&
+        current >= availableStock
+      ) {
+        return current;
+      }
+
+      return current + 1;
+    });
+  };
+
+  async function addToCart() {
+    if (
+      selectedVariant &&
+      availableStock <= 0
+    ) {
       toast.error(
-        `Only ${currentStock} item${
-          currentStock === 1
-            ? ""
-            : "s"
-        } available`
+        "This variant is currently out of stock."
       );
+      return;
+    }
 
-      setQty(currentStock);
-
+    if (
+      selectedVariant &&
+      availableStock > 0 &&
+      qty > availableStock
+    ) {
+      toast.error(
+        `Only ${availableStock} available.`
+      );
       return;
     }
 
     try {
-      const res =
-        await fetch(
-          "/api/cart",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            credentials:
-              "include",
-            body: JSON.stringify({
-              productId:
-                product.id,
-              variantId:
-                selectedVariant?.id ||
-                null,
-              quantity: qty,
-            }),
-          }
-        );
+      const res = await fetch("/api/cart", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          variantId:
+            selectedVariant?.id || null,
+          quantity: qty,
+        }),
+      });
 
-      const data =
-        await res
-          .json()
-          .catch(() => null);
+      const data = await res
+        .json()
+        .catch(() => null);
 
       if (!res.ok) {
+        if (res.status === 401) {
+          window.dispatchEvent(
+            new CustomEvent(
+              "tharani-auth-required"
+            )
+          );
+          return;
+        }
+
         throw new Error(
           data?.error ||
-            "Request failed"
+            "Unable to add product to cart."
         );
       }
 
       toast.success(
         selectedVariant
-          ? `${product.name} - ${selectedVariant.name} added to cart`
+          ? `${product.name} — ${selectedVariant.name} added to cart`
           : `${product.name} added to cart`
       );
 
       router.refresh();
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Add to cart error:",
+        error
+      );
 
       toast.error(
         error.message ||
@@ -205,223 +252,165 @@ export default function ProductDetails({
     }
   }
 
-  function handleBuyNow() {
-    if (currentStock <= 0) {
+  async function buyNow() {
+    if (
+      selectedVariant &&
+      availableStock <= 0
+    ) {
       toast.error(
-        selectedVariant
-          ? `${selectedVariant.name} is out of stock`
-          : "This product is out of stock"
+        "This variant is currently out of stock."
+      );
+      return;
+    }
+
+    if (
+      selectedVariant &&
+      availableStock > 0 &&
+      qty > availableStock
+    ) {
+      toast.error(
+        `Only ${availableStock} available.`
+      );
+      return;
+    }
+
+    /*
+     * Put the selected variant in the cart first.
+     * The cart API receives the variant ID, so the
+     * checkout knows exactly which colour was selected.
+     */
+    try {
+      const res = await fetch("/api/cart", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          variantId:
+            selectedVariant?.id || null,
+          quantity: qty,
+        }),
+      });
+
+      const data = await res
+        .json()
+        .catch(() => null);
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.dispatchEvent(
+            new CustomEvent(
+              "tharani-auth-required"
+            )
+          );
+          return;
+        }
+
+        throw new Error(
+          data?.error ||
+            "Unable to continue to checkout."
+        );
+      }
+
+      router.push("/cart");
+    } catch (error) {
+      console.error(
+        "Buy now error:",
+        error
       );
 
-      return;
-    }
-
-    if (qty > currentStock) {
       toast.error(
-        `Only ${currentStock} item${
-          currentStock === 1
-            ? ""
-            : "s"
-        } available`
+        error.message ||
+          "Unable to continue to checkout."
       );
-
-      setQty(currentStock);
-
-      return;
     }
-
-    setIsCheckoutOpen(true);
-  }
-
-  function increaseQty() {
-    if (currentStock <= 0) {
-      return;
-    }
-
-    setQty(
-      (current) =>
-        Math.min(
-          current + 1,
-          currentStock
-        )
-    );
-  }
-
-  function decreaseQty() {
-    setQty(
-      (current) =>
-        Math.max(
-          1,
-          current - 1
-        )
-    );
   }
 
   return (
     <div className="flex flex-col pt-1">
-
-      {/* PRODUCT NAME */}
-      <h1
-        className="
-          max-w-[520px]
-          font-klaristha
-          text-[26px]
-          uppercase
-          leading-[1.05]
-          tracking-[-0.01em]
-          text-[#C79127]
-          sm:text-[28px]
-          md:text-[36px]
-        "
-      >
+      <h1 className="max-w-[520px] font-klaristha text-[26px] uppercase leading-[1.05] tracking-[-0.01em] text-[#C79127] sm:text-[28px] md:text-[36px]">
         {product.name}
       </h1>
 
-      {/* CATEGORY */}
       <p className="mt-3 text-[11px] uppercase tracking-[0.18em] text-[#D3A358]">
         {product.category}
       </p>
 
-      {/* VARIANTS */}
-      {hasVariants && (
-        <div className="mt-6">
-
-          <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.18em] text-[#5A4630]">
+      {variants.length > 0 && (
+        <div className="mt-7">
+          <p className="mb-3 text-[12px] font-medium uppercase tracking-[0.18em] text-[#2E241B]">
             Select Variant
           </p>
 
           <div className="flex flex-wrap gap-2">
-            {variants.map(
-              (variant) => {
-                const isSelected =
-                  Number(
-                    variant.id
-                  ) ===
-                  Number(
-                    selectedVariantId
-                  );
-
-                const outOfStock =
-                  Number(
-                    variant.stock
-                  ) <= 0;
-
-                return (
-                  <button
-                    key={variant.id}
-                    type="button"
-                    disabled={
-                      outOfStock
-                    }
-                    onClick={() =>
-                      selectVariant(
-                        variant
-                      )
-                    }
-                    className={`
-                      min-w-[90px]
-                      border
-                      px-4
-                      py-2.5
-                      text-xs
-                      font-medium
-                      transition-all
-                      ${
-                        isSelected
-                          ? "border-[#D4A437] bg-[#D4A437] text-[#173B28]"
-                          : "border-[#D8C7AC] bg-transparent text-[#4B3A29] hover:border-[#D4A437]"
-                      }
-                      ${
-                        outOfStock
-                          ? "cursor-not-allowed opacity-40 line-through"
-                          : ""
-                      }
-                    `}
-                  >
-                    {variant.name}
-                  </button>
+            {variants.map((variant) => {
+              const isSelected =
+                Number(variant.id) ===
+                Number(
+                  selectedVariant?.id
                 );
-              }
-            )}
-          </div>
 
-          {selectedVariant?.sku && (
-            <p className="mt-2 text-[9px] uppercase tracking-[0.14em] text-[#9A8467]">
-              SKU:{" "}
-              {selectedVariant.sku}
-            </p>
-          )}
+              return (
+                <button
+                  key={variant.id}
+                  type="button"
+                  onClick={() =>
+                    handleVariantSelect(
+                      variant
+                    )
+                  }
+                  className={`min-h-[44px] border px-4 py-2 text-sm transition ${
+                    isSelected
+                      ? "border-[#D4A437] bg-[#D4A437] text-[#123D2A]"
+                      : "border-[#D9C9B3] bg-[#FBF5EA] text-[#3C2B1D] hover:border-[#D4A437] hover:bg-[#F7EFD9]"
+                  }`}
+                >
+                  {variant.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* PRICE + QUANTITY */}
-      <div className="mt-5 flex items-center justify-between border-b border-[#E4D9C6] pb-5">
+      {displayedSku && (
+        <p className="mt-3 text-[10px] uppercase tracking-[0.12em] text-[#A98A62]">
+          SKU: {displayedSku}
+        </p>
+      )}
 
+      <div className="mt-4 flex flex-col gap-4 border-b border-[#E4D9C6] pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[22px] font-medium text-[#2E241B] md:text-[26px]">
+          <p className="text-[28px] font-medium text-[#2E241B] md:text-[30px]">
             {formatPrice(
-              currentPrice
+              displayedPrice
             )}
           </p>
 
-          {currentStock > 0 && (
-            <p className="mt-1 text-[9px] uppercase tracking-[0.14em] text-[#8A765B]">
-              {currentStock}{" "}
-              available
-            </p>
-          )}
-
-          {currentStock <= 0 && (
-            <p className="mt-1 text-[9px] font-medium uppercase tracking-[0.14em] text-[#A33A3A]">
-              Out of stock
-            </p>
-          )}
+          <p className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[#7B705F]">
+            {availableStock > 0
+              ? `${availableStock} AVAILABLE`
+              : "OUT OF STOCK"}
+          </p>
         </div>
 
-        {/* PROPERLY SIZED QUANTITY SELECTOR */}
-        <div className="flex h-11 shrink-0 overflow-hidden rounded-sm border border-[#D4A437]">
-
+        <div className="flex h-[52px] w-fit shrink-0 border border-[#D4A437]">
           <button
             type="button"
             onClick={decreaseQty}
             disabled={qty <= 1}
             aria-label="Decrease quantity"
-            className="
-              flex
-              h-full
-              w-11
-              items-center
-              justify-center
-              bg-[#D4A437]
-              text-[#173B28]
-              transition
-              hover:bg-[#C29128]
-              disabled:cursor-not-allowed
-              disabled:opacity-40
-              sm:w-12
-            "
+            className="flex w-[55px] items-center justify-center bg-[#F4E3B2] text-[#31502F] transition hover:bg-[#EBD49A] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Minus
-              size={15}
-              strokeWidth={2.5}
+              size={17}
+              strokeWidth={2}
             />
           </button>
 
-          <div
-            className="
-              flex
-              h-full
-              min-w-12
-              items-center
-              justify-center
-              bg-[#FBF5EA]
-              px-3
-              text-sm
-              font-semibold
-              text-[#173B28]
-              sm:min-w-14
-            "
-          >
+          <div className="flex w-[64px] items-center justify-center bg-[#FBF5EA] text-base font-medium text-[#2E241B]">
             {qty}
           </div>
 
@@ -429,121 +418,48 @@ export default function ProductDetails({
             type="button"
             onClick={increaseQty}
             disabled={
-              currentStock <= 0 ||
-              qty >= currentStock
+              availableStock > 0 &&
+              qty >= availableStock
             }
             aria-label="Increase quantity"
-            className="
-              flex
-              h-full
-              w-11
-              items-center
-              justify-center
-              bg-[#D4A437]
-              text-[#173B28]
-              transition
-              hover:bg-[#C29128]
-              disabled:cursor-not-allowed
-              disabled:opacity-40
-              sm:w-12
-            "
+            className="flex w-[55px] items-center justify-center bg-[#D4A437] text-[#123D2A] transition hover:bg-[#C69728] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus
-              size={15}
-              strokeWidth={2.5}
+              size={17}
+              strokeWidth={2}
             />
           </button>
         </div>
       </div>
 
-      {/* ADD TO BAG */}
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+      <div className="mt-7 flex flex-col gap-3">
         <button
-          data-requires-auth="true"
+          type="button"
           onClick={addToCart}
           disabled={
-            currentStock <= 0
+            selectedVariant
+              ? availableStock <= 0
+              : false
           }
-          className="
-            h-12
-            w-full
-            border-2
-            border-[#D4A437]
-            bg-[#D4A437]
-            px-6
-            text-sm
-            font-semibold
-            tracking-[0.06em]
-            text-[#173B28]
-            transition
-            hover:bg-[#C29128]
-            disabled:cursor-not-allowed
-            disabled:border-[#D7CDBD]
-            disabled:bg-[#D7CDBD]
-            disabled:text-[#8A7A67]
-            sm:h-[52px]
-          "
+          className="h-[52px] w-full border-2 border-[#D4A437] bg-[#D4A437] px-6 text-sm font-semibold tracking-[0.08em] text-[#123D2A] transition hover:bg-[#C69728] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {currentStock <= 0
-            ? "OUT OF STOCK"
-            : "ADD TO BAG"}
+          ADD TO BAG
+        </button>
+
+        <button
+          type="button"
+          onClick={buyNow}
+          disabled={
+            selectedVariant
+              ? availableStock <= 0
+              : false
+          }
+          className="h-[52px] w-full border-2 border-[#004831] bg-[#004831] text-sm font-semibold tracking-[0.08em] text-white transition hover:bg-[#003C29] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          BUY NOW
         </button>
       </div>
 
-      {/* BUY NOW */}
-      <button
-        data-requires-auth="true"
-        onClick={handleBuyNow}
-        disabled={
-          currentStock <= 0
-        }
-        className="
-          mt-3
-          h-12
-          w-full
-          border-2
-          border-[#00361F]
-          bg-[#00361F]
-          text-sm
-          font-semibold
-          tracking-[0.06em]
-          text-white
-          transition
-          hover:bg-[#002B19]
-          disabled:cursor-not-allowed
-          disabled:border-[#D7CDBD]
-          disabled:bg-[#D7CDBD]
-          sm:h-[52px]
-        "
-      >
-        BUY NOW
-      </button>
-
-      {/* CHECKOUT */}
-      <CheckoutModal
-        open={isCheckoutOpen}
-        onClose={() =>
-          setIsCheckoutOpen(false)
-        }
-        checkoutType="BUY_NOW"
-        buyNowItem={{
-          productId:
-            product.id,
-          variantId:
-            selectedVariant?.id ||
-            null,
-          quantity: qty,
-        }}
-        onOrderCreated={(
-          order
-        ) =>
-          router.push(
-            `/orders/${order.orderId}`
-          )
-        }
-      />
-
-      {/* DETAILS */}
       <div className="mt-5">
         <ProductAccordion />
       </div>
