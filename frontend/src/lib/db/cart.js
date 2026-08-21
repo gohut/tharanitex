@@ -294,13 +294,20 @@ export async function updateCartQuantity(
   };
 }
 
-
 export async function removeFromCart(
   db,
   userId,
   cartId
 ) {
-  await db
+  if (!userId) {
+    throw new Error("User is required");
+  }
+
+  if (!cartId) {
+    throw new Error("Cart item is required");
+  }
+
+  const result = await db
     .prepare(`
       DELETE FROM cart_items
       WHERE id = ?
@@ -309,23 +316,9 @@ export async function removeFromCart(
     .bind(cartId, userId)
     .run();
 
-  return {
-    success: true,
-  };
-}
-
-
-export async function removeFromCart(
-  db,
-  cartId
-) {
-  await db
-    .prepare(`
-      DELETE FROM cart_items
-      WHERE id = ?
-    `)
-    .bind(cartId)
-    .run();
+  if (!result.meta?.changes) {
+    throw new Error("Cart item not found");
+  }
 
   return {
     success: true,
