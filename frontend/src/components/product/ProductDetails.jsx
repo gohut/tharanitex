@@ -35,8 +35,8 @@ export default function ProductDetails({ product }) {
   const [qty, setQty] = useState(1);
 
   /*
-   * Keep the first variant selected when the
-   * product/variant list changes.
+   * Keep the selected variant valid whenever
+   * the product/variant list changes.
    */
   useEffect(() => {
     if (!variants.length) {
@@ -70,7 +70,7 @@ export default function ProductDetails({ product }) {
   }, [variants, selectedVariantId]);
 
   /*
-   * The selected variant controls:
+   * Selected variant controls:
    * - price
    * - stock
    * - SKU
@@ -88,12 +88,8 @@ export default function ProductDetails({ product }) {
     selectedVariant?.sku || "";
 
   /*
-   * Tell ProductGallery which variant has been
-   * selected.
-   *
-   * ProductDetails and ProductGallery are sibling
-   * components, so we use a browser event instead
-   * of introducing another state-management layer.
+   * Tell ProductGallery which variant is
+   * currently selected.
    */
   useEffect(() => {
     if (!selectedVariant) {
@@ -131,17 +127,66 @@ export default function ProductDetails({ product }) {
   }, [selectedVariant]);
 
   /*
-   * Change variant.
+   * IMPORTANT:
+   *
+   * ProductGallery can also be clicked directly.
+   * When a customer clicks a variant thumbnail,
+   * ProductGallery sends this event back here.
+   *
+   * This keeps both sides synchronized:
+   *
+   * Variant button -> Gallery image
+   * Gallery image -> Variant button
+   */
+  useEffect(() => {
+    const handleGalleryVariantSelect = (
+      event
+    ) => {
+      const variantId =
+        event.detail?.variantId;
+
+      if (!variantId) return;
+
+      const variant = variants.find(
+        (item) =>
+          Number(item.id) ===
+          Number(variantId)
+      );
+
+      if (!variant) return;
+
+      setSelectedVariantId(
+        Number(variant.id)
+      );
+
+      /*
+       * Reset quantity when changing colour.
+       */
+      setQty(1);
+    };
+
+    window.addEventListener(
+      "tharani-product-variant-select",
+      handleGalleryVariantSelect
+    );
+
+    return () => {
+      window.removeEventListener(
+        "tharani-product-variant-select",
+        handleGalleryVariantSelect
+      );
+    };
+  }, [variants]);
+
+  /*
+   * Change variant from the buttons on the
+   * right side of the product page.
    */
   const handleVariantSelect = (variant) => {
     setSelectedVariantId(
       Number(variant.id)
     );
 
-    /*
-     * Reset quantity whenever the customer
-     * switches colour/variant.
-     */
     setQty(1);
   };
 
@@ -153,8 +198,7 @@ export default function ProductDetails({ product }) {
     }).format(Number(value) || 0);
 
   /*
-   * Quantity limits are based on the selected
-   * variant's stock.
+   * Quantity controls.
    */
   const decreaseQty = () => {
     setQty((current) =>
@@ -175,6 +219,9 @@ export default function ProductDetails({ product }) {
     });
   };
 
+  /*
+   * Add selected product + variant to cart.
+   */
   async function addToCart() {
     if (
       selectedVariant &&
@@ -252,6 +299,9 @@ export default function ProductDetails({ product }) {
     }
   }
 
+  /*
+   * Buy now.
+   */
   async function buyNow() {
     if (
       selectedVariant &&
@@ -274,11 +324,6 @@ export default function ProductDetails({ product }) {
       return;
     }
 
-    /*
-     * Put the selected variant in the cart first.
-     * The cart API receives the variant ID, so the
-     * checkout knows exactly which colour was selected.
-     */
     try {
       const res = await fetch("/api/cart", {
         method: "POST",

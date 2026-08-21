@@ -10,79 +10,154 @@ import Image from "next/image";
 
 export default function ProductGallery({
   images = [],
+  variants = [],
 }) {
   const [selected, setSelected] = useState(0);
+  const [selectedVariantId, setSelectedVariantId] =
+    useState(
+      variants?.length
+        ? Number(variants[0].id)
+        : null
+    );
+
   const [wishlisted, setWishlisted] =
     useState(false);
-
-  const [variantImage, setVariantImage] =
-    useState("");
-
-  const [selectedVariantId, setSelectedVariantId] =
-    useState(null);
 
   const scrollerRef = useRef(null);
 
   /*
-   * Build the gallery list.
-   *
-   * When a variant is selected, its image is
-   * placed FIRST so it becomes the main image.
-   *
-   * The normal product images remain available
-   * underneath as additional gallery images.
+   * Only active variants with an actual image
+   * are shown in the variant-image gallery.
    */
-  const galleryImages = useMemo(() => {
-    const cleanImages = Array.isArray(images)
-      ? images.filter(Boolean)
-      : [];
-
-    if (!variantImage) {
-      return cleanImages;
+  const variantImages = useMemo(() => {
+    if (!Array.isArray(variants)) {
+      return [];
     }
 
-    const withoutDuplicateVariantImage =
-      cleanImages.filter(
-        (image) => image !== variantImage
-      );
-
-    return [
-      variantImage,
-      ...withoutDuplicateVariantImage,
-    ];
-  }, [images, variantImage]);
+    return variants
+      .filter(
+        (variant) =>
+          variant &&
+          variant.isActive !== false &&
+          (variant.imageUrl ||
+            variant.image_url)
+      )
+      .map((variant) => ({
+        id: Number(variant.id),
+        name: variant.name || "Variant",
+        image:
+          variant.imageUrl ||
+          variant.image_url,
+      }));
+  }, [variants]);
 
   /*
-   * Listen for variant changes from
-   * ProductDetails.
+   * Normal product images.
+   *
+   * These remain available after the variant
+   * images so customers can still browse
+   * additional product photography.
+   */
+  const productImages = useMemo(() => {
+    if (!Array.isArray(images)) {
+      return [];
+    }
+
+    return images.filter(Boolean);
+  }, [images]);
+
+  /*
+   * Build the complete gallery.
+   *
+   * Variant images come FIRST.
+   * Product images follow them.
+   *
+   * Duplicate URLs are removed.
+   */
+  const galleryItems = useMemo(() => {
+    const items = [];
+    const usedImages = new Set();
+
+    variantImages.forEach((variant) => {
+      if (!usedImages.has(variant.image)) {
+        usedImages.add(variant.image);
+
+        items.push({
+          type: "variant",
+          variantId: variant.id,
+          variantName: variant.name,
+          image: variant.image,
+        });
+      }
+    });
+
+    productImages.forEach((image) => {
+      if (!usedImages.has(image)) {
+        usedImages.add(image);
+
+        items.push({
+          type: "product",
+          image,
+        });
+      }
+    });
+
+    return items;
+  }, [variantImages, productImages]);
+
+  /*
+   * Find the gallery index for the selected
+   * variant.
+   */
+  const selectedVariantIndex = useMemo(() => {
+    if (!selectedVariantId) {
+      return -1;
+    }
+
+    return galleryItems.findIndex(
+      (item) =>
+        item.type === "variant" &&
+        Number(item.variantId) ===
+          Number(selectedVariantId)
+    );
+  }, [galleryItems, selectedVariantId]);
+
+  /*
+   * ProductDetails -> ProductGallery
+   *
+   * When the customer clicks a variant button
+   * in ProductDetails, the gallery jumps to
+   * that variant's image.
    */
   useEffect(() => {
     const handleVariantChange = (event) => {
-      const nextVariantId =
+      const variantId =
         event.detail?.variantId ?? null;
 
-      const nextImage =
-        event.detail?.imageUrl || "";
-
       setSelectedVariantId(
-        nextVariantId
+        variantId ? Number(variantId) : null
       );
 
-      setVariantImage(nextImage);
+      if (!variantId) {
+        setSelected(0);
+        return;
+      }
 
-      /*
-       * Whenever a colour is selected,
-       * automatically show that colour's image.
-       */
-      setSelected(0);
+      const index = galleryItems.findIndex(
+        (item) =>
+          item.type === "variant" &&
+          Number(item.variantId) ===
+            Number(variantId)
+      );
+
+      if (index === -1) {
+        return;
+      }
+
+      setSelected(index);
 
       requestAnimationFrame(() => {
-        if (scrollerRef.current) {
-          scrollerRef.current.scrollTo({
-            left: 0,
-            behavior: "smooth",
-          });
-        }
+        scrollToIndex(index);
       });
     };
 
@@ -97,11 +172,46 @@ export default function ProductGallery({
         handleVariantChange
       );
     };
-  }, []);
+  }, [galleryItems]);
 
   /*
-   * Keep the thumbnail indicator synchronized
-   * with horizontal swiping.
+   * If variants are available, select the first
+   * variant automatically.
+   */
+  useEffect(() => {
+    if (!variantImages.length) {
+      return;
+    }
+
+    const firstVariant =
+      variantImages[0];
+
+    if (!selectedVariantId) {
+      setSelectedVariantId(
+        Number(firstVariant.id)
+      );
+
+      const index =
+        galleryItems.findIndex(
+          (item) =>
+            item.type === "variant" &&
+            Number(item.variantId) ===
+              Number(firstVariant.id)
+        );
+
+      if (index !== -1) {
+        setSelected(index);
+      }
+    }
+  }, [
+    variantImages,
+    galleryItems,
+    selectedVariantId,
+  ]);
+
+  /*
+   * Keep thumbnail position synchronized
+   * when the customer swipes the main gallery.
    */
   useEffect(() => {
     const scroller =
@@ -113,7 +223,7 @@ export default function ProductGallery({
       const width =
         scroller.clientWidth || 1;
 
-      const nextIndex = Math.round(
+      const index = Math.round(
         scroller.scrollLeft / width
       );
 
@@ -121,8 +231,8 @@ export default function ProductGallery({
         Math.max(
           0,
           Math.min(
-            nextIndex,
-            galleryImages.length - 1
+            index,
+            galleryItems.length - 1
           )
         )
       );
@@ -131,7 +241,9 @@ export default function ProductGallery({
     scroller.addEventListener(
       "scroll",
       handleScroll,
-      { passive: true }
+      {
+        passive: true,
+      }
     );
 
     return () => {
@@ -140,42 +252,71 @@ export default function ProductGallery({
         handleScroll
       );
     };
-  }, [galleryImages.length]);
+  }, [galleryItems.length]);
 
   /*
-   * If gallery data changes, make sure the
-   * selected index remains valid.
+   * Scroll main gallery to a particular item.
    */
-  useEffect(() => {
-    if (!galleryImages.length) {
-      setSelected(0);
-      return;
-    }
+  function scrollToIndex(index) {
+    const scroller =
+      scrollerRef.current;
 
-    setSelected((current) =>
-      Math.min(
-        current,
-        galleryImages.length - 1
-      )
-    );
-  }, [galleryImages.length]);
+    if (!scroller) return;
 
-  const selectImage = (index) => {
-    setSelected(index);
+    const child =
+      scroller.children[index];
 
-    scrollerRef.current?.children[
-      index
-    ]?.scrollIntoView({
+    if (!child) return;
+
+    child.scrollIntoView({
       behavior: "smooth",
       block: "nearest",
       inline: "start",
     });
-  };
+  }
 
   /*
-   * No images available.
+   * Customer clicked a thumbnail.
+   *
+   * If it is a variant image, notify
+   * ProductDetails so price/stock/SKU also
+   * change.
    */
-  if (!galleryImages.length) {
+  function handleThumbnailClick(
+    item,
+    index
+  ) {
+    setSelected(index);
+
+    scrollToIndex(index);
+
+    if (
+      item.type === "variant" &&
+      item.variantId
+    ) {
+      setSelectedVariantId(
+        Number(item.variantId)
+      );
+
+      window.dispatchEvent(
+        new CustomEvent(
+          "tharani-product-variant-select",
+          {
+            detail: {
+              variantId: Number(
+                item.variantId
+              ),
+            },
+          }
+        )
+      );
+    }
+  }
+
+  /*
+   * No images.
+   */
+  if (!galleryItems.length) {
     return (
       <div className="flex aspect-[0.82] w-full items-center justify-center border border-[#E8DDCE] bg-[#F4EBDD] text-sm text-[#8A7C6A] sm:aspect-[0.78]">
         Product image unavailable
@@ -185,34 +326,44 @@ export default function ProductGallery({
 
   return (
     <div className="flex flex-col gap-3 sm:gap-4">
-      {/* MAIN IMAGE */}
+      {/* MAIN IMAGE GALLERY */}
       <div className="relative aspect-[0.82] w-full overflow-hidden border border-[#E8DDCE] bg-[#F4EBDD] sm:aspect-[0.78]">
         <div
           ref={scrollerRef}
           className="flex h-full w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          {galleryImages.map(
-            (image, index) => (
+          {galleryItems.map(
+            (item, index) => (
               <div
-                key={`${image}-${index}`}
+                key={`${item.image}-${index}`}
                 className="relative h-full w-full shrink-0 snap-start"
               >
                 <Image
-                  src={image}
+                  src={item.image}
                   alt={
-                    index === 0 &&
-                    variantImage
-                      ? "Selected variant"
+                    item.type ===
+                    "variant"
+                      ? item.variantName
                       : `Product image ${
                           index + 1
                         }`
                   }
                   fill
-                  priority={index === 0}
+                  priority={
+                    index === 0
+                  }
                   unoptimized
                   draggable={false}
                   className="select-none object-cover"
                 />
+
+                {/* Show variant name on main image */}
+                {item.type ===
+                  "variant" && (
+                  <div className="absolute bottom-3 left-3 z-10 bg-[#004831]/90 px-3 py-1.5 text-[9px] font-medium uppercase tracking-[0.16em] text-white backdrop-blur-sm">
+                    {item.variantName}
+                  </div>
+                )}
               </div>
             )
           )}
@@ -249,58 +400,88 @@ export default function ProductGallery({
             }`}
           />
         </button>
-
-        {/* VARIANT LABEL */}
-        {variantImage &&
-          selectedVariantId && (
-            <div className="absolute bottom-3 left-3 z-10 border border-white/60 bg-[#004831]/90 px-3 py-1.5 text-[9px] font-medium uppercase tracking-[0.16em] text-white backdrop-blur-sm">
-              Selected Variant
-            </div>
-          )}
       </div>
 
       {/* THUMBNAILS */}
       <div className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:gap-3">
-        {galleryImages.map(
-          (image, index) => (
-            <button
-              type="button"
-              key={`${image}-thumb-${index}`}
-              onClick={() =>
-                selectImage(index)
-              }
-              className={`relative h-[74px] w-[62px] shrink-0 overflow-hidden border transition sm:h-[82px] sm:w-[68px] ${
-                selected === index
-                  ? "border-2 border-[#D4A437]"
-                  : "border border-[#E5D8C7] hover:border-[#D4A437]"
-              }`}
-            >
-              <Image
-                src={image}
-                alt={
-                  index === 0 &&
-                  variantImage
-                    ? "Selected variant thumbnail"
-                    : `Thumbnail ${
+        {galleryItems.map(
+          (item, index) => {
+            const isSelected =
+              selected === index;
+
+            const isSelectedVariant =
+              item.type ===
+                "variant" &&
+              Number(
+                item.variantId
+              ) ===
+                Number(
+                  selectedVariantId
+                );
+
+            return (
+              <button
+                type="button"
+                key={`${item.image}-thumb-${index}`}
+                onClick={() =>
+                  handleThumbnailClick(
+                    item,
+                    index
+                  )
+                }
+                aria-label={
+                  item.type ===
+                  "variant"
+                    ? `Select ${item.variantName} variant`
+                    : `View product image ${
                         index + 1
                       }`
                 }
-                fill
-                unoptimized
-                className="object-cover"
-              />
+                className={`relative h-[74px] w-[62px] shrink-0 overflow-hidden border transition sm:h-[82px] sm:w-[68px] ${
+                  isSelected ||
+                  isSelectedVariant
+                    ? "border-2 border-[#D4A437]"
+                    : "border border-[#E5D8C7] hover:border-[#D4A437]"
+                }`}
+              >
+                <Image
+                  src={item.image}
+                  alt={
+                    item.type ===
+                    "variant"
+                      ? item.variantName
+                      : `Thumbnail ${
+                          index + 1
+                        }`
+                  }
+                  fill
+                  unoptimized
+                  className="object-cover"
+                />
 
-              {/* Mark the variant image */}
-              {index === 0 &&
-                variantImage && (
-                  <span className="absolute bottom-0 left-0 right-0 bg-[#004831]/90 px-1 py-0.5 text-[7px] uppercase tracking-[0.08em] text-white">
-                    Variant
+                {/* Variant label */}
+                {item.type ===
+                  "variant" && (
+                  <span className="absolute bottom-0 left-0 right-0 bg-[#004831]/90 px-1 py-1 text-[7px] font-medium uppercase tracking-[0.05em] text-white">
+                    {item.variantName}
                   </span>
                 )}
-            </button>
-          )
+              </button>
+            );
+          }
         )}
       </div>
+
+      {/* Variant count */}
+      {variantImages.length > 0 && (
+        <p className="text-[9px] uppercase tracking-[0.14em] text-[#A98A62]">
+          {variantImages.length}{" "}
+          {variantImages.length === 1
+            ? "colour"
+            : "colours"}{" "}
+          available
+        </p>
+      )}
     </div>
   );
 }
