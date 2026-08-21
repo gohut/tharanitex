@@ -327,20 +327,34 @@ export async function updateProduct(db, id, data) {
 }
 
 export async function deleteProduct(db, id) {
+  const productId = Number(id);
+
+  // Delete variants first because product_variants.product_id
+  // has a foreign key pointing to products.id.
+  await db
+    .prepare(`
+      DELETE FROM product_variants
+      WHERE product_id = ?
+    `)
+    .bind(productId)
+    .run();
+
+  // Delete product images.
   await db
     .prepare(`
       DELETE FROM product_images
       WHERE product_id = ?
     `)
-    .bind(Number(id))
+    .bind(productId)
     .run();
 
+  // Finally delete the product.
   await db
     .prepare(`
       DELETE FROM products
       WHERE id = ?
     `)
-    .bind(Number(id))
+    .bind(productId)
     .run();
 
   return {
