@@ -14,7 +14,6 @@ export async function POST(request) {
       );
     }
 
-    // Product uploads intentionally have no file-size or image-count limit here.
     if (!file.type?.startsWith("image/")) {
       return Response.json(
         { error: "Only image files are allowed" },
@@ -26,13 +25,22 @@ export async function POST(request) {
       file.name?.split(".").pop()?.toLowerCase() || "jpg";
 
     const requestedFolder = formData.get("folder");
+
+    const allowedFolders = [
+      "products",
+      "categories",
+      "homepage",
+      "variants",
+    ];
+
     const folder =
       typeof requestedFolder === "string" &&
-      ["products", "categories", "homepage"].includes(requestedFolder)
+      allowedFolders.includes(requestedFolder)
         ? requestedFolder
         : "products";
 
-    const key = `${folder}/${crypto.randomUUID()}.${extension}`;
+    const key =
+      `${folder}/${crypto.randomUUID()}.${extension}`;
 
     await env.tharani_product_images.put(
       key,
@@ -50,12 +58,17 @@ export async function POST(request) {
       url: `/api/images/${key}`,
     });
   } catch (error) {
-    console.error("Image upload error:", error);
+    console.error(
+      "Image upload error:",
+      error
+    );
 
     return Response.json(
       {
         success: false,
-        error: error.message || "Image upload failed",
+        error:
+          error.message ||
+          "Image upload failed",
       },
       { status: 500 }
     );
