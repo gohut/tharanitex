@@ -201,13 +201,28 @@ export default function LoginPage() {
       });
 
       if (res.ok) {
-        const json = await res.json().catch(() => ({}));
-        const user = json.data || { name: "Customer", email: loginEmail };
-        localStorage.setItem("currentUser", JSON.stringify(user));
-        window.dispatchEvent(new Event("auth-change"));
-        toast.success(`Welcome back, ${user.name || "Customer"}!`);
+        const json =
+          await res.json().catch(() => ({}));
+
+        const user =
+          json?.data || {
+            name: "Customer",
+            email: loginEmail,
+          };
+
+        window.dispatchEvent(
+          new Event("auth-change")
+        );
+
+        toast.success(
+          `Welcome back, ${
+            user.name || "Customer"
+          }!`
+        );
+
         router.push("/profile");
         router.refresh();
+
         return;
       } else {
         const json = await res.json().catch(() => ({}));
@@ -252,8 +267,6 @@ export default function LoginPage() {
           pincode,
           joinedDate: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
         };
-
-        localStorage.setItem("currentUser", JSON.stringify(newUser));
 
         window.dispatchEvent(new Event("auth-change"));
         toast.success("Account created successfully!");
