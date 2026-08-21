@@ -98,6 +98,7 @@ export default function ProductCard({
 
         {/* Wishlist */}
         <button
+          data-requires-auth="true"
           onClick={toggleWishlist}
           className={`
             absolute right-2 top-2 z-20

@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 import { Cormorant_Garamond } from "next/font/google";
 import InitialLoadingShell from "@/components/ui/InitialLoadingShell";
 import ConditionalFooter from "@/components/Footer/ConditionalFooter";
+import AuthGuard from "@/components/auth/AuthGuard";
 
 const montserrat = localFont({
   src: [
@@ -48,11 +49,12 @@ const cormorant = localFont({
   variable: "--font-cormorant",
 });
 
-const cormorantGaramond = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  variable: "--font-cormorant-garamond",
-});
+const cormorantGaramond =
+  Cormorant_Garamond({
+    subsets: ["latin"],
+    weight: ["300", "400", "500", "600"],
+    variable: "--font-cormorant-garamond",
+  });
 
 export const metadata = {
   title: "Tharani Textiles",
@@ -64,7 +66,9 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}) {
   return (
     <html
       lang="en"
@@ -72,10 +76,17 @@ export default function RootLayout({ children }) {
     >
       <body className="font-montserrat">
         <ThemeProvider />
+
         {children}
+
         <ConditionalFooter />
+
+        <AuthGuard />
+
         <InitialLoadingShell />
+
         <ScrollToTop />
+
         <Toaster
           position="bottom-right"
           toastOptions={{

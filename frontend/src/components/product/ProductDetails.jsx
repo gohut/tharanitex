@@ -292,7 +292,8 @@ export default function ProductDetails({ product }) {
 
       {/* Add To Bag */}
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <button
+       <button
+          data-requires-auth="true"
           onClick={addToCart}
           disabled={currentStock <= 0}
           className="h-11 w-full border-2 border-[#F2A100] bg-[#F2A100] px-6 text-sm font-semibold tracking-[0.06em] text-[#2F2417] transition hover:bg-[#DF9600] disabled:cursor-not-allowed disabled:border-[#D7CDBD] disabled:bg-[#D7CDBD] disabled:text-[#8A7A67] sm:h-[50px]"
@@ -305,8 +306,8 @@ export default function ProductDetails({ product }) {
 
       {/* Buy Now */}
 <button
+  data-requires-auth="true"
   onClick={handleBuyNow}
-  disabled={currentStock <= 0}
   className="mt-3 h-11 w-full border-2 border-[#5A1F2F] bg-[#5A1F2F] text-sm font-semibold tracking-[0.06em] text-white transition hover:bg-[#471825] disabled:cursor-not-allowed disabled:border-[#D7CDBD] disabled:bg-[#D7CDBD] sm:h-[50px]"
 >
   BUY NOW

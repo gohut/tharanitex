@@ -4,6 +4,7 @@ import OrderSummary from "@/components/Cart/OrderSummary";
 import DeliveryCard from "@/components/Cart/DeliveryCard";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getCart } from "@/lib/db/cart";
+import AuthRequiredPage from "@/components/auth/AuthRequiredPage";
 import { getCustomerId } from "@/lib/checkout-auth";
 import { headers } from "next/headers";
 
@@ -48,6 +49,19 @@ export default async function CartPage() {
     );
 
     userId = null;
+  }
+
+  if (!userId) {
+    return (
+      <>
+        <Navbar />
+
+        <AuthRequiredPage
+          title="Sign In to View Your Cart"
+          message="Your cart is linked to your account. Please sign in to view your saved items."
+        />
+      </>
+    );
   }
 
   /*
