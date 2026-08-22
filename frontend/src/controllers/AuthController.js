@@ -14,7 +14,7 @@ const cookieOptions =
   `; Path=/; HttpOnly; Max-Age=7200; SameSite=Lax${secureFlag}`;
 
 const expireCookieOptions =
-  `; Path=/; HttpOnly; Max-Age=0; SameSite=Lax${secureFlag}`;
+  `; Path=/; HttpOnly; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
 
 export class AuthController {
   static async register(request, env) {
@@ -105,18 +105,36 @@ export class AuthController {
       return ApiResponse.error(error.message, 401);
     }
   }
-  static async adminLogout(request) {
-    try {
-      const response = ApiResponse.success(null, "Admin logged out successfully");
-      response.headers.set(
+static async logout(request) {
+  try {
+    const response = ApiResponse.success(
+      null,
+      "Logged out successfully"
+    );
+
+    const cookiesToClear = [
+      "token",
+      "auth_token",
+      "tharanitex_session",
+    ];
+
+    for (const cookieName of cookiesToClear) {
+      response.headers.append(
         "Set-Cookie",
-        `admin_token=${expireCookieOptions}`
+        `${cookieName}=${expireCookieOptions}`
       );
-      return response;
-    } catch (error) {
-      return ApiResponse.error(error.message);
     }
+
+    return response;
+  } catch (error) {
+    console.error("Logout error:", error);
+
+    return ApiResponse.error(
+      "Unable to log out",
+      500
+    );
   }
+}
 
   static async getProfile(request, env) {
     try {

@@ -243,36 +243,53 @@ export default function ProfilePage() {
     }
   };
 
-  const handleLogout =
-    async () => {
-      try {
-        await fetch(
-          "/api/auth/logout",
-          {
-            method: "POST",
-            credentials: "include",
-          }
-        );
-      } catch (error) {
-        console.error(
-          "Logout request failed:",
-          error
-        );
+  const handleLogout = async () => {
+  try {
+    const response = await fetch(
+      "/api/auth/logout",
+      {
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
       }
+    );
 
-      setCurrentUser(null);
+    const result = await response
+      .json()
+      .catch(() => ({}));
 
-      window.dispatchEvent(
-        new Event("auth-change")
+    if (!response.ok) {
+      throw new Error(
+        result.message ||
+          result.error ||
+          "Logout failed"
       );
+    }
 
-      toast.success(
-        "Successfully logged out!"
-      );
+    setCurrentUser(null);
 
-      router.replace("/home");
-      router.refresh();
-    };
+    window.dispatchEvent(
+      new Event("auth-change")
+    );
+
+    toast.success(
+      "Successfully logged out!"
+    );
+
+    router.replace("/home");
+    router.refresh();
+  } catch (error) {
+    console.error(
+      "Logout failed:",
+      error
+    );
+
+    toast.error(
+      error.message ||
+        "Unable to sign out. Please try again."
+    );
+  }
+};
 
   const getInitials = (
     value
