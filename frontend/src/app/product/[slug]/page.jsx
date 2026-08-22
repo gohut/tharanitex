@@ -11,9 +11,43 @@ import {
   getProductVariants,
 } from "@/lib/db/product";
 
-import { productData } from "@/data/productData";
-
 export const dynamic = "force-dynamic";
+
+async function getApprovedReviews(db, productId) {
+  try {
+    const { results } = await db
+      .prepare(`
+        SELECT
+          id,
+          reviewer_name,
+          customer_id,
+          user_id,
+          product_id,
+          product_name,
+          rating,
+          comment,
+          review_text,
+          status,
+          created_at,
+          updated_at
+        FROM reviews
+        WHERE product_id = ?
+          AND LOWER(status) = 'approved'
+        ORDER BY created_at DESC
+      `)
+      .bind(productId)
+      .all();
+
+    return results || [];
+  } catch (error) {
+    console.error(
+      "Failed to load product reviews:",
+      error
+    );
+
+    return [];
+  }
+}
 
 export default async function ProductPage({ params }) {
   const { slug } = await params;
@@ -31,20 +65,11 @@ export default async function ProductPage({ params }) {
     notFound();
   }
 
-  /*
-   * Load active variants separately.
-   * getProductBySlug currently loads the normal
-   * product images but not the variants.
-   */
   const variants = await getProductVariants(
     env.DB,
     product.id
   );
 
-  /*
-   * Normalize variant image naming so the client
-   * components can consistently use imageUrl.
-   */
   const normalizedVariants = (
     Array.isArray(variants) ? variants : []
   ).map((variant) => ({
@@ -64,6 +89,11 @@ export default async function ProductPage({ params }) {
         ? Boolean(variant.is_active)
         : true,
   }));
+
+  const reviews = await getApprovedReviews(
+    env.DB,
+    product.id
+  );
 
   return (
     <>
@@ -102,12 +132,10 @@ export default async function ProductPage({ params }) {
         </section>
 
         <RelatedProducts
-          products={productData.relatedProducts}
+          products={product.relatedProducts || []}
         />
 
-        <ReviewSection
-          reviews={productData.reviews}
-        />
+        <ReviewSection reviews={reviews} />
       </main>
     </>
   );

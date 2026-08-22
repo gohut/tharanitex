@@ -5,7 +5,10 @@ function resolveDB(db) {
 }
 
 export class ReviewRepository {
-  static async findByProductId(productId, db) {
+  static async findByProductId(
+    productId,
+    db
+  ) {
     const database = resolveDB(db);
 
     const { results } = await database
@@ -89,9 +92,14 @@ export class ReviewRepository {
   }) {
     const db = getDB();
 
-    const now = new Date().toISOString();
-    const reviewId = id || null;
-    const initialStatus = status || "Pending";
+    const now =
+      new Date().toISOString();
+
+    const reviewId =
+      id || null;
+
+    const initialStatus =
+      status || "Pending";
 
     const result = await db
       .prepare(`
@@ -126,11 +134,13 @@ export class ReviewRepository {
       `)
       .bind(
         reviewId,
-        reviewer_name || "Verified Customer",
+        reviewer_name ||
+          "Verified Customer",
         customer_id || null,
         user_id || null,
         product_id,
-        product_name || `Product #${product_id}`,
+        product_name ||
+          `Product #${product_id}`,
         rating,
         comment || "",
         comment || "",
@@ -141,22 +151,47 @@ export class ReviewRepository {
       .run();
 
     return {
-      id: result.meta?.last_row_id ?? reviewId,
-      reviewer_name: reviewer_name || "Verified Customer",
-      customer_id: customer_id || null,
-      user_id: user_id || null,
+      id:
+        result.meta?.last_row_id ??
+        reviewId,
+
+      reviewer_name:
+        reviewer_name ||
+        "Verified Customer",
+
+      customer_id:
+        customer_id || null,
+
+      user_id:
+        user_id || null,
+
       product_id,
-      product_name: product_name || `Product #${product_id}`,
+
+      product_name:
+        product_name ||
+        `Product #${product_id}`,
+
       rating,
-      comment: comment || "",
-      review_text: comment || "",
-      status: initialStatus,
+
+      comment:
+        comment || "",
+
+      review_text:
+        comment || "",
+
+      status:
+        initialStatus,
+
       created_at: now,
+
       updated_at: now,
     };
   }
 
-  static async updateStatus(id, status) {
+  static async updateStatus(
+    id,
+    status
+  ) {
     const db = getDB();
 
     await db
@@ -167,7 +202,11 @@ export class ReviewRepository {
           updated_at = ?
         WHERE id = ?
       `)
-      .bind(status, new Date().toISOString(), id)
+      .bind(
+        status,
+        new Date().toISOString(),
+        id
+      )
       .run();
 
     return true;

@@ -75,16 +75,60 @@ export class Validators {
     return errors.length > 0 ? errors : null;
   }
 
-  static validateReview(data) {
-    const errors = [];
-    if (!data.product_id) {
-      errors.push("Product ID is required");
-    }
-    if (data.rating === undefined || typeof data.rating !== "number" || data.rating < 1 || data.rating > 5) {
-      errors.push("Rating must be an integer between 1 and 5");
-    }
-    return errors.length > 0 ? errors : null;
+static validateReview(data) {
+  const errors = [];
+
+  if (
+    !data.product_id ||
+    !Number.isInteger(
+      Number(data.product_id)
+    ) ||
+    Number(data.product_id) <= 0
+  ) {
+    errors.push(
+      "Valid Product ID is required"
+    );
   }
+
+  if (
+    !data.order_id ||
+    !Number.isInteger(
+      Number(data.order_id)
+    ) ||
+    Number(data.order_id) <= 0
+  ) {
+    errors.push(
+      "A valid delivered order is required"
+    );
+  }
+
+  if (
+    data.rating === undefined ||
+    !Number.isInteger(
+      Number(data.rating)
+    ) ||
+    Number(data.rating) < 1 ||
+    Number(data.rating) > 5
+  ) {
+    errors.push(
+      "Rating must be an integer between 1 and 5"
+    );
+  }
+
+  if (
+    !data.comment ||
+    typeof data.comment !== "string" ||
+    data.comment.trim().length < 3
+  ) {
+    errors.push(
+      "Review comment must be at least 3 characters long"
+    );
+  }
+
+  return errors.length > 0
+    ? errors
+    : null;
+}
 
   static validateCoupon(data) {
     const errors = [];

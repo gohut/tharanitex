@@ -695,19 +695,72 @@ async function ensureCancellationColumns(db) {
 
 export async function getOrders(db, userId) {
   let orders = [];
+
   try {
-    const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, o.cancellation_status, o.refund_status, a.full_name, a.city, a.state FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.user_id = ? ORDER BY o.created_at DESC`).bind(userId).all();
+    const res = await db
+      .prepare(`
+        SELECT
+          o.id,
+          o.total_amount,
+          o.payment_method,
+          o.payment_status,
+          o.order_status,
+          o.created_at,
+          o.cancellation_status,
+          o.refund_status,
+          a.full_name,
+          a.city,
+          a.state
+        FROM orders o
+        JOIN addresses a
+          ON a.id = o.address_id
+        WHERE o.user_id = ?
+        ORDER BY o.created_at DESC
+      `)
+      .bind(userId)
+      .all();
+
     orders = res.results || [];
   } catch (err) {
-    const res = await db.prepare(`SELECT o.id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at, a.full_name, a.city, a.state FROM orders o JOIN addresses a ON a.id = o.address_id WHERE o.user_id = ? ORDER BY o.created_at DESC`).bind(userId).all();
-    orders = (res.results || []).map(o => ({ ...o, cancellation_status: 'NONE', refund_status: 'NOT_REQUESTED' }));
+    const res = await db
+      .prepare(`
+        SELECT
+          o.id,
+          o.total_amount,
+          o.payment_method,
+          o.payment_status,
+          o.order_status,
+          o.created_at,
+          a.full_name,
+          a.city,
+          a.state
+        FROM orders o
+        JOIN addresses a
+          ON a.id = o.address_id
+        WHERE o.user_id = ?
+        ORDER BY o.created_at DESC
+      `)
+      .bind(userId)
+      .all();
+
+    orders = (res.results || []).map((o) => ({
+      ...o,
+      cancellation_status: "NONE",
+      refund_status: "NOT_REQUESTED",
+    }));
   }
 
-  if (orders.length > 0) {
-    const orderIds = orders.map((o) => o.id);
-    const placeholders = orderIds.map(() => "?").join(",");
-    try {
-      const { results: allItems } = await db
+  if (!orders.length) {
+    return orders;
+  }
+
+  const orderIds = orders.map((order) => order.id);
+  const placeholders = orderIds
+    .map(() => "?")
+    .join(",");
+
+  try {
+    const { results: allItems } = await db
       .prepare(`
         SELECT
           oi.id,
@@ -726,28 +779,58 @@ export async function getOrders(db, userId) {
             WHERE pi.product_id = p.id
             ORDER BY sort_order
             LIMIT 1
-          ) AS image
+          ) AS image,
+
+          CASE
+            WHEN EXISTS (
+              SELECT 1
+              FROM reviews r
+              WHERE r.user_id = ?
+                AND r.product_id = oi.product_id
+            )
+            THEN 1
+            ELSE 0
+          END AS has_review
+
         FROM order_items oi
-        JOIN products p ON p.id = oi.product_id
-        LEFT JOIN product_variants v ON v.id = oi.variant_id
+
+        JOIN products p
+          ON p.id = oi.product_id
+
+        LEFT JOIN product_variants v
+          ON v.id = oi.variant_id
+
         WHERE oi.order_id IN (${placeholders})
         ORDER BY oi.id
       `)
-      .bind(...orderIds)
+      .bind(
+        String(userId),
+        ...orderIds
+      )
       .all();
 
-      const itemsMap = new Map();
-      for (const item of allItems || []) {
-        if (!itemsMap.has(item.order_id)) itemsMap.set(item.order_id, []);
-        itemsMap.get(item.order_id).push(item);
+    const itemsMap = new Map();
+
+    for (const item of allItems || []) {
+      if (!itemsMap.has(item.order_id)) {
+        itemsMap.set(item.order_id, []);
       }
-      for (const order of orders) {
-        order.items = itemsMap.get(order.id) || [];
-      }
-    } catch {
-      for (const order of orders) {
-        order.items = order.items || [];
-      }
+
+      itemsMap.get(item.order_id).push(item);
+    }
+
+    for (const order of orders) {
+      order.items =
+        itemsMap.get(order.id) || [];
+    }
+  } catch (error) {
+    console.error(
+      "Failed to load order items:",
+      error
+    );
+
+    for (const order of orders) {
+      order.items = order.items || [];
     }
   }
 
