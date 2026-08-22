@@ -3,10 +3,18 @@ import { Validators } from "../validators/validators";
 import { ApiResponse } from "../utils/ApiResponse";
 import { authenticate } from "../middleware/auth";
 
-const isProd = process.env.NODE_ENV === "production";
-const secureFlag = isProd ? "; Secure" : "";
-const cookieOptions = `; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax${secureFlag}`;
-const expireCookieOptions = `; Path=/; HttpOnly; Max-Age=0; SameSite=Lax${secureFlag}`;
+const isProd =
+  process.env.NODE_ENV === "production";
+
+const secureFlag = isProd
+  ? "; Secure"
+  : "";
+
+const cookieOptions =
+  `; Path=/; HttpOnly; Max-Age=7200; SameSite=Lax${secureFlag}`;
+
+const expireCookieOptions =
+  `; Path=/; HttpOnly; Max-Age=0; SameSite=Lax${secureFlag}`;
 
 export class AuthController {
   static async register(request, env) {
