@@ -605,10 +605,12 @@ export default function ReviewsPage() {
 
                     return (
                       <tr
-                        key={
-                          review.id
+                        key={review.id}
+                        onClick={() =>
+                          setSelectedReview(review)
                         }
-                        className="border-b border-green-800/50 hover:bg-green-800/30 transition-colors"
+                        className="cursor-pointer border-b border-green-800/50 hover:bg-green-800/30 transition-colors"
+                        title="Click to view full review"
                       >
                         <td className="px-4 py-3 text-white text-xs font-medium">
                           {review.reviewer_name ||
@@ -693,11 +695,10 @@ export default function ReviewsPage() {
                           <div className="flex items-center gap-1">
                             <button
                               type="button"
-                              onClick={() =>
-                                flagReview(
-                                  review
-                                )
-                              }
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                flagReview(review);
+                              }}
                               disabled={
                                 String(
                                   status
@@ -714,11 +715,10 @@ export default function ReviewsPage() {
 
                             <button
                               type="button"
-                              onClick={() =>
-                                deleteReview(
-                                  review
-                                )
-                              }
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                deleteReview(review);
+                              }}
                               disabled={
                                 deletingId ===
                                 review.id
@@ -765,11 +765,10 @@ export default function ReviewsPage() {
           <div className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-green-800 bg-green-950 p-5">
             <button
               type="button"
-              onClick={() =>
-                setSelectedReview(
-                  null
-                )
-              }
+              onClick={(event) => {
+                event.stopPropagation();
+                setSelectedReview(review);
+              }}
               className="absolute right-4 top-4 text-green-400 hover:text-white"
             >
               <X size={20} />

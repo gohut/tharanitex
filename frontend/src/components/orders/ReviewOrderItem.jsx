@@ -48,6 +48,15 @@ export default function ReviewOrderItem({
 
   const [message, setMessage] =
     useState("");
+  
+  const [reviewSubmitted, setReviewSubmitted] =
+    useState(Boolean(alreadyReviewed));
+
+  useEffect(() => {
+    if (alreadyReviewed || reviewSubmitted) {
+      setReviewSubmitted(true);
+    }
+  }, [alreadyReviewed]);
 
   const fileInputRef =
     useRef(null);
@@ -268,6 +277,7 @@ export default function ReviewOrderItem({
       setComment("");
       setRating(0);
       setImages([]);
+      setReviewSubmitted(true);
       setMessage(
         "Review submitted successfully."
       );
@@ -278,7 +288,6 @@ export default function ReviewOrderItem({
        * Refresh My Orders so the
        * product becomes Reviewed.
        */
-      window.location.reload();
     } catch (error) {
       console.error(
         "Review submission failed:",
