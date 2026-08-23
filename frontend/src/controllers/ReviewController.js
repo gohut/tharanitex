@@ -6,9 +6,7 @@ import { authenticate, authenticateAdmin } from "../middleware/auth";
 export class ReviewController {
   static async addProductReview(request) {
     try {
-      const payload = await authenticate(
-        request
-      );
+      const payload = await authenticate(request);
 
       if (!payload) {
         return ApiResponse.unauthorized(
@@ -16,7 +14,45 @@ export class ReviewController {
         );
       }
 
-      const body = await request.json();
+      const contentType =
+        request.headers.get("content-type") || "";
+
+      let body;
+      let imageFiles = [];
+
+      if (
+        contentType.includes(
+          "multipart/form-data"
+        )
+      ) {
+        const formData =
+          await request.formData();
+
+        body = {
+          product_id:
+            formData.get("product_id"),
+
+          order_id:
+            formData.get("order_id"),
+
+          rating:
+            formData.get("rating"),
+
+          comment:
+            formData.get("comment"),
+        };
+
+        imageFiles =
+          formData
+            .getAll("images")
+            .filter(
+              (file) =>
+                file instanceof File &&
+                file.size > 0
+            );
+      } else {
+        body = await request.json();
+      }
 
       const valErrors =
         Validators.validateReview(body);
@@ -31,7 +67,10 @@ export class ReviewController {
       const review =
         await ReviewService.addReview(
           payload.id,
-          body
+          {
+            ...body,
+            imageFiles,
+          }
         );
 
       return ApiResponse.success(
@@ -40,9 +79,15 @@ export class ReviewController {
         201
       );
     } catch (error) {
+      console.error(
+        "Review submission error:",
+        error
+      );
+
       return ApiResponse.error(
-        error.message,
-        error.status || 400
+        error?.message ||
+          "Unable to submit review.",
+        error?.status || 400
       );
     }
   }

@@ -4,12 +4,26 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard, Package, ShoppingCart, Users, Truck,
-  Star, FileText, Shield, Settings, Menu, X,
-  Bell, Search, ChevronDown, LogOut, User,
+  LayoutDashboard,
+  Home,
+  Package,
+  ShoppingCart,
+  Users,
+  Truck,
+  Star,
+  FileText,
+  Shield,
+  Settings,
+  Menu,
+  X,
+  Bell,
+  Search,
+  ChevronDown,
+  LogOut,
 } from "lucide-react";
 
 const navLinks = [
+  { name: "Home", path: "/", icon: Home },
   { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
   { name: "Products", path: "/admin/products", icon: Package },
   { name: "Orders", path: "/admin/orders", icon: ShoppingCart },
@@ -36,26 +50,43 @@ export default function AdminLayout({ children }) {
     try {
       await fetch("/api/admin/logout", { method: "POST" });
     } catch (e) {}
+
     localStorage.removeItem("currentUser");
     window.dispatchEvent(new Event("auth-change"));
     router.push("/admin/login");
   };
 
-  const isActive = (path) =>
-    path === "/admin" ? pathname === "/admin" : pathname.startsWith(path);
+  const isActive = (path) => {
+    if (path === "/") {
+      return pathname === "/";
+    }
+
+    if (path === "/admin") {
+      return pathname === "/admin";
+    }
+
+    return pathname.startsWith(path);
+  };
 
   return (
     <div className="flex h-screen bg-green-950 overflow-hidden">
+
       {/* ── Desktop Sidebar ── */}
       <aside className="hidden md:flex flex-col w-64 shrink-0 bg-green-900 border-r border-green-800 shadow-xl">
+
         {/* Brand */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-green-800">
           <div className="w-9 h-9 rounded-lg bg-gold-600 flex items-center justify-center shadow-gold-sm">
             <span className="text-green-950 font-bold text-sm">AG</span>
           </div>
+
           <div>
-            <p className="text-white font-bold text-sm leading-tight">Tharani Textiles</p>
-            <p className="text-green-400 text-xs">Admin Panel</p>
+            <p className="text-white font-bold text-sm leading-tight">
+              Tharani Textiles
+            </p>
+            <p className="text-green-400 text-xs">
+              Admin Panel
+            </p>
           </div>
         </div>
 
@@ -73,9 +104,15 @@ export default function AdminLayout({ children }) {
             >
               <Icon
                 size={18}
-                className={isActive(path) ? "text-gold-400" : "text-green-400 group-hover:text-gold-300"}
+                className={
+                  isActive(path)
+                    ? "text-gold-400"
+                    : "text-green-400 group-hover:text-gold-300"
+                }
               />
+
               {name}
+
               {isActive(path) && (
                 <span className="ml-auto w-1.5 h-1.5 rounded-full bg-gold-500" />
               )}
@@ -92,11 +129,20 @@ export default function AdminLayout({ children }) {
             <div className="w-8 h-8 rounded-full bg-gold-600 flex items-center justify-center text-green-950 font-bold text-xs">
               GR
             </div>
+
             <div className="flex-1 min-w-0">
-              <p className="text-white text-xs font-medium truncate">Gowtham Raj</p>
-              <p className="text-green-400 text-xs truncate">Super Admin</p>
+              <p className="text-white text-xs font-medium truncate">
+                Gowtham Raj
+              </p>
+              <p className="text-green-400 text-xs truncate">
+                Super Admin
+              </p>
             </div>
-            <LogOut size={14} className="text-green-500 group-hover:text-gold-400" />
+
+            <LogOut
+              size={14}
+              className="text-green-500 group-hover:text-gold-400"
+            />
           </button>
         </div>
       </aside>
@@ -112,17 +158,27 @@ export default function AdminLayout({ children }) {
       {/* ── Mobile Drawer ── */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-72 bg-green-900 border-r border-green-800 flex flex-col md:hidden transition-transform duration-300 ${
-          drawerOpen ? "translate-x-0" : "-translate-x-full"
+          drawerOpen
+            ? "translate-x-0"
+            : "-translate-x-full"
         }`}
       >
+
         {/* Drawer Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-green-800">
           <div className="flex items-center gap-3">
+
             <div className="w-8 h-8 rounded-lg bg-gold-600 flex items-center justify-center">
-              <span className="text-green-950 font-bold text-xs">AG</span>
+              <span className="text-green-950 font-bold text-xs">
+                AG
+              </span>
             </div>
-            <p className="text-white font-bold text-sm">Tharani Textiles</p>
+
+            <p className="text-white font-bold text-sm">
+              Tharani Textiles
+            </p>
           </div>
+
           <button
             onClick={() => setDrawerOpen(false)}
             className="p-1.5 rounded-lg text-green-400 hover:bg-green-800 hover:text-white"
@@ -144,7 +200,15 @@ export default function AdminLayout({ children }) {
                   : "text-green-300 hover:bg-green-800 hover:text-gold-300"
               }`}
             >
-              <Icon size={18} className={isActive(path) ? "text-gold-400" : "text-green-400"} />
+              <Icon
+                size={18}
+                className={
+                  isActive(path)
+                    ? "text-gold-400"
+                    : "text-green-400"
+                }
+              />
+
               {name}
             </Link>
           ))}
@@ -153,8 +217,10 @@ export default function AdminLayout({ children }) {
 
       {/* ── Right Side (Navbar + Content) ── */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+
         {/* ── Top Navbar ── */}
         <header className="h-16 bg-green-900 border-b border-green-800 flex items-center gap-4 px-4 md:px-6 shrink-0 shadow-md">
+
           {/* Hamburger — mobile */}
           <button
             className="md:hidden p-2 rounded-lg text-green-400 hover:bg-green-800 hover:text-white"
@@ -165,7 +231,11 @@ export default function AdminLayout({ children }) {
 
           {/* Search */}
           <div className="relative hidden sm:flex items-center flex-1 max-w-xs">
-            <Search size={15} className="absolute left-3 text-green-500" />
+            <Search
+              size={15}
+              className="absolute left-3 text-green-500"
+            />
+
             <input
               type="text"
               placeholder="Search…"
@@ -176,14 +246,17 @@ export default function AdminLayout({ children }) {
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
+
             {/* Notifications */}
             <button className="relative p-2 rounded-lg text-green-400 hover:bg-green-800 hover:text-gold-400 transition-colors">
               <Bell size={18} />
+
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-gold-500 rounded-full" />
             </button>
 
             {/* Profile Dropdown */}
             <div className="relative">
+
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg hover:bg-green-800 transition-colors"
@@ -191,24 +264,41 @@ export default function AdminLayout({ children }) {
                 <div className="w-7 h-7 rounded-full bg-gold-600 flex items-center justify-center text-green-950 font-bold text-xs">
                   GR
                 </div>
-                <span className="hidden sm:block text-white text-xs font-medium">Gowtham</span>
-                <ChevronDown size={13} className="text-green-400" />
+
+                <span className="hidden sm:block text-white text-xs font-medium">
+                  Gowtham
+                </span>
+
+                <ChevronDown
+                  size={13}
+                  className="text-green-400"
+                />
               </button>
 
               {profileOpen && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-green-800 border border-green-700 rounded-xl shadow-card-hover animate-fade-in overflow-hidden z-50">
+
                   <div className="px-4 py-3 border-b border-green-700">
-                    <p className="text-white text-sm font-medium">Gowtham Raj</p>
-                    <p className="text-green-400 text-xs">admin@tharanitextiles.com</p>
+                    <p className="text-white text-sm font-medium">
+                      Gowtham Raj
+                    </p>
+
+                    <p className="text-green-400 text-xs">
+                      admin@tharanitextiles.com
+                    </p>
                   </div>
+
                   <Link
                     href="/admin/settings"
                     className="flex items-center gap-2 px-4 py-2.5 text-green-300 hover:bg-green-700 hover:text-white text-sm"
                     onClick={() => setProfileOpen(false)}
                   >
-                    <Settings size={14} /> Settings
+                    <Settings size={14} />
+                    Settings
                   </Link>
+
                   <hr className="border-green-700" />
+
                   <button
                     className="w-full flex items-center gap-2 px-4 py-2.5 text-red-400 hover:bg-green-700 text-sm text-left"
                     onClick={() => {
@@ -216,10 +306,13 @@ export default function AdminLayout({ children }) {
                       handleLogout();
                     }}
                   >
-                    <LogOut size={14} /> Sign Out
+                    <LogOut size={14} />
+                    Sign Out
                   </button>
+
                 </div>
               )}
+
             </div>
           </div>
         </header>
@@ -228,6 +321,7 @@ export default function AdminLayout({ children }) {
         <main className="flex-1 overflow-y-auto bg-dark-800 p-4 md:p-6">
           {children}
         </main>
+
       </div>
     </div>
   );

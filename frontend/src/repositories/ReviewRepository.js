@@ -4,11 +4,23 @@ function resolveDB(db) {
   return db || getDB();
 }
 
+function parseImageKeys(value) {
+  if (!value) return [];
+
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export class ReviewRepository {
-  static async findByProductId(
-    productId,
-    db
-  ) {
+  static async findByProductId(productId, db) {
     const database = resolveDB(db);
 
     const { results } = await database
@@ -23,6 +35,7 @@ export class ReviewRepository {
           rating,
           comment,
           review_text,
+          image_keys,
           status,
           created_at,
           updated_at
@@ -34,7 +47,10 @@ export class ReviewRepository {
       .bind(productId)
       .all();
 
-    return results || [];
+    return (results || []).map((review) => ({
+      ...review,
+      image_keys: parseImageKeys(review.image_keys),
+    }));
   }
 
   static async findAll() {
@@ -52,6 +68,7 @@ export class ReviewRepository {
           rating,
           comment,
           review_text,
+          image_keys,
           status,
           flagged_reason,
           reviewed_by,
@@ -63,13 +80,16 @@ export class ReviewRepository {
       `)
       .all();
 
-    return results || [];
+    return (results || []).map((review) => ({
+      ...review,
+      image_keys: parseImageKeys(review.image_keys),
+    }));
   }
 
   static async findById(id) {
     const db = getDB();
 
-    return await db
+    const review = await db
       .prepare(`
         SELECT *
         FROM reviews
@@ -77,6 +97,13 @@ export class ReviewRepository {
       `)
       .bind(id)
       .first();
+
+    if (!review) return null;
+
+    return {
+      ...review,
+      image_keys: parseImageKeys(review.image_keys),
+    };
   }
 
   static async create({
@@ -89,17 +116,18 @@ export class ReviewRepository {
     rating,
     comment,
     status,
+    image_keys = [],
   }) {
     const db = getDB();
 
-    const now =
-      new Date().toISOString();
+    const now = new Date().toISOString();
 
-    const reviewId =
-      id || null;
+    const reviewId = id || null;
+    const initialStatus = status || "Pending";
 
-    const initialStatus =
-      status || "Pending";
+    const normalizedImages = Array.isArray(image_keys)
+      ? image_keys
+      : [];
 
     const result = await db
       .prepare(`
@@ -113,6 +141,7 @@ export class ReviewRepository {
           rating,
           comment,
           review_text,
+          image_keys,
           status,
           created_at,
           updated_at
@@ -129,21 +158,21 @@ export class ReviewRepository {
           ?,
           ?,
           ?,
+          ?,
           ?
         )
       `)
       .bind(
         reviewId,
-        reviewer_name ||
-          "Verified Customer",
+        reviewer_name || "Verified Customer",
         customer_id || null,
         user_id || null,
         product_id,
-        product_name ||
-          `Product #${product_id}`,
+        product_name || `Product #${product_id}`,
         rating,
         comment || "",
         comment || "",
+        JSON.stringify(normalizedImages),
         initialStatus,
         now,
         now
@@ -151,47 +180,25 @@ export class ReviewRepository {
       .run();
 
     return {
-      id:
-        result.meta?.last_row_id ??
-        reviewId,
-
+      id: result.meta?.last_row_id ?? reviewId,
       reviewer_name:
-        reviewer_name ||
-        "Verified Customer",
-
-      customer_id:
-        customer_id || null,
-
-      user_id:
-        user_id || null,
-
+        reviewer_name || "Verified Customer",
+      customer_id: customer_id || null,
+      user_id: user_id || null,
       product_id,
-
       product_name:
-        product_name ||
-        `Product #${product_id}`,
-
+        product_name || `Product #${product_id}`,
       rating,
-
-      comment:
-        comment || "",
-
-      review_text:
-        comment || "",
-
-      status:
-        initialStatus,
-
+      comment: comment || "",
+      review_text: comment || "",
+      image_keys: normalizedImages,
+      status: initialStatus,
       created_at: now,
-
       updated_at: now,
     };
   }
 
-  static async updateStatus(
-    id,
-    status
-  ) {
+  static async updateStatus(id, status) {
     const db = getDB();
 
     await db
