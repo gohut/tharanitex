@@ -21,35 +21,24 @@ export class ReviewController {
       let imageFiles = [];
 
       if (
-        contentType.includes(
-          "multipart/form-data"
-        )
+        contentType.includes("multipart/form-data")
       ) {
-        const formData =
-          await request.formData();
+        const formData = await request.formData();
 
         body = {
-          product_id:
-            formData.get("product_id"),
-
-          order_id:
-            formData.get("order_id"),
-
-          rating:
-            formData.get("rating"),
-
-          comment:
-            formData.get("comment"),
+          product_id: formData.get("product_id"),
+          order_id: formData.get("order_id"),
+          rating: formData.get("rating"),
+          comment: formData.get("comment"),
         };
 
-        imageFiles =
-          formData
-            .getAll("images")
-            .filter(
-              (file) =>
-                file instanceof File &&
-                file.size > 0
-            );
+        imageFiles = formData
+          .getAll("images")
+          .filter(
+            (file) =>
+              file instanceof File &&
+              file.size > 0
+          );
       } else {
         body = await request.json();
       }
@@ -75,7 +64,7 @@ export class ReviewController {
 
       return ApiResponse.success(
         review,
-        "Review submitted and is pending moderation.",
+        "Review submitted successfully.",
         201
       );
     } catch (error) {
@@ -94,11 +83,7 @@ export class ReviewController {
 
   static async adminGetReviews(request) {
     try {
-      if (
-        !(
-          await authenticateAdmin(request)
-        )
-      ) {
+      if (!(await authenticateAdmin(request))) {
         return ApiResponse.forbidden(
           "Admin access required"
         );
@@ -120,11 +105,7 @@ export class ReviewController {
     { params }
   ) {
     try {
-      if (
-        !(
-          await authenticateAdmin(request)
-        )
-      ) {
+      if (!(await authenticateAdmin(request))) {
         return ApiResponse.forbidden(
           "Admin access required"
         );
@@ -154,11 +135,7 @@ export class ReviewController {
     { params }
   ) {
     try {
-      if (
-        !(
-          await authenticateAdmin(request)
-        )
-      ) {
+      if (!(await authenticateAdmin(request))) {
         return ApiResponse.forbidden(
           "Admin access required"
         );

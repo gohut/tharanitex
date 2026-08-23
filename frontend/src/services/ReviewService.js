@@ -1,373 +1,450 @@
-import { ReviewRepository } from "../repositories/ReviewRepository";
-import { ProductRepository } from "../repositories/ProductRepository";
-import { getDB } from "../database/db";
+"use client";
 
-const MAX_IMAGES = 5;
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+import {
+  useMemo,
+  useState,
+} from "react";
 
-const ALLOWED_IMAGE_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-]);
+import { Star } from "lucide-react";
 
-function getImageExtension(file) {
-  const type = String(file.type || "").toLowerCase();
+function formatReviewDate(value) {
+  if (!value) {
+    return "";
+  }
 
-  if (type === "image/png") return "png";
-  if (type === "image/webp") return "webp";
+  const date =
+    new Date(value);
 
-  return "jpg";
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "";
+  }
+
+  return date.toLocaleDateString(
+    "en-IN",
+    {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }
+  );
 }
 
-async function uploadReviewImages(files) {
-  if (!files || files.length === 0) {
+function parseImageKeys(value) {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (!value) {
     return [];
   }
 
-  if (files.length > MAX_IMAGES) {
-    throw new Error(
-      `You can upload a maximum of ${MAX_IMAGES} images.`
-    );
-  }
-
-  const bucket =
-    process.env.BUCKET;
-
-  if (!bucket) {
-    throw new Error(
-      "R2 storage bucket binding not found."
-    );
-  }
-
-  const uploadedKeys = [];
-
   try {
-    for (const file of files) {
-      if (!(file instanceof File)) {
-        throw new Error("Invalid review image.");
-      }
+    const parsed =
+      JSON.parse(value);
 
-      if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-        throw new Error(
-          "Only JPG, PNG and WEBP images are allowed."
-        );
-      }
-
-      if (file.size > MAX_IMAGE_SIZE) {
-        throw new Error(
-          "Each review image must be 5 MB or smaller."
-        );
-      }
-
-      const extension =
-        getImageExtension(file);
-
-      const key =
-        `reviews/${crypto.randomUUID()}.${extension}`;
-
-      const bytes =
-        await file.arrayBuffer();
-
-      await bucket.put(
-        key,
-        bytes,
-        {
-          httpMetadata: {
-            contentType: file.type,
-          },
-        }
-      );
-
-      uploadedKeys.push(key);
-    }
-
-    return uploadedKeys;
-  } catch (error) {
-    // Clean up anything already uploaded
-    for (const key of uploadedKeys) {
-      try {
-        await bucket.delete(key);
-      } catch {}
-    }
-
-    throw error;
+    return Array.isArray(parsed)
+      ? parsed
+      : [];
+  } catch {
+    return [];
   }
 }
 
-export class ReviewService {
-  static async getProductReviews(productId) {
-    return await ReviewRepository.findByProductId(
-      productId
-    );
+function getImageUrl(key) {
+  if (!key) {
+    return "";
   }
 
-  static async getAllReviews() {
-    return await ReviewRepository.findAll();
-  }
+  return `/api/images/${key
+    .split("/")
+    .map(
+      encodeURIComponent
+    )
+    .join("/")}`;
+}
 
-  static async addReview(
-    userId,
-    {
-      product_id,
-      order_id,
-      rating,
-      comment,
-      imageFiles = [],
-    }
-  ) {
-    const db = getDB();
+function normalizeReview(review) {
+  return {
+    id: review?.id,
 
-    const normalizedUserId =
-      String(userId);
+    name:
+      review?.reviewer_name ||
+      review?.name ||
+      review?.reviewer ||
+      "Verified Customer",
 
-    const productId =
-      Number(product_id);
+    rating:
+      Number(
+        review?.rating || 0
+      ),
 
-    const orderId =
-      Number(order_id);
+    comment:
+      review?.comment ||
+      review?.review_text ||
+      "",
 
-    const numericRating =
-      Number(rating);
-
-    const reviewComment =
-      String(comment || "").trim();
-
-    if (
-      !productId ||
-      productId <= 0
-    ) {
-      throw new Error(
-        "Invalid product."
-      );
-    }
-
-    if (
-      !orderId ||
-      orderId <= 0
-    ) {
-      throw new Error(
-        "A valid delivered order is required to review this product."
-      );
-    }
-
-    if (
-      !Number.isInteger(
-        numericRating
+    date:
+      review?.date ||
+      formatReviewDate(
+        review?.created_at
       ) ||
-      numericRating < 1 ||
-      numericRating > 5
-    ) {
-      throw new Error(
-        "Rating must be between 1 and 5."
-      );
-    }
+      "",
 
-    if (!reviewComment) {
-      throw new Error(
-        "Review comment is required."
-      );
-    }
+    imageKeys:
+      parseImageKeys(
+        review?.image_keys
+      ),
+  };
+}
 
-    if (reviewComment.length < 3) {
-      throw new Error(
-        "Review comment must be at least 3 characters."
-      );
-    }
+export default function ReviewSection({
+  reviews = [],
+}) {
+  const [
+    visibleReviews,
+    setVisibleReviews,
+  ] = useState(4);
 
-    /*
-     * Verify delivered order.
-     *
-     * IMPORTANT:
-     * Do not query delivered_at because
-     * your current order schema does not
-     * consistently contain that field.
-     */
-    const deliveredOrder =
-      await db
-        .prepare(`
-          SELECT
-            o.id,
-            o.user_id,
-            o.order_status
-          FROM orders o
-          WHERE o.id = ?
-            AND o.user_id = ?
-            AND LOWER(o.order_status) = 'delivered'
-          LIMIT 1
-        `)
-        .bind(
-          orderId,
-          normalizedUserId
+  const safeReviews =
+    useMemo(() => {
+      if (
+        !Array.isArray(
+          reviews
         )
-        .first();
-
-    if (!deliveredOrder) {
-      throw new Error(
-        "You can review a product only after your order has been delivered."
-      );
-    }
-
-    /*
-     * Verify the product belongs
-     * to that delivered order.
-     */
-    const purchasedItem =
-      await db
-        .prepare(`
-          SELECT
-            oi.id,
-            oi.order_id,
-            oi.product_id
-          FROM order_items oi
-          WHERE oi.order_id = ?
-            AND oi.product_id = ?
-          LIMIT 1
-        `)
-        .bind(
-          orderId,
-          productId
-        )
-        .first();
-
-    if (!purchasedItem) {
-      throw new Error(
-        "You can only review products included in your delivered order."
-      );
-    }
-
-    /*
-     * One review per user per product.
-     */
-    const existingReview =
-      await db
-        .prepare(`
-          SELECT id
-          FROM reviews
-          WHERE user_id = ?
-            AND product_id = ?
-          LIMIT 1
-        `)
-        .bind(
-          normalizedUserId,
-          productId
-        )
-        .first();
-
-    if (existingReview) {
-      throw new Error(
-        "You have already reviewed this product."
-      );
-    }
-
-    const product =
-      await ProductRepository.findById(
-        productId
-      );
-
-    if (!product) {
-      throw new Error(
-        "Product not found."
-      );
-    }
-
-    /*
-     * Upload images only after all
-     * validation has passed.
-     */
-    const imageKeys =
-      await uploadReviewImages(
-        imageFiles
-      );
-
-    try {
-      const review =
-        await ReviewRepository.create({
-          user_id:
-            normalizedUserId,
-
-          customer_id: null,
-
-          product_id:
-            productId,
-
-          product_name:
-            product.name ||
-            `Product #${productId}`,
-
-          rating:
-            numericRating,
-
-          comment:
-            reviewComment,
-
-          status:
-            "Pending",
-
-          reviewer_name:
-            "Verified Customer",
-
-          image_keys:
-            imageKeys,
-        });
-
-      return review;
-    } catch (error) {
-      /*
-       * If DB insertion fails,
-       * remove uploaded images.
-       */
-      const bucket =
-        process.env.BUCKET;
-
-      if (bucket) {
-        for (const key of imageKeys) {
-          try {
-            await bucket.delete(key);
-          } catch {}
-        }
+      ) {
+        return [];
       }
 
-      throw error;
-    }
-  }
+      return reviews
+        .map(
+          normalizeReview
+        )
+        .filter(
+          (review) =>
+            review.id &&
+            review.rating >=
+              1 &&
+            review.rating <=
+              5 &&
+            review.comment
+        );
+    }, [reviews]);
 
-  static async approveReview(
-    reviewId
-  ) {
-    const review =
-      await ReviewRepository.findById(
-        reviewId
-      );
+  const average =
+    safeReviews.length >
+    0
+      ? safeReviews.reduce(
+          (
+            sum,
+            review
+          ) =>
+            sum +
+            review.rating,
+          0
+        ) /
+        safeReviews.length
+      : 0;
 
-    if (!review) {
-      throw new Error(
-        "Review not found"
-      );
-    }
-
-    return await ReviewRepository.updateStatus(
-      reviewId,
-      "Approved"
+  const ratingCounts =
+    [5, 4, 3, 2, 1].map(
+      (rating) =>
+        safeReviews.filter(
+          (review) =>
+            review.rating ===
+            rating
+        ).length
     );
-  }
 
-  static async deleteReview(
-    reviewId
-  ) {
-    const review =
-      await ReviewRepository.findById(
-        reviewId
-      );
+  return (
+    <section className="mx-auto max-w-[1420px] px-5 pb-20 pt-16 md:px-8 lg:px-10">
+      <h2 className="text-center font-klaristha text-[34px] uppercase tracking-[0.02em] text-[#D38E2E] md:text-[46px]">
+        Ratings and Reviews
+      </h2>
 
-    if (!review) {
-      throw new Error(
-        "Review not found"
-      );
-    }
+      <div className="mt-9 grid gap-6 lg:grid-cols-[320px_1fr]">
+        {/* Rating Summary */}
+        <div className="border border-[#ECDDC7] bg-[#FCF6EC] p-6">
+          <h3 className="text-center text-[58px] font-light leading-none text-[#D38E2E] md:text-[72px]">
+            {average.toFixed(
+              1
+            )}
+          </h3>
 
-    return await ReviewRepository.delete(
-      reviewId
-    );
-  }
+          <div className="mt-3 flex justify-center gap-1">
+            {[1, 2, 3, 4, 5].map(
+              (star) => (
+                <Star
+                  key={star}
+                  size={20}
+                  fill={
+                    star <=
+                    Math.round(
+                      average
+                    )
+                      ? "#F3A900"
+                      : "transparent"
+                  }
+                  color="#F3A900"
+                />
+              )
+            )}
+          </div>
+
+          <p className="mt-2 text-center text-xs text-[#B8A898]">
+            Based on{" "}
+            {
+              safeReviews.length
+            }{" "}
+            {safeReviews.length ===
+            1
+              ? "review"
+              : "reviews"}
+          </p>
+
+          <div className="mt-7 space-y-3">
+            {[
+              5,
+              4,
+              3,
+              2,
+              1,
+            ].map(
+              (
+                rating,
+                index
+              ) => {
+                const count =
+                  ratingCounts[
+                    index
+                  ];
+
+                const width =
+                  safeReviews.length ===
+                  0
+                    ? 0
+                    : (count /
+                        safeReviews.length) *
+                      100;
+
+                return (
+                  <div
+                    key={
+                      rating
+                    }
+                    className="grid grid-cols-[14px_16px_1fr_34px] items-center gap-2"
+                  >
+                    <span className="text-xs text-[#8B7F73]">
+                      {
+                        rating
+                      }
+                    </span>
+
+                    <Star
+                      size={12}
+                      fill="#F3A900"
+                      color="#F3A900"
+                    />
+
+                    <div className="h-[5px] flex-1 bg-[#E9DDCE]">
+                      <div
+                        className="h-[5px] bg-[#E0A032]"
+                        style={{
+                          width: `${width}%`,
+                        }}
+                      />
+                    </div>
+
+                    <span className="text-right text-[10px] text-[#8B7F73]">
+                      {Math.round(
+                        width
+                      )}
+                      %
+                    </span>
+                  </div>
+                );
+              }
+            )}
+          </div>
+
+          <div className="mt-8 border border-[#E8D8C3] bg-white p-4 text-center">
+            <p className="text-xs leading-5 text-[#8B7F73]">
+              Reviews and ratings are
+              available only to
+              customers who have
+              purchased and received
+              this product.
+            </p>
+
+            <p className="mt-2 text-xs font-medium text-[#D38E2E]">
+              To review your
+              purchase, go to My
+              Orders.
+            </p>
+          </div>
+        </div>
+
+        {/* Reviews */}
+        <div className="border border-[#ECDDC7] bg-[#FCF6EC] p-4 md:p-6">
+          {safeReviews.length ===
+          0 ? (
+            <div className="py-14 text-center">
+              <p className="text-sm text-[#8B7F73]">
+                No reviews yet.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {safeReviews
+                .slice(
+                  0,
+                  visibleReviews
+                )
+                .map(
+                  (review) => (
+                    <div
+                      key={
+                        review.id
+                      }
+                      className="flex gap-4 border-b border-[#F0E4D4] pb-4 last:border-b-0"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F4DFC0] text-xs font-medium text-[#C58A2A]">
+                        {review.name
+                          .charAt(
+                            0
+                          )
+                          .toUpperCase()}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                          <div>
+                            <h4 className="text-sm font-semibold text-[#5E4933]">
+                              {
+                                review.name
+                              }
+                            </h4>
+
+                            <div className="mt-1 flex gap-0.5">
+                              {[
+                                1,
+                                2,
+                                3,
+                                4,
+                                5,
+                              ].map(
+                                (
+                                  star
+                                ) => (
+                                  <Star
+                                    key={
+                                      star
+                                    }
+                                    size={
+                                      12
+                                    }
+                                    fill={
+                                      star <=
+                                      review.rating
+                                        ? "#F3A900"
+                                        : "transparent"
+                                    }
+                                    color="#F3A900"
+                                  />
+                                )
+                              )}
+                            </div>
+
+                            <span className="mt-1 inline-block text-[10px] font-medium text-[#9A7750]">
+                              ✓ Verified
+                              Purchase
+                            </span>
+                          </div>
+
+                          {review.date && (
+                            <p className="text-[11px] text-[#A69B90]">
+                              {
+                                review.date
+                              }
+                            </p>
+                          )}
+                        </div>
+
+                        <p className="mt-2 text-sm leading-6 text-[#6C6054]">
+                          {
+                            review.comment
+                          }
+                        </p>
+
+                        {/* Review Photos */}
+                        {review
+                          .imageKeys
+                          .length >
+                          0 && (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {review.imageKeys.map(
+                              (
+                                key,
+                                index
+                              ) => {
+                                const src =
+                                  getImageUrl(
+                                    key
+                                  );
+
+                                return (
+                                  <a
+                                    key={`${key}-${index}`}
+                                    href={
+                                      src
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block h-24 w-24 overflow-hidden border border-[#E3D3BE] bg-white"
+                                  >
+                                    <img
+                                      src={
+                                        src
+                                      }
+                                      alt={`Review photo ${
+                                        index +
+                                        1
+                                      }`}
+                                      className="h-full w-full object-cover transition hover:scale-105"
+                                    />
+                                  </a>
+                                );
+                              }
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                )}
+            </div>
+          )}
+
+          {visibleReviews <
+            safeReviews.length && (
+            <button
+              type="button"
+              onClick={() =>
+                setVisibleReviews(
+                  (prev) =>
+                    prev + 4
+                )
+              }
+              className="mx-auto mt-5 block text-sm text-[#D38E2E] transition hover:text-[#B77719]"
+            >
+              View All Reviews →
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
+  );
 }

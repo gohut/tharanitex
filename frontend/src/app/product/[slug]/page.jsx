@@ -6,37 +6,44 @@ import ProductDetails from "@/components/product/ProductDetails";
 import ReviewSection from "@/components/product/ReviewSection";
 import { notFound } from "next/navigation";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+
 import {
   getProductBySlug,
   getProductVariants,
 } from "@/lib/db/product";
 
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
 
-async function getApprovedReviews(db, productId) {
+async function getApprovedReviews(
+  db,
+  productId
+) {
   try {
-    const { results } = await db
-      .prepare(`
-        SELECT
-          id,
-          reviewer_name,
-          customer_id,
-          user_id,
-          product_id,
-          product_name,
-          rating,
-          comment,
-          review_text,
-          status,
-          created_at,
-          updated_at
-        FROM reviews
-        WHERE product_id = ?
-          AND LOWER(status) = 'approved'
-        ORDER BY created_at DESC
-      `)
-      .bind(productId)
-      .all();
+    const { results } =
+      await db
+        .prepare(`
+          SELECT
+            id,
+            reviewer_name,
+            customer_id,
+            user_id,
+            product_id,
+            product_name,
+            rating,
+            comment,
+            review_text,
+            image_keys,
+            status,
+            created_at,
+            updated_at
+          FROM reviews
+          WHERE product_id = ?
+            AND LOWER(status) = 'approved'
+          ORDER BY created_at DESC
+        `)
+        .bind(productId)
+        .all();
 
     return results || [];
   } catch (error) {
@@ -49,51 +56,85 @@ async function getApprovedReviews(db, productId) {
   }
 }
 
-export default async function ProductPage({ params }) {
-  const { slug } = await params;
+export default async function ProductPage({
+  params,
+}) {
+  const { slug } =
+    await params;
 
-  const { env } = await getCloudflareContext({
-    async: true,
-  });
+  const { env } =
+    await getCloudflareContext({
+      async: true,
+    });
 
-  const product = await getProductBySlug(
-    env.DB,
-    slug
-  );
+  const product =
+    await getProductBySlug(
+      env.DB,
+      slug
+    );
 
   if (!product) {
     notFound();
   }
 
-  const variants = await getProductVariants(
-    env.DB,
-    product.id
-  );
+  const variants =
+    await getProductVariants(
+      env.DB,
+      product.id
+    );
 
-  const normalizedVariants = (
-    Array.isArray(variants) ? variants : []
-  ).map((variant) => ({
-    id: Number(variant.id),
-    name: variant.name || "",
-    sku: variant.sku || "",
-    price: Number(variant.price) || 0,
-    stock: Number(variant.stock) || 0,
-    imageUrl:
-      variant.imageUrl ||
-      variant.image_url ||
-      "",
-    isActive:
-      variant.isActive !== undefined
-        ? Boolean(variant.isActive)
-        : variant.is_active !== undefined
-        ? Boolean(variant.is_active)
-        : true,
-  }));
+  const normalizedVariants =
+    (
+      Array.isArray(
+        variants
+      )
+        ? variants
+        : []
+    ).map((variant) => ({
+      id: Number(
+        variant.id
+      ),
 
-  const reviews = await getApprovedReviews(
-    env.DB,
-    product.id
-  );
+      name:
+        variant.name || "",
+
+      sku:
+        variant.sku || "",
+
+      price:
+        Number(
+          variant.price
+        ) || 0,
+
+      stock:
+        Number(
+          variant.stock
+        ) || 0,
+
+      imageUrl:
+        variant.imageUrl ||
+        variant.image_url ||
+        "",
+
+      isActive:
+        variant.isActive !==
+        undefined
+          ? Boolean(
+              variant.isActive
+            )
+          : variant.is_active !==
+              undefined
+          ? Boolean(
+              variant.is_active
+            )
+          : true,
+    }));
+
+  const reviews =
+    await getApprovedReviews(
+      env.DB,
+      product.id
+    );
 
   return (
     <>
@@ -111,31 +152,43 @@ export default async function ProductPage({ params }) {
                 label: "Products",
               },
               {
-                label: product.name,
+                label:
+                  product.name,
               },
             ]}
           />
 
           <div className="grid gap-7 sm:gap-8 lg:grid-cols-[minmax(0,720px)_minmax(320px,1fr)] lg:gap-10 xl:gap-14">
             <ProductGallery
-              images={product.images || []}
-              variants={normalizedVariants}
+              images={
+                product.images ||
+                []
+              }
+              variants={
+                normalizedVariants
+              }
             />
 
             <ProductDetails
               product={{
                 ...product,
-                variants: normalizedVariants,
+                variants:
+                  normalizedVariants,
               }}
             />
           </div>
         </section>
 
         <RelatedProducts
-          products={product.relatedProducts || []}
+          products={
+            product.relatedProducts ||
+            []
+          }
         />
 
-        <ReviewSection reviews={reviews} />
+        <ReviewSection
+          reviews={reviews}
+        />
       </main>
     </>
   );
