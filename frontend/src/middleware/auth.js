@@ -67,7 +67,7 @@ function getCookie(
   return null;
 }
 
-/**
+/** 
  * Get the normal authentication token.
  *
  * Used by customer/general routes.

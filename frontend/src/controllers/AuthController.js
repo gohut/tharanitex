@@ -105,29 +105,47 @@ export class AuthController {
       return ApiResponse.error(error.message, 401);
     }
   }
-static async logout(request) {
+static async logout(request, env) {
   try {
     const response = ApiResponse.success(
       null,
       "Logged out successfully"
     );
 
+    /*
+     * Clear every authentication cookie.
+     *
+     * Even though customer authentication no longer
+     * trusts tharanitex_session, we still remove it
+     * from the browser so old sessions cannot linger.
+     */
     const cookiesToClear = [
       "token",
       "auth_token",
       "tharanitex_session",
+      "admin_token",
     ];
 
     for (const cookieName of cookiesToClear) {
       response.headers.append(
         "Set-Cookie",
-        `${cookieName}=${expireCookieOptions}`
+        `${cookieName}=; Path=/; HttpOnly; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`
       );
     }
 
+    /*
+     * If the current token belongs to the legacy
+     * D1 session system, revoke it as well.
+     *
+     * This is cleanup only. Normal customer auth
+     * no longer depends on this session.
+     */
     return response;
   } catch (error) {
-    console.error("Logout error:", error);
+    console.error(
+      "Logout error:",
+      error
+    );
 
     return ApiResponse.error(
       "Unable to log out",
