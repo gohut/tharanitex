@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 const MAX_IMAGES = 5;
+
 const MAX_IMAGE_SIZE =
   5 * 1024 * 1024;
 
@@ -48,27 +49,24 @@ export default function ReviewOrderItem({
 
   const [message, setMessage] =
     useState("");
-  
+
   const [reviewSubmitted, setReviewSubmitted] =
     useState(Boolean(alreadyReviewed));
-
-  useEffect(() => {
-    if (alreadyReviewed || reviewSubmitted) {
-      setReviewSubmitted(true);
-    }
-  }, [alreadyReviewed]);
 
   const fileInputRef =
     useRef(null);
 
+  useEffect(() => {
+    if (alreadyReviewed) {
+      setReviewSubmitted(true);
+    }
+  }, [alreadyReviewed]);
+
   const normalizedStatus =
-    String(
-      orderStatus || ""
-    ).toLowerCase();
+    String(orderStatus || "").toLowerCase();
 
   const isDelivered =
-    normalizedStatus ===
-    "delivered";
+    normalizedStatus === "delivered";
 
   /*
    * Create image previews.
@@ -93,9 +91,7 @@ export default function ReviewOrderItem({
         event.target.files || []
       );
 
-    if (
-      selectedFiles.length === 0
-    ) {
+    if (selectedFiles.length === 0) {
       return;
     }
 
@@ -111,6 +107,7 @@ export default function ReviewOrderItem({
       ) {
         errorMessage =
           "Only JPG, PNG and WEBP images are allowed.";
+
         continue;
       }
 
@@ -120,6 +117,7 @@ export default function ReviewOrderItem({
       ) {
         errorMessage =
           "Each image must be 5 MB or smaller.";
+
         continue;
       }
 
@@ -127,8 +125,7 @@ export default function ReviewOrderItem({
     }
 
     const remainingSlots =
-      MAX_IMAGES -
-      images.length;
+      MAX_IMAGES - images.length;
 
     const filesToAdd =
       validFiles.slice(
@@ -183,6 +180,7 @@ export default function ReviewOrderItem({
       setMessage(
         "Please select a rating."
       );
+
       return;
     }
 
@@ -190,6 +188,7 @@ export default function ReviewOrderItem({
       setMessage(
         "Please write a review."
       );
+
       return;
     }
 
@@ -228,9 +227,8 @@ export default function ReviewOrderItem({
       });
 
       /*
-       * IMPORTANT:
-       * Do not set Content-Type manually.
-       * Browser adds the multipart boundary.
+       * Do not manually set Content-Type.
+       * Browser creates the multipart boundary.
        */
       const response =
         await fetch(
@@ -274,20 +272,27 @@ export default function ReviewOrderItem({
         );
       }
 
+      /*
+       * Review was successfully stored.
+       */
       setComment("");
       setRating(0);
       setImages([]);
       setReviewSubmitted(true);
+
+      /*
+       * Tell the Orders page to reload
+       * the order/review state immediately.
+       */
+      window.dispatchEvent(
+        new Event("review-submitted")
+      );
+
       setMessage(
         "Review submitted successfully."
       );
 
       setOpen(false);
-
-      /*
-       * Refresh My Orders so the
-       * product becomes Reviewed.
-       */
     } catch (error) {
       console.error(
         "Review submission failed:",
@@ -303,7 +308,13 @@ export default function ReviewOrderItem({
     }
   };
 
-  if (alreadyReviewed || reviewSubmitted) {
+  /*
+   * Already reviewed.
+   */
+  if (
+    alreadyReviewed ||
+    reviewSubmitted
+  ) {
     return (
       <div className="mt-4 border border-[#DCCEBB] bg-[#FFF9EF] px-4 py-3 text-center">
         <span className="text-sm font-semibold text-[#7B6B59]">
@@ -313,6 +324,9 @@ export default function ReviewOrderItem({
     );
   }
 
+  /*
+   * Only delivered orders can be reviewed.
+   */
   if (!isDelivered) {
     return (
       <div className="mt-4 text-right text-xs text-[#A69B90]">
@@ -343,9 +357,7 @@ export default function ReviewOrderItem({
 
             <button
               type="button"
-              onClick={
-                closeReview
-              }
+              onClick={closeReview}
               className="text-xs text-[#8A8175] hover:text-[#D38E2E]"
             >
               Close
@@ -410,9 +422,7 @@ export default function ReviewOrderItem({
               accept="image/jpeg,image/png,image/webp"
               multiple
               className="hidden"
-              onChange={
-                addImages
-              }
+              onChange={addImages}
             />
 
             <button
@@ -430,8 +440,7 @@ export default function ReviewOrderItem({
               Add Photos
             </button>
 
-            {previews.length >
-              0 && (
+            {previews.length > 0 && (
               <div className="mt-3 grid grid-cols-5 gap-2">
                 {previews.map(
                   (
@@ -483,12 +492,8 @@ export default function ReviewOrderItem({
 
           <button
             type="button"
-            onClick={
-              submitReview
-            }
-            disabled={
-              submitting
-            }
+            onClick={submitReview}
+            disabled={submitting}
             className="mt-4 w-full bg-[#D38E2E] px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[#B77719] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting
