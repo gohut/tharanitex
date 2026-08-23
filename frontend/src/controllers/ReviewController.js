@@ -5,12 +5,30 @@ import {
   authenticate,
   authenticateAdmin,
 } from "../middleware/auth";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
+async function getEnv() {
+  const { env } =
+    await getCloudflareContext({
+      async: true,
+    });
+
+  return env;
+}
 
 export class ReviewController {
-  static async addProductReview(request) {
+  static async addProductReview(
+    request
+  ) {
     try {
+      const env =
+        await getEnv();
+
       const payload =
-        await authenticate(request);
+        await authenticate(
+          request,
+          env
+        );
 
       if (!payload) {
         return ApiResponse.unauthorized(
@@ -39,14 +57,17 @@ export class ReviewController {
             formData.get(
               "product_id"
             ),
+
           order_id:
             formData.get(
               "order_id"
             ),
+
           rating:
             formData.get(
               "rating"
             ),
+
           comment:
             formData.get(
               "comment"
@@ -66,15 +87,15 @@ export class ReviewController {
           await request.json();
       }
 
-      const valErrors =
+      const validationErrors =
         Validators.validateReview(
           body
         );
 
-      if (valErrors) {
+      if (validationErrors) {
         return ApiResponse.badRequest(
           "Validation failed",
-          valErrors
+          validationErrors
         );
       }
 
@@ -110,11 +131,20 @@ export class ReviewController {
     request
   ) {
     try {
-      if (
-        !(await authenticateAdmin(
-          request
-        ))
-      ) {
+      const env =
+        await getEnv();
+
+      /*
+       * IMPORTANT:
+       * Pass Cloudflare env into authentication.
+       */
+      const admin =
+        await authenticateAdmin(
+          request,
+          env
+        );
+
+      if (!admin) {
         return ApiResponse.forbidden(
           "Admin access required"
         );
@@ -145,11 +175,16 @@ export class ReviewController {
     { params }
   ) {
     try {
-      if (
-        !(await authenticateAdmin(
-          request
-        ))
-      ) {
+      const env =
+        await getEnv();
+
+      const admin =
+        await authenticateAdmin(
+          request,
+          env
+        );
+
+      if (!admin) {
         return ApiResponse.forbidden(
           "Admin access required"
         );
