@@ -785,8 +785,12 @@ export async function getOrders(db, userId) {
             WHEN EXISTS (
               SELECT 1
               FROM reviews r
-              WHERE r.user_id = ?
+              WHERE CAST(r.user_id AS TEXT) = CAST(? AS TEXT)
                 AND r.product_id = oi.product_id
+                AND (
+                  CAST(r.order_id AS TEXT) = CAST(oi.order_id AS TEXT)
+                  OR r.order_id IS NULL
+                )
             )
             THEN 1
             ELSE 0
