@@ -54,7 +54,7 @@ export default function LoginPage() {
         });
 
         if (response.ok && !cancelled) {
-          router.replace("/profile");
+          router.replace("/home");
           return;
         }
       } catch (error) {
@@ -113,7 +113,7 @@ export default function LoginPage() {
         toast.dismiss();
         toast.success("Successfully signed in with Google!");
 
-        router.replace("/profile");
+        router.replace("/home ");
         router.refresh();
       } catch (error) {
         toast.dismiss();
@@ -168,7 +168,7 @@ export default function LoginPage() {
         `Welcome back, ${data.data?.name || "Customer"}!`
       );
 
-      router.replace("/profile");
+      router.replace("/home");
       router.refresh();
     } catch (error) {
       console.error("Login request error:", error);
@@ -234,7 +234,7 @@ export default function LoginPage() {
 
       toast.success("Account created successfully!");
 
-      router.replace("/profile");
+      router.replace("/home");
       router.refresh();
     } catch (error) {
       console.error("Register request error:", error);

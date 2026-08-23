@@ -303,7 +303,7 @@ export default function ReviewOrderItem({
     }
   };
 
-  if (alreadyReviewed) {
+  if (alreadyReviewed || reviewSubmitted) {
     return (
       <div className="mt-4 border border-[#DCCEBB] bg-[#FFF9EF] px-4 py-3 text-center">
         <span className="text-sm font-semibold text-[#7B6B59]">
