@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   Heart,
+  Home,
   Menu,
   Search,
   ShoppingBag,
@@ -15,6 +16,11 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const sidebarLinks = [
+  {
+    label: "Home",
+    href: "/home",
+    icon: Home,
+  },
   {
     label: "Orders",
     href: "/orders",
@@ -65,9 +71,6 @@ export default function Navbar() {
   const isSearchMode = pathname === "/search";
   const showActiveSearch = isSearchMode || isSearchActive;
 
-  /*
-   * Lock body scrolling when sidebar is open
-   */
   useEffect(() => {
     if (!isSidebarOpen) return;
 
@@ -80,9 +83,6 @@ export default function Navbar() {
     };
   }, [isSidebarOpen]);
 
-  /*
-   * Fetch products for live navbar search
-   */
   useEffect(() => {
     let active = true;
 
@@ -104,9 +104,6 @@ export default function Navbar() {
     };
   }, []);
 
-  /*
-   * Sync search from URL
-   */
   useEffect(() => {
     if (!isSearchMode) return;
 
@@ -120,9 +117,6 @@ export default function Navbar() {
     return () => clearTimeout(timer);
   }, [isSearchMode, searchParams]);
 
-  /*
-   * Debounce search
-   */
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(navbarSearch);
@@ -132,9 +126,6 @@ export default function Navbar() {
     return () => clearTimeout(timer);
   }, [navbarSearch]);
 
-  /*
-   * Close search when clicking outside
-   */
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -193,9 +184,6 @@ export default function Navbar() {
     activateSearch();
   };
 
-  /*
-   * Search matches
-   */
   const searchMatches = useMemo(
     () =>
       debouncedSearch.trim()
@@ -242,9 +230,6 @@ export default function Navbar() {
     setSelectedIndex(-1);
   };
 
-  /*
-   * Keyboard navigation
-   */
   const handleKeyDown = (e) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -301,16 +286,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* =========================================================
-          MAIN NAVBAR
-          ========================================================= */}
-
       <header className="sticky top-0 z-50 h-[70px] w-full border-b border-[#E8DCC8] bg-[#F8F2E8]/95 backdrop-blur-md md:h-[78px]">
-
-        {/* =====================================================
-            SEARCH OVERLAY
-            ===================================================== */}
-
         <div
           className={`absolute inset-0 z-40 flex items-center bg-[#F8F2E8] px-4 transition-all duration-300 ease-in-out md:px-8 lg:px-10 ${
             showActiveSearch
@@ -319,9 +295,6 @@ export default function Navbar() {
           }`}
         >
           <div className="relative mx-auto flex h-full w-full max-w-[1440px] items-center justify-between gap-3">
-
-            {/* LEFT — MENU + LOGO WHEN SEARCH IS ACTIVE */}
-
             <div className="flex shrink-0 items-center gap-2 md:gap-3">
               <button
                 type="button"
@@ -350,8 +323,6 @@ export default function Navbar() {
                 />
               </Link>
             </div>
-
-            {/* SEARCH */}
 
             <div
               ref={searchContainerRef}
@@ -407,12 +378,9 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {/* SEARCH DROPDOWN */}
-
               {isDropdownOpen &&
                 debouncedSearch.trim().length > 0 && (
                   <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[min(65vh,440px)] overflow-hidden rounded-2xl border border-gray-200 bg-[#FFFDF9] shadow-2xl">
-
                     <div className="flex items-center justify-between border-b border-[#EEE4D5] bg-[#FBF5EA]/90 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-[#8A7A65]">
                       <span>
                         {isSearching
@@ -518,8 +486,6 @@ export default function Navbar() {
                 )}
             </div>
 
-            {/* RIGHT — SEARCH MODE */}
-
             <div className="ml-auto flex shrink-0 items-center gap-0 sm:gap-1 md:gap-5 lg:gap-7">
               <button
                 type="button"
@@ -553,20 +519,13 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* =====================================================
-            NORMAL NAVBAR
-            ===================================================== */}
-
         <div
-          className={`relative mx-auto flex h-full w-full max-w-[1440px] items-center px-4 sm:px-6 md:px-8 lg:px-10 transition-opacity duration-200 ${
+          className={`relative mx-auto flex h-full w-full max-w-[1440px] items-center px-4 transition-opacity duration-200 sm:px-6 md:px-8 lg:px-10 ${
             showActiveSearch
               ? "pointer-events-none opacity-0"
               : "pointer-events-auto opacity-100"
           }`}
         >
-
-          {/* LEFT — MENU */}
-
           <div className="relative z-10 flex shrink-0 items-center">
             <button
               type="button"
@@ -583,16 +542,6 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* =================================================
-              CENTERED LOGO
-
-              IMPORTANT:
-              This is absolutely positioned against the navbar
-              itself, so it remains mathematically centered even
-              though the left and right groups have different
-              widths.
-              ================================================= */}
-
           <div className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2">
             <Link
               href="/home"
@@ -608,14 +557,7 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* =================================================
-              RIGHT ICON GROUP
-              ================================================= */}
-
           <div className="ml-auto flex shrink-0 items-center gap-0 sm:gap-1 md:gap-5 lg:gap-7">
-
-            {/* SEARCH */}
-
             <button
               type="button"
               aria-label="Search"
@@ -628,8 +570,6 @@ export default function Navbar() {
                 className="text-[#2F2B27] sm:h-[21px] sm:w-[21px]"
               />
             </button>
-
-            {/* WISHLIST */}
 
             <button
               type="button"
@@ -644,8 +584,6 @@ export default function Navbar() {
                 draggable={false}
               />
             </button>
-
-            {/* CART */}
 
             <button
               type="button"
@@ -663,10 +601,6 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* =========================================================
-          SIDEBAR
-          ========================================================= */}
-
       <div
         className={`fixed inset-0 z-[70] transition-all duration-300 ease-in-out ${
           isSidebarOpen
@@ -674,8 +608,6 @@ export default function Navbar() {
             : "pointer-events-none opacity-0"
         }`}
       >
-        {/* Overlay */}
-
         <button
           type="button"
           aria-label="Close Menu"
@@ -685,18 +617,11 @@ export default function Navbar() {
           }`}
         />
 
-        {/* Sidebar */}
-
         <aside
           className={`relative flex h-full w-[min(88vw,360px)] flex-col border-r border-[#E8DCC8] bg-[#F8F2E8] px-5 py-5 shadow-2xl transition-transform duration-300 sm:px-7 sm:py-6 ${
-            isSidebarOpen
-              ? "translate-x-0"
-              : "-translate-x-full"
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-
-          {/* Sidebar Header */}
-
           <div className="flex items-center justify-between">
             <Link
               href="/home"
@@ -720,8 +645,6 @@ export default function Navbar() {
               <X size={22} strokeWidth={1.8} />
             </button>
           </div>
-
-          {/* Sidebar Search */}
 
           <form
             onSubmit={openSearchFromSidebar}
@@ -752,8 +675,6 @@ export default function Navbar() {
               </div>
             </div>
           </form>
-
-          {/* Sidebar Navigation */}
 
           <nav className="mt-8 space-y-3">
             {sidebarLinks.map(
