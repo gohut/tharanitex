@@ -322,17 +322,19 @@ export class ReviewService {
           FROM reviews
           WHERE user_id = ?
             AND product_id = ?
+            AND order_id = ?
           LIMIT 1
         `)
         .bind(
           userIdNumber,
-          productId
+          productId,
+          orderId
         )
         .first();
 
     if (existingReview) {
       throw createError(
-        "You have already reviewed this product."
+        "You have already reviewed this product from this order."
       );
     }
 
