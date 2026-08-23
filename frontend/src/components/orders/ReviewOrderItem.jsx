@@ -53,6 +53,9 @@ export default function ReviewOrderItem({
   const [reviewSubmitted, setReviewSubmitted] =
     useState(Boolean(alreadyReviewed));
 
+  const [reviewedItems, setReviewedItems] =
+    useState({});
+
   const fileInputRef =
     useRef(null);
 
@@ -285,7 +288,12 @@ export default function ReviewOrderItem({
        * the order/review state immediately.
        */
       window.dispatchEvent(
-        new Event("review-submitted")
+        new CustomEvent("review-submitted", {
+          detail: {
+            orderId: String(orderId),
+            productId: String(item.product_id),
+          },
+        })
       );
 
       setMessage(

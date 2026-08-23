@@ -106,10 +106,42 @@ export default function OrdersPage() {
      * This forces /orders to fetch fresh
      * review state from the database.
      */
-    const handleReviewSubmitted =
-      () => {
-        loadOrders();
-      };
+    const handleReviewSubmitted = (
+      event
+    ) => {
+      const orderId =
+        String(
+          event.detail?.orderId || ""
+        );
+
+      const productId =
+        String(
+          event.detail?.productId || ""
+        );
+
+      if (!orderId || !productId) {
+        return;
+      }
+
+      const key =
+        `${orderId}:${productId}`;
+
+      /*
+      * Immediately update the UI.
+      * Do NOT wait for /api/orders.
+      */
+      setReviewedItems(
+        (current) => ({
+          ...current,
+          [key]: true,
+        })
+      );
+
+      /*
+      * Refresh server data in the background.
+      */
+      loadOrders();
+    };
 
     window.addEventListener(
       "review-submitted",

@@ -3,7 +3,7 @@ import { ShoppingBag } from "lucide-react";
 import OrderStatusPill from "./OrderStatusPill";
 import ReviewOrderItem from "./ReviewOrderItem";
 
-export default function OrderCard({ order }) {
+export default function OrderCard({ order, reviewedItems = {}}) {
   const formatPrice = (value) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -114,7 +114,12 @@ export default function OrderCard({ order }) {
                   item={item}
                   orderStatus={order.order_status}
                   alreadyReviewed={
-                    Boolean(item.has_review)
+                    Boolean(item.has_review) ||
+                    Boolean(
+                      reviewedItems[
+                        `${order.id}:${item.product_id}`
+                      ]
+                    )
                   }
                 />
               </div>
