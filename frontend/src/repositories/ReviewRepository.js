@@ -14,8 +14,7 @@ function parseImageKeys(value) {
   }
 
   try {
-    const parsed =
-      JSON.parse(value);
+    const parsed = JSON.parse(value);
 
     return Array.isArray(parsed)
       ? parsed
@@ -30,8 +29,7 @@ export class ReviewRepository {
     productId,
     db
   ) {
-    const database =
-      resolveDB(db);
+    const database = resolveDB(db);
 
     const { results } =
       await database
@@ -43,11 +41,15 @@ export class ReviewRepository {
             user_id,
             product_id,
             product_name,
+            order_id,
             rating,
             comment,
             review_text,
             image_keys,
             status,
+            flagged_reason,
+            reviewed_by,
+            reviewed_at,
             created_at,
             updated_at
           FROM reviews
@@ -58,15 +60,15 @@ export class ReviewRepository {
         .bind(productId)
         .all();
 
-    return (
-      results || []
-    ).map((review) => ({
-      ...review,
-      image_keys:
-        parseImageKeys(
-          review.image_keys
-        ),
-    }));
+    return (results || []).map(
+      (review) => ({
+        ...review,
+        image_keys:
+          parseImageKeys(
+            review.image_keys
+          ),
+      })
+    );
   }
 
   static async findAll() {
@@ -82,6 +84,7 @@ export class ReviewRepository {
             user_id,
             product_id,
             product_name,
+            order_id,
             rating,
             comment,
             review_text,
@@ -97,15 +100,15 @@ export class ReviewRepository {
         `)
         .all();
 
-    return (
-      results || []
-    ).map((review) => ({
-      ...review,
-      image_keys:
-        parseImageKeys(
-          review.image_keys
-        ),
-    }));
+    return (results || []).map(
+      (review) => ({
+        ...review,
+        image_keys:
+          parseImageKeys(
+            review.image_keys
+          ),
+      })
+    );
   }
 
   static async findById(id) {
@@ -117,6 +120,7 @@ export class ReviewRepository {
           SELECT *
           FROM reviews
           WHERE id = ?
+          LIMIT 1
         `)
         .bind(id)
         .first();
@@ -135,12 +139,12 @@ export class ReviewRepository {
   }
 
   static async create({
-    id,
     reviewer_name,
     customer_id,
     user_id,
     product_id,
     product_name,
+    order_id,
     rating,
     comment,
     status = "Approved",
@@ -151,9 +155,6 @@ export class ReviewRepository {
     const now =
       new Date().toISOString();
 
-    const reviewId =
-      id || null;
-
     const normalizedImages =
       Array.isArray(image_keys)
         ? image_keys
@@ -163,12 +164,12 @@ export class ReviewRepository {
       await db
         .prepare(`
           INSERT INTO reviews (
-            id,
             reviewer_name,
             customer_id,
             user_id,
             product_id,
             product_name,
+            order_id,
             rating,
             comment,
             review_text,
@@ -178,7 +179,7 @@ export class ReviewRepository {
             updated_at
           )
           VALUES (
-            COALESCE(?, NULL),
+            ?,
             ?,
             ?,
             ?,
@@ -194,47 +195,63 @@ export class ReviewRepository {
           )
         `)
         .bind(
-          reviewId,
           reviewer_name ||
             "Verified Customer",
-          customer_id || null,
-          user_id || null,
+
+          customer_id ?? null,
+
+          user_id ?? null,
+
           product_id,
+
           product_name ||
             `Product #${product_id}`,
+
+          order_id,
+
           rating,
+
           comment || "",
+
           comment || "",
+
           JSON.stringify(
             normalizedImages
           ),
+
+          /*
+           * Reviews are automatically published
+           * after backend purchase verification.
+           */
           status,
+
           now,
+
           now
         )
         .run();
 
     return {
       id:
-        result.meta
-          ?.last_row_id ??
-        reviewId,
+        result.meta?.last_row_id,
 
       reviewer_name:
         reviewer_name ||
         "Verified Customer",
 
       customer_id:
-        customer_id || null,
+        customer_id ?? null,
 
       user_id:
-        user_id || null,
+        user_id ?? null,
 
       product_id,
 
       product_name:
         product_name ||
         `Product #${product_id}`,
+
+      order_id,
 
       rating,
 
@@ -255,23 +272,32 @@ export class ReviewRepository {
     };
   }
 
-  static async updateStatus(
+  static async flag(
     id,
-    status
+    reason,
+    adminId
   ) {
     const db = getDB();
+
+    const now =
+      new Date().toISOString();
 
     await db
       .prepare(`
         UPDATE reviews
         SET
-          status = ?,
+          status = 'Flagged',
+          flagged_reason = ?,
+          reviewed_by = ?,
+          reviewed_at = ?,
           updated_at = ?
         WHERE id = ?
       `)
       .bind(
-        status,
-        new Date().toISOString(),
+        reason || null,
+        adminId ?? null,
+        now,
+        now,
         id
       )
       .run();
