@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import Navbar from "@/components/home/Navbar/Navbar";
 import CustomerPageHeader from "@/components/orders/CustomerPageHeader";
@@ -17,10 +21,17 @@ const orderTabs = [
 ];
 
 export default function OrdersPage() {
-  const [activeTab, setActiveTab] = useState("All Orders");
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [activeTab, setActiveTab] =
+    useState("All Orders");
+
+  const [orders, setOrders] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -30,35 +41,51 @@ export default function OrdersPage() {
         setLoading(true);
         setError("");
 
-        const res = await fetch("/api/orders", {
-          method: "GET",
-          credentials: "include",
-          cache: "no-store",
-        });
+        const res =
+          await fetch("/api/orders", {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
+          });
 
         if (res.status === 401) {
           if (!cancelled) {
             setOrders([]);
-            setError("Please sign in to view your orders.");
+            setError(
+              "Please sign in to view your orders."
+            );
           }
+
           return;
         }
 
         if (!res.ok) {
-          throw new Error("Failed to load orders");
+          throw new Error(
+            "Failed to load orders"
+          );
         }
 
-        const data = await res.json();
+        const data =
+          await res.json();
 
         if (!cancelled) {
-          setOrders(Array.isArray(data) ? data : []);
+          setOrders(
+            Array.isArray(data)
+              ? data
+              : []
+          );
         }
       } catch (error) {
-        console.error("Orders error:", error);
+        console.error(
+          "Orders error:",
+          error
+        );
 
         if (!cancelled) {
           setOrders([]);
-          setError("Unable to load your orders.");
+          setError(
+            "Unable to load your orders."
+          );
         }
       } finally {
         if (!cancelled) {
@@ -67,15 +94,44 @@ export default function OrdersPage() {
       }
     }
 
+    /*
+     * Initial load.
+     */
     loadOrders();
+
+    /*
+     * ReviewOrderItem dispatches this event
+     * after a successful review submission.
+     *
+     * This forces /orders to fetch fresh
+     * review state from the database.
+     */
+    const handleReviewSubmitted =
+      () => {
+        loadOrders();
+      };
+
+    window.addEventListener(
+      "review-submitted",
+      handleReviewSubmitted
+    );
 
     return () => {
       cancelled = true;
+
+      window.removeEventListener(
+        "review-submitted",
+        handleReviewSubmitted
+      );
     };
   }, []);
 
-  const normalizeOrderStatus = (status) => {
-    const normalized = String(status || "").toLowerCase();
+  const normalizeOrderStatus = (
+    status
+  ) => {
+    const normalized =
+      String(status || "")
+        .toLowerCase();
 
     if (
       normalized === "confirmed" ||
@@ -87,19 +143,28 @@ export default function OrdersPage() {
     return normalized;
   };
 
-  const filteredOrders = useMemo(() => {
-    if (activeTab === "All Orders") {
-      return orders;
-    }
+  const filteredOrders =
+    useMemo(() => {
+      if (
+        activeTab ===
+        "All Orders"
+      ) {
+        return orders;
+      }
 
-    const targetStatus = activeTab.toLowerCase();
+      const targetStatus =
+        activeTab.toLowerCase();
 
-    return orders.filter(
-      (order) =>
-        normalizeOrderStatus(order.order_status) ===
-        targetStatus
-    );
-  }, [orders, activeTab]);
+      return orders.filter(
+        (order) =>
+          normalizeOrderStatus(
+            order.order_status
+          ) === targetStatus
+      );
+    }, [
+      orders,
+      activeTab,
+    ]);
 
   return (
     <main className="min-h-screen bg-[#FBF5EA]">
@@ -134,14 +199,16 @@ export default function OrdersPage() {
 
           {!loading &&
             !error &&
-            filteredOrders.length === 0 && (
+            filteredOrders.length ===
+              0 && (
               <div className="py-20 text-center">
                 <h2 className="font-serif text-3xl text-[#5A1F2F]">
                   No Orders Found
                 </h2>
 
                 <p className="mt-3 text-[#8A8175]">
-                  {activeTab === "All Orders"
+                  {activeTab ===
+                  "All Orders"
                     ? "You haven't placed any orders yet."
                     : `You don't have any ${activeTab.toLowerCase()} orders.`}
                 </p>
@@ -150,14 +217,17 @@ export default function OrdersPage() {
 
           {!loading &&
             !error &&
-            filteredOrders.length > 0 && (
+            filteredOrders.length >
+              0 && (
               <div className="space-y-6">
-                {filteredOrders.map((order) => (
-                  <OrderCard
-                    key={order.id}
-                    order={order}
-                  />
-                ))}
+                {filteredOrders.map(
+                  (order) => (
+                    <OrderCard
+                      key={order.id}
+                      order={order}
+                    />
+                  )
+                )}
               </div>
             )}
         </div>
