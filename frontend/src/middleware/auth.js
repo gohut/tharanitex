@@ -117,14 +117,6 @@ function getGeneralToken(
       request,
       "token"
     ) ||
-    getCookie(
-      request,
-      "tharanitex_session"
-    ) ||
-    getCookie(
-      request,
-      "admin_token"
-    ) ||
     null
   );
 }
@@ -287,93 +279,7 @@ export async function authenticate(
       };
     }
   } catch {
-    /*
-     * JWT verification failed.
-     * Continue with D1 session.
-     */
-  }
-
-  /*
-   * 2. Try D1 session.
-   */
-  try {
-    const sessionUser =
-      await validateSession(
-        token,
-        env
-      );
-
-    if (sessionUser) {
-      if (debug) {
-        console.info(
-          "AUTHENTICATE DEBUG",
-          {
-            method:
-              "D1_SESSION",
-            success: true,
-            userType:
-              sessionUser.userType ||
-              null,
-            role:
-              sessionUser.role ||
-              null,
-          }
-        );
-      }
-
-      const resolvedId =
-        String(
-          sessionUser.userId ||
-            sessionUser.id
-        );
-
-      return {
-        ...sessionUser,
-
-        id: resolvedId,
-
-        userId:
-          resolvedId,
-
-        email:
-          sessionUser.email ||
-          "",
-
-        role:
-          sessionUser.userType ===
-            "admin"
-            ? "admin"
-            : sessionUser.role ===
-                "Super Admin"
-              ? "admin"
-              : sessionUser.role ||
-                "customer",
-
-        userType:
-          sessionUser.userType ||
-          "customer",
-
-        fullName:
-          sessionUser.fullName ||
-          sessionUser.name ||
-          "",
-
-        customerId:
-          sessionUser.customerId ||
-          null,
-
-        phoneVerified:
-          sessionUser.phoneVerified ??
-          true,
-      };
-    }
-  } catch (error) {
-    if (debug) {
-      console.error(
-        "AUTHENTICATE SESSION ERROR:",
-        error
-      );
-    }
+     //JWT verification failed.
   }
 
   if (debug) {
