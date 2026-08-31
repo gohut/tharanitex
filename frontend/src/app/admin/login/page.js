@@ -7,8 +7,8 @@ import toast from "react-hot-toast";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@tharanitextiles.com");
-  const [password, setPassword] = useState("AdminPassword123!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,8 +36,14 @@ export default function AdminLoginPage() {
     try {
       const res = await fetch("/api/admin/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password: password.trim() }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
       });
 
       const json = await res.json().catch(() => ({}));
