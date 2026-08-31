@@ -38,6 +38,7 @@ function loadRazorpay() {
 
     if (existingScript) {
       existingScript.addEventListener("load", resolve, { once: true });
+
       existingScript.addEventListener(
         "error",
         () =>
@@ -48,6 +49,7 @@ function loadRazorpay() {
           ),
         { once: true }
       );
+
       return;
     }
 
@@ -60,6 +62,7 @@ function loadRazorpay() {
 
     script.onerror = () => {
       razorpayScript = null;
+
       reject(
         new Error(
           "Unable to load the secure payment form. Check your connection and retry."
@@ -136,22 +139,16 @@ export default function CheckoutModal({
       let profileAddress = address;
 
       try {
-        const response = await fetch(
-          "/api/customer/addresses",
-          {
-            credentials: "include",
-          }
-        );
+        const response = await fetch("/api/customer/addresses", {
+          credentials: "include",
+        });
 
         if (response.ok) {
           const json = await response.json();
 
           const addresses = json?.data || json || [];
 
-          if (
-            Array.isArray(addresses) &&
-            addresses.length > 0
-          ) {
+          if (Array.isArray(addresses) && addresses.length > 0) {
             const defaultAddress =
               addresses.find(
                 (item) =>
@@ -208,34 +205,28 @@ export default function CheckoutModal({
             );
 
             if (profileResponse.ok) {
-              const data =
-                await profileResponse.json();
+              const data = await profileResponse.json();
 
               if (data?.data) {
                 const profile = data.data;
 
-                profileName =
-                  profile.name || name;
+                profileName = profile.name || name;
 
                 profilePhone =
                   profile.phone ||
                   profile.contact ||
                   phone;
 
-                let profileAddress =
+                profileAddress =
                   profile.address || address;
 
                 if (
                   profile.pincode &&
                   profileAddress &&
-                  !profileAddress.includes(
-                    profile.pincode
-                  )
+                  !profileAddress.includes(profile.pincode)
                 ) {
                   profileAddress = `${profileAddress}, ${profile.pincode}`;
                 }
-
-                profileAddress = profileAddress;
               }
             }
           }
@@ -323,8 +314,7 @@ export default function CheckoutModal({
 
     if (checkoutType === "BUY_NOW") {
       payload.productId = buyNowItem?.productId;
-      payload.variantId =
-        buyNowItem?.variantId ?? null;
+      payload.variantId = buyNowItem?.variantId ?? null;
       payload.quantity = buyNowItem?.quantity;
     }
 
@@ -368,19 +358,19 @@ export default function CheckoutModal({
 
       /*
        * COD
+       *
+       * COD is retained temporarily for testing only.
+       * Production payments should use Razorpay.
        */
       if (details.paymentMethod === "COD") {
-        const response = await fetch(
-          "/api/orders",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify(payload),
-          }
-        );
+        const response = await fetch("/api/orders", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
 
         const data =
           await response.json().catch(() => ({}));
@@ -388,7 +378,7 @@ export default function CheckoutModal({
         if (!response.ok) {
           throw new Error(
             data?.error ||
-              "Unable to place your order."
+              "Unable to place your test order."
           );
         }
 
@@ -449,98 +439,104 @@ export default function CheckoutModal({
         );
       }
 
-      const razorpay = new window.Razorpay({
-        key: payment.keyId,
+      const razorpay =
+        new window.Razorpay({
+          key: payment.keyId,
 
-        amount: Number(payment.amountPaise),
+          amount: Number(
+            payment.amountPaise
+          ),
 
-        currency:
-          payment.currency || "INR",
+          currency:
+            payment.currency || "INR",
 
-        order_id:
-          payment.razorpayOrderId,
+          order_id:
+            payment.razorpayOrderId,
 
-        name: "Tharani Textiles",
+          name: "Tharani Textiles",
 
-        description:
-          "Tharani Textiles Order",
+          description:
+            "Tharani Textiles Order",
 
-        prefill: {
-          name: details.name.trim(),
-          contact: details.phone.trim(),
-        },
-
-        notes: {
-          checkout_type: checkoutType,
-        },
-
-        theme: {
-          color: "#8F4E20",
-        },
-
-        modal: {
-          ondismiss: () => {
-            setSubmitting(false);
-
-            setSubmitError(
-              "Payment was cancelled. No order was placed."
-            );
+          prefill: {
+            name: details.name.trim(),
+            contact: details.phone.trim(),
           },
-        },
 
-        handler: async (responseData) => {
-          try {
-            const verifyResponse =
-              await fetch(
-                "/api/payments/verify",
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type":
-                      "application/json",
-                  },
-                  credentials: "include",
-                  body: JSON.stringify(
-                    responseData
-                  ),
-                }
+          notes: {
+            checkout_type: checkoutType,
+          },
+
+          theme: {
+            color: "#8F4E20",
+          },
+
+          modal: {
+            ondismiss: () => {
+              setSubmitting(false);
+
+              setSubmitError(
+                "Payment was cancelled. No order was placed."
+              );
+            },
+          },
+
+          handler: async (
+            responseData
+          ) => {
+            try {
+              const verifyResponse =
+                await fetch(
+                  "/api/payments/verify",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type":
+                        "application/json",
+                    },
+                    credentials:
+                      "include",
+                    body: JSON.stringify(
+                      responseData
+                    ),
+                  }
+                );
+
+              const verified =
+                await verifyResponse
+                  .json()
+                  .catch(() => ({}));
+
+              if (!verifyResponse.ok) {
+                throw new Error(
+                  verified?.error ||
+                    "Payment verification failed."
+                );
+              }
+
+              if (!verified?.success) {
+                throw new Error(
+                  verified?.error ||
+                    "Payment verification failed."
+                );
+              }
+
+              onOrderCreated(verified);
+            } catch (error) {
+              console.error(
+                "Razorpay verification failed:",
+                error
               );
 
-            const verified =
-              await verifyResponse
-                .json()
-                .catch(() => ({}));
-
-            if (!verifyResponse.ok) {
-              throw new Error(
-                verified?.error ||
-                  "Payment verification failed."
+              setSubmitError(
+                error?.message ||
+                  "Payment verification failed. Please contact support if money was debited."
               );
+
+              setSubmitting(false);
             }
-
-            if (!verified?.success) {
-              throw new Error(
-                verified?.error ||
-                  "Payment verification failed."
-              );
-            }
-
-            onOrderCreated(verified);
-          } catch (error) {
-            console.error(
-              "Razorpay verification failed:",
-              error
-            );
-
-            setSubmitError(
-              error?.message ||
-                "Payment verification failed. Please contact support if money was debited."
-            );
-
-            setSubmitting(false);
-          }
-        },
-      });
+          },
+        });
 
       razorpay.on(
         "payment.failed",
@@ -580,13 +576,15 @@ export default function CheckoutModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-[#2F2417]/45 p-0 backdrop-blur-[1px] sm:items-center sm:p-5"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#2F2417]/45 p-3 backdrop-blur-[1px] sm:p-5"
       role="dialog"
       aria-modal="true"
       aria-labelledby="checkout-title"
     >
-      <div className="max-h-[92vh] w-full overflow-y-auto border border-[#DDCFBD] bg-[#FFF9F0] shadow-2xl sm:max-w-xl sm:rounded-sm">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#E8DCCB] bg-[#FFF9F0] px-5 py-4 sm:px-7">
+      <div className="relative flex max-h-[calc(100dvh-1.5rem)] w-full flex-col overflow-hidden border border-[#DDCFBD] bg-[#FFF9F0] shadow-2xl sm:max-h-[calc(100dvh-2.5rem)] sm:max-w-xl sm:rounded-sm">
+
+        {/* Header */}
+        <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-[#E8DCCB] bg-[#FFF9F0] px-5 py-4 sm:px-7">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-[#B58A45]">
               Secure checkout
@@ -611,10 +609,12 @@ export default function CheckoutModal({
           </button>
         </div>
 
+        {/* Scrollable Checkout Content */}
         <form
           onSubmit={submit}
-          className="space-y-7 p-5 sm:p-7"
+          className="min-h-0 flex-1 overflow-y-auto space-y-7 p-5 sm:p-7"
         >
+          {/* Customer Information */}
           <fieldset
             disabled={submitting}
             className="space-y-4"
@@ -663,6 +663,7 @@ export default function CheckoutModal({
             </Field>
           </fieldset>
 
+          {/* Delivery Information */}
           <fieldset
             disabled={submitting}
             className="space-y-3"
@@ -719,12 +720,13 @@ export default function CheckoutModal({
               )}
           </fieldset>
 
+          {/* Payment Method */}
           <fieldset disabled={submitting}>
             <legend className="text-lg font-semibold text-[#3B2928]">
               Payment method
             </legend>
 
-            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {[
                 [
                   "COD",
@@ -746,50 +748,56 @@ export default function CheckoutModal({
                   value,
                   label,
                   description,
-                ]) => (
-                  <label
-                    key={value}
-                    className={`cursor-pointer border p-3 transition ${
-                      details.paymentMethod ===
-                      value
-                        ? "border-[#C79127] bg-[#FFF1D4]"
-                        : "border-[#E2D5C2] bg-[#FFFCF6]"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value={value}
-                      checked={
-                        details.paymentMethod ===
-                        value
-                      }
-                      onChange={() =>
-                        update(
-                          "paymentMethod",
-                          value
-                        )
-                      }
-                      className="accent-[#8F4E20]"
-                    />
+                ]) => {
+                  const selected =
+                    details.paymentMethod ===
+                    value;
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-[#3B2928]">
-                        {label}
-                      </span>
+                  return (
+                    <label
+                      key={value}
+                      className={`relative cursor-pointer border p-3 transition ${
+                        selected
+                          ? "border-[#C79127] bg-[#FFF1D4]"
+                          : "border-[#E2D5C2] bg-[#FFFCF6]"
+                      }`}
+                    >
+                      <div className="flex items-start">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value={value}
+                          checked={selected}
+                          onChange={() =>
+                            update(
+                              "paymentMethod",
+                              value
+                            )
+                          }
+                          className="mt-0.5 accent-[#8F4E20]"
+                        />
 
-                      {value === "COD" && (
-                        <span className="rounded-full bg-[#F4D9A0] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#7A5412]">
-                          Testing
-                        </span>
-                      )}
-                    </div>
+                        <div className="ml-2 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-semibold text-[#3B2928]">
+                              {label}
+                            </span>
 
-                    <span className="mt-1 block text-xs text-[#7D7267]">
-                      {description}
-                    </span>
-                  </label>
-                )
+                            {value === "COD" && (
+                              <span className="rounded-full bg-[#F4D9A0] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-[#7A5412]">
+                                Testing
+                              </span>
+                            )}
+                          </div>
+
+                          <span className="mt-1 block text-xs text-[#7D7267]">
+                            {description}
+                          </span>
+                        </div>
+                      </div>
+                    </label>
+                  );
+                }
               )}
             </div>
 
@@ -800,6 +808,7 @@ export default function CheckoutModal({
             )}
           </fieldset>
 
+          {/* Error */}
           {submitError && (
             <p
               role="alert"
@@ -809,6 +818,7 @@ export default function CheckoutModal({
             </p>
           )}
 
+          {/* Submit */}
           <button
             type="submit"
             disabled={submitting}
@@ -819,13 +829,13 @@ export default function CheckoutModal({
                 <span className="mr-3 h-4 w-4 animate-spin rounded-full border-2 border-[#2F2417] border-t-transparent" />
 
                 {online
-                ? "Continue to secure payment"
-                : "Place Test COD Order"}
+                  ? "Opening secure payment..."
+                  : "Processing test order..."}
               </>
             ) : online ? (
               "Continue to secure payment"
             ) : (
-              "Place COD Order"
+              "Place Test COD Order"
             )}
           </button>
         </form>
