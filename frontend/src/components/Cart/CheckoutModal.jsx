@@ -729,7 +729,7 @@ export default function CheckoutModal({
                 [
                   "COD",
                   "Cash on Delivery",
-                  "Pay when your order arrives",
+                  "Testing only · Pay when your order arrives",
                 ],
                 [
                   "UPI",
@@ -773,9 +773,17 @@ export default function CheckoutModal({
                       className="accent-[#8F4E20]"
                     />
 
-                    <span className="ml-2 text-sm font-semibold text-[#3B2928]">
-                      {label}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-[#3B2928]">
+                        {label}
+                      </span>
+
+                      {value === "COD" && (
+                        <span className="rounded-full bg-[#F4D9A0] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#7A5412]">
+                          Testing
+                        </span>
+                      )}
+                    </div>
 
                     <span className="mt-1 block text-xs text-[#7D7267]">
                       {description}
@@ -811,8 +819,8 @@ export default function CheckoutModal({
                 <span className="mr-3 h-4 w-4 animate-spin rounded-full border-2 border-[#2F2417] border-t-transparent" />
 
                 {online
-                  ? "Opening secure payment..."
-                  : "Processing your order..."}
+                ? "Continue to secure payment"
+                : "Place Test COD Order"}
               </>
             ) : online ? (
               "Continue to secure payment"
