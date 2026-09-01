@@ -262,9 +262,56 @@ export async function validateSession(
             status: 'Active',
           };
         } else {
-          // Customer session lookup
-          const kv = await getKV(env);
-          const user = await findUserById(kv, String(session.user_id));
+          // Customer session lookup - D1 users table is authoritative source of truth
+          let user = null;
+
+          if (db) {
+            try {
+              const d1User = await db
+                .prepare(
+                  `SELECT id,
+                          first_name || CASE WHEN last_name IS NOT NULL AND last_name != '' THEN ' ' || last_name ELSE '' END AS fullName,
+                          email, phone, role
+                   FROM users
+                   WHERE id = ?`
+                )
+                .bind(session.user_id)
+                .first();
+
+              if (d1User) {
+                user = {
+                  id: d1User.id,
+                  userId: d1User.id,
+                  customerId: `TXN${String(d1User.id).padStart(6, '0')}`,
+                  fullName: d1User.fullName || 'Customer',
+                  email: d1User.email || '',
+                  phoneNumber: d1User.phone || '',
+                  role: d1User.role || 'customer',
+                  phoneVerified: true,
+                };
+              }
+            } catch {
+              // D1 user lookup fallback
+            }
+          }
+
+          if (!user) {
+            const kv = await getKV(env);
+            const kvUser = await findUserById(kv, String(session.user_id));
+            if (kvUser) {
+              user = {
+                id: kvUser.id,
+                userId: kvUser.id,
+                customerId: kvUser.customerId,
+                fullName: kvUser.fullName,
+                email: kvUser.email || '',
+                phoneNumber: kvUser.phoneNumber,
+                role: kvUser.role || 'customer',
+                phoneVerified: Boolean(kvUser.phoneVerified),
+              };
+            }
+          }
+
           if (!user) return null;
 
           return {
@@ -273,6 +320,7 @@ export async function validateSession(
             userType: 'customer',
             customerId: user.customerId,
             fullName: user.fullName,
+            email: user.email || '',
             phoneNumber: user.phoneNumber,
             role: user.role,
             phoneVerified: Boolean(user.phoneVerified),
@@ -427,14 +475,25 @@ export async function enforceAdminPermission(
   action,
   env
 ) {
-  
   const sessionToken =
-  request.cookies.get(SESSION_COOKIE_NAME)?.value ||
-  request.cookies.get('admin_token')?.value ||
-  request.headers.get('x-session-token') ||
-  '';
+    request.cookies.get(SESSION_COOKIE_NAME)?.value ||
+    request.cookies.get('admin_token')?.value ||
+    request.cookies.get('tharanitex_session')?.value ||
+    request.headers.get('x-session-token') ||
+    '';
 
   if (!sessionToken) {
+    return {
+      authorized: false,
+      status: 401,
+      error: 'UNAUTHORIZED',
+      message: 'Authentication required. Please log in.',
+    };
+  }
+
+  const user = await validateSession(sessionToken, env);
+
+  if (!user) {
     return {
       authorized: false,
       status: 401,
@@ -443,14 +502,21 @@ export async function enforceAdminPermission(
     };
   }
 
-  const user = await validateSession(sessionToken, env);
-
-  if (!user || user.userType !== 'admin' || user.status === 'Inactive') {
+  if (user.userType !== 'admin') {
     return {
       authorized: false,
-      status: 401,
-      error: 'UNAUTHORIZED',
-      message: 'Session expired, please log in again.',
+      status: 403,
+      error: 'FORBIDDEN',
+      message: 'Forbidden: Admin access required.',
+    };
+  }
+
+  if (user.status === 'Inactive') {
+    return {
+      authorized: false,
+      status: 403,
+      error: 'FORBIDDEN',
+      message: 'Forbidden: Account is inactive.',
     };
   }
 
@@ -693,28 +759,36 @@ export async function verifyOtpAndLogin(
   }
 
   const db = await getDB(env);
+  let resolvedUserId = user.id;
 
   // Idempotently ensure OTP customer exists in D1 users table for SQL JOIN compatibility
   if (db) {
     try {
       const existingD1User = await db
-        .prepare(`SELECT id FROM users WHERE phone = ? OR id = ? LIMIT 1`)
-        .bind(phoneNumber, String(user.id))
+        .prepare(`SELECT id, first_name, last_name, email, phone FROM users WHERE phone = ? LIMIT 1`)
+        .bind(phoneNumber)
         .first();
 
-      if (!existingD1User) {
-        await db
+      if (existingD1User) {
+        resolvedUserId = existingD1User.id;
+      } else {
+        const dummyHash = await hashPassword(crypto.randomUUID());
+        const insertRes = await db
           .prepare(
-            `INSERT INTO users (id, name, email, phone, role, created_at, updated_at)
-             VALUES (?, ?, ?, ?, 'customer', datetime('now'), datetime('now'))`
+            `INSERT INTO users (first_name, email, phone, password_hash, role, created_at)
+             VALUES (?, ?, ?, ?, 'customer', datetime('now'))`
           )
           .bind(
-            String(user.id),
             validName,
             `${phoneNumber}@customer.tharanitex.com`,
-            phoneNumber
+            phoneNumber,
+            dummyHash
           )
           .run();
+
+        if (insertRes && insertRes.meta && insertRes.meta.last_row_id) {
+          resolvedUserId = insertRes.meta.last_row_id;
+        }
       }
     } catch {
       // Non-blocking D1 user sync fallback
@@ -723,7 +797,7 @@ export async function verifyOtpAndLogin(
 
   const { sessionToken, expiresAt } = await createD1Session(
     db,
-    user.id,
+    resolvedUserId,
     'customer',
     userAgent,
     ipAddress,
@@ -731,14 +805,14 @@ export async function verifyOtpAndLogin(
   );
 
   const userData = {
-    id: user.id,
-    userId: user.id,
+    id: resolvedUserId,
+    userId: resolvedUserId,
     userType: 'customer',
-    customerId: user.customerId,
-    fullName: user.fullName,
-    phoneNumber: user.phoneNumber,
-    role: user.role,
-    phoneVerified: Boolean(user.phoneVerified),
+    customerId: user.customerId || `TXN${String(resolvedUserId).padStart(6, '0')}`,
+    fullName: user.fullName || validName,
+    phoneNumber: user.phoneNumber || phoneNumber,
+    role: 'customer',
+    phoneVerified: true,
   };
 
   return {

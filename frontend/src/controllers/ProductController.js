@@ -47,9 +47,9 @@ export class ProductController {
     }
   }
 
-  static async adminGetProducts(request) {
+  static async adminGetProducts(request, env) {
     try {
-      if (!await authenticateAdmin(request)) {
+      if (!await authenticateAdmin(request, env)) {
         return ApiResponse.forbidden("Admin access required");
       }
       const products = await ProductService.getAllProductsAdmin();
@@ -59,9 +59,9 @@ export class ProductController {
     }
   }
 
-  static async adminCreateProduct(request) {
+  static async adminCreateProduct(request, env) {
     try {
-      if (!await authenticateAdmin(request)) {
+      if (!await authenticateAdmin(request, env)) {
         return ApiResponse.forbidden("Admin access required");
       }
       const body = await request.json();
@@ -77,9 +77,9 @@ export class ProductController {
     }
   }
 
-  static async adminUpdateProduct(request, { params }) {
+  static async adminUpdateProduct(request, { params }, env) {
     try {
-      if (!await authenticateAdmin(request)) {
+      if (!await authenticateAdmin(request, env)) {
         return ApiResponse.forbidden("Admin access required");
       }
       const resolvedParams = await params;
@@ -97,9 +97,9 @@ export class ProductController {
     }
   }
 
-  static async adminDeleteProduct(request, { params }) {
+  static async adminDeleteProduct(request, { params }, env) {
     try {
-      if (!await authenticateAdmin(request)) {
+      if (!await authenticateAdmin(request, env)) {
         return ApiResponse.forbidden("Admin access required");
       }
       const resolvedParams = await params;

@@ -3,9 +3,9 @@ import { ApiResponse } from "../utils/ApiResponse";
 import { authenticate } from "../middleware/auth";
 
 export class CartController {
-  static async getCart(request) {
+  static async getCart(request, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -16,9 +16,9 @@ export class CartController {
     }
   }
 
-  static async addToCart(request) {
+  static async addToCart(request, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -35,9 +35,9 @@ export class CartController {
     }
   }
 
-  static async updateCartItem(request, { params }) {
+  static async updateCartItem(request, { params }, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -55,9 +55,9 @@ export class CartController {
     }
   }
 
-  static async deleteCartItem(request, { params }) {
+  static async deleteCartItem(request, { params }, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -71,3 +71,4 @@ export class CartController {
     }
   }
 }
+

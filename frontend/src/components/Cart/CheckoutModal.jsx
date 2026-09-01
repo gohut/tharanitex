@@ -376,6 +376,20 @@ export default function CheckoutModal({
           await response.json().catch(() => ({}));
 
         if (!response.ok) {
+          if (response.status === 401) {
+            window.dispatchEvent(
+              new CustomEvent("tharani-auth-required", {
+                detail: {
+                  message:
+                    "Your session has expired. Please sign in again to complete your order.",
+                },
+              })
+            );
+            throw new Error(
+              "Your session has expired. Please sign in again to complete your order."
+            );
+          }
+
           throw new Error(
             data?.error ||
               "Unable to place your test order."
@@ -423,6 +437,20 @@ export default function CheckoutModal({
         await response.json().catch(() => ({}));
 
       if (!response.ok) {
+        if (response.status === 401) {
+          window.dispatchEvent(
+            new CustomEvent("tharani-auth-required", {
+              detail: {
+                message:
+                  "Your session has expired. Please sign in again to complete your payment.",
+              },
+            })
+          );
+          throw new Error(
+            "Your session has expired. Please sign in again to complete your payment."
+          );
+        }
+
         throw new Error(
           payment?.error ||
             "Unable to initialize online payment."

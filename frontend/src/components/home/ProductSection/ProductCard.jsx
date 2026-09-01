@@ -20,6 +20,7 @@ export default function ProductCard({
       if (!wishlisted) {
         const res = await fetch("/api/wishlist", {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
@@ -28,7 +29,19 @@ export default function ProductCard({
           }),
         });
 
-        if (!res.ok) throw new Error();
+        if (res.status === 401) {
+          toast.error("Please sign in to save items to your wishlist.");
+          window.dispatchEvent(
+            new CustomEvent("tharani-auth-required", {
+              detail: {
+                message: "Please sign in to save items to your wishlist.",
+              },
+            })
+          );
+          return;
+        }
+
+        if (!res.ok) throw new Error("Unable to add to wishlist.");
 
         setWishlisted(true);
         router.refresh();
@@ -47,6 +60,7 @@ export default function ProductCard({
       } else {
         const res = await fetch("/api/wishlist", {
           method: "DELETE",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
@@ -55,7 +69,19 @@ export default function ProductCard({
           }),
         });
 
-        if (!res.ok) throw new Error();
+        if (res.status === 401) {
+          toast.error("Please sign in to manage your wishlist.");
+          window.dispatchEvent(
+            new CustomEvent("tharani-auth-required", {
+              detail: {
+                message: "Please sign in to manage your wishlist.",
+              },
+            })
+          );
+          return;
+        }
+
+        if (!res.ok) throw new Error("Unable to remove from wishlist.");
 
         setWishlisted(false);
         router.refresh();
@@ -73,7 +99,7 @@ export default function ProductCard({
         });
       }
     } catch (err) {
-      toast.error("Something went wrong.");
+      toast.error(err.message || "Something went wrong.");
     }
   }
 

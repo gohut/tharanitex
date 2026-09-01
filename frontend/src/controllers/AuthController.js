@@ -2,6 +2,7 @@ import { AuthService } from "../services/AuthService";
 import { Validators } from "../validators/validators";
 import { ApiResponse } from "../utils/ApiResponse";
 import { authenticate } from "../middleware/auth";
+import { logoutSession } from "../lib/auth";
 
 const isProd =
   process.env.NODE_ENV === "production";
@@ -10,8 +11,11 @@ const secureFlag = isProd
   ? "; Secure"
   : "";
 
+// Durable 7-day session lifetime (604,800 seconds)
+const SESSION_MAX_AGE = 7 * 24 * 60 * 60;
+
 const cookieOptions =
-  `; Path=/; HttpOnly; Max-Age=7200; SameSite=Lax${secureFlag}`;
+  `; Path=/; HttpOnly; Max-Age=${SESSION_MAX_AGE}; SameSite=Lax${secureFlag}`;
 
 const expireCookieOptions =
   `; Path=/; HttpOnly; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
@@ -73,18 +77,6 @@ export class AuthController {
     }
   }
 
-  static async logout(request) {
-    try {
-      const response = ApiResponse.success(null, "Logged out successfully");
-      response.headers.append("Set-Cookie", `token=${expireCookieOptions}`);
-      response.headers.append("Set-Cookie", `auth_token=${expireCookieOptions}`);
-      response.headers.append("Set-Cookie", `tharanitex_session=${expireCookieOptions}`);
-      return response;
-    } catch (error) {
-      return ApiResponse.error(error.message);
-    }
-  }
-
   static async adminLogin(request, env) {
     try {
       const body = await request.json();
@@ -96,63 +88,57 @@ export class AuthController {
       const { user, token } = await AuthService.adminLogin(body.email, body.password, env);
 
       const response = ApiResponse.success(user, "Admin login successful");
-      response.headers.set(
+      response.headers.append(
         "Set-Cookie",
         `admin_token=${token}${cookieOptions}`
+      );
+      response.headers.append(
+        "Set-Cookie",
+        `tharanitex_session=${token}${cookieOptions}`
       );
       return response;
     } catch (error) {
       return ApiResponse.error(error.message, 401);
     }
   }
-static async logout(request, env) {
-  try {
-    const response = ApiResponse.success(
-      null,
-      "Logged out successfully"
-    );
 
-    /*
-     * Clear every authentication cookie.
-     *
-     * Even though customer authentication no longer
-     * trusts tharanitex_session, we still remove it
-     * from the browser so old sessions cannot linger.
-     */
-    const cookiesToClear = [
-      "token",
-      "auth_token",
-      "tharanitex_session",
-      "admin_token",
-    ];
-
-    for (const cookieName of cookiesToClear) {
-      response.headers.append(
-        "Set-Cookie",
-        `${cookieName}=; Path=/; HttpOnly; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`
+  static async logout(request, env) {
+    try {
+      const response = ApiResponse.success(
+        null,
+        "Logged out successfully"
       );
+
+      // Invalidate D1 session if active session cookie/header exists
+      const sessionToken =
+        request.cookies?.get?.("tharanitex_session")?.value ||
+        request.cookies?.get?.("admin_token")?.value ||
+        request.headers?.get?.("x-session-token");
+
+      if (sessionToken) {
+        await logoutSession(sessionToken, env).catch(() => {});
+      }
+
+      const cookiesToClear = [
+        "token",
+        "auth_token",
+        "tharanitex_session",
+        "admin_token",
+      ];
+
+      for (const cookieName of cookiesToClear) {
+        response.headers.append(
+          "Set-Cookie",
+          `${cookieName}=; Path=/; HttpOnly; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`
+        );
+      }
+
+      return response;
+    } catch (error) {
+      console.error("Logout error:", error);
+      return ApiResponse.error("Unable to log out", 500);
     }
-
-    /*
-     * If the current token belongs to the legacy
-     * D1 session system, revoke it as well.
-     *
-     * This is cleanup only. Normal customer auth
-     * no longer depends on this session.
-     */
-    return response;
-  } catch (error) {
-    console.error(
-      "Logout error:",
-      error
-    );
-
-    return ApiResponse.error(
-      "Unable to log out",
-      500
-    );
   }
-}
 
   static async getProfile(request, env) {
     try {

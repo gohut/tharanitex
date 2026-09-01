@@ -4,9 +4,9 @@ import { ApiResponse } from "../utils/ApiResponse";
 import { authenticate } from "../middleware/auth";
 
 export class AddressController {
-  static async getAddresses(request) {
+  static async getAddresses(request, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -17,9 +17,9 @@ export class AddressController {
     }
   }
 
-  static async getAddressById(request, { params }) {
+  static async getAddressById(request, { params }, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -32,9 +32,9 @@ export class AddressController {
     }
   }
 
-  static async createAddress(request) {
+  static async createAddress(request, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -51,9 +51,9 @@ export class AddressController {
     }
   }
 
-  static async updateAddress(request, { params }) {
+  static async updateAddress(request, { params }, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -72,9 +72,9 @@ export class AddressController {
     }
   }
 
-  static async deleteAddress(request, { params }) {
+  static async deleteAddress(request, { params }, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -88,3 +88,4 @@ export class AddressController {
     }
   }
 }
+

@@ -3,9 +3,9 @@ import { ApiResponse } from "../utils/ApiResponse";
 import { authenticate } from "../middleware/auth";
 
 export class WishlistController {
-  static async getWishlist(request) {
+  static async getWishlist(request, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -16,9 +16,9 @@ export class WishlistController {
     }
   }
 
-  static async addToWishlist(request) {
+  static async addToWishlist(request, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -34,9 +34,9 @@ export class WishlistController {
     }
   }
 
-  static async removeFromWishlist(request, { params }) {
+  static async removeFromWishlist(request, { params }, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -50,3 +50,4 @@ export class WishlistController {
     }
   }
 }
+

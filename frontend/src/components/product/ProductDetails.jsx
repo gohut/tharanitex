@@ -265,9 +265,15 @@ export default function ProductDetails({ product }) {
 
       if (!res.ok) {
         if (res.status === 401) {
+          toast.error("Please sign in to add items to your cart.");
           window.dispatchEvent(
             new CustomEvent(
-              "tharani-auth-required"
+              "tharani-auth-required",
+              {
+                detail: {
+                  message: "Please sign in to add items to your cart.",
+                },
+              }
             )
           );
           return;
@@ -296,35 +302,41 @@ export default function ProductDetails({ product }) {
         error.message ||
           "Unable to add product to cart."
       );
+    } finally {
+      setIsAddingToCart(false);
     }
   }
 
-  /*
-   * Buy now.
-   */
-  async function buyNow() {
-    if (
-      selectedVariant &&
-      availableStock <= 0
-    ) {
+  const handleBuyNow = async () => {
+    if (isAddingToCart) {
+      return;
+    }
+
+    if (!selectedVariant && isSareeProduct) {
       toast.error(
-        "This variant is currently out of stock."
+        "Please select a saree color."
       );
       return;
     }
 
+    const availableStock =
+      selectedVariant?.stock ??
+      product.stock;
+
     if (
-      selectedVariant &&
-      availableStock > 0 &&
-      qty > availableStock
+      availableStock !== null &&
+      availableStock !== undefined &&
+      availableStock < 1
     ) {
       toast.error(
-        `Only ${availableStock} available.`
+        "Selected item is out of stock."
       );
       return;
     }
 
     try {
+      setIsAddingToCart(true);
+
       const res = await fetch("/api/cart", {
         method: "POST",
         credentials: "include",
@@ -335,7 +347,7 @@ export default function ProductDetails({ product }) {
           productId: product.id,
           variantId:
             selectedVariant?.id || null,
-          quantity: qty,
+          quantity: 1,
         }),
       });
 
@@ -345,9 +357,15 @@ export default function ProductDetails({ product }) {
 
       if (!res.ok) {
         if (res.status === 401) {
+          toast.error("Please sign in to continue with checkout.");
           window.dispatchEvent(
             new CustomEvent(
-              "tharani-auth-required"
+              "tharani-auth-required",
+              {
+                detail: {
+                  message: "Please sign in to continue with checkout.",
+                },
+              }
             )
           );
           return;

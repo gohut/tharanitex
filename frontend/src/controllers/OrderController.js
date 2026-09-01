@@ -3,9 +3,9 @@ import { ApiResponse } from "../utils/ApiResponse";
 import { authenticate, authenticateAdmin } from "../middleware/auth";
 
 export class OrderController {
-  static async checkout(request) {
+  static async checkout(request, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -26,9 +26,9 @@ export class OrderController {
     }
   }
 
-  static async getCustomerOrders(request) {
+  static async getCustomerOrders(request, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -39,9 +39,9 @@ export class OrderController {
     }
   }
 
-  static async getCustomerOrderById(request, { params }) {
+  static async getCustomerOrderById(request, { params }, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -54,9 +54,9 @@ export class OrderController {
     }
   }
 
-  static async adminGetOrders(request) {
+  static async adminGetOrders(request, env) {
     try {
-      if (!await authenticateAdmin(request)) {
+      if (!await authenticateAdmin(request, env)) {
         return ApiResponse.forbidden("Admin access required");
       }
       const orders = await OrderService.getOrders();
@@ -66,9 +66,9 @@ export class OrderController {
     }
   }
 
-  static async adminUpdateOrderStatus(request, { params }) {
+  static async adminUpdateOrderStatus(request, { params }, env) {
     try {
-      if (!await authenticateAdmin(request)) {
+      if (!await authenticateAdmin(request, env)) {
         return ApiResponse.forbidden("Admin access required");
       }
       const resolvedParams = await params;
@@ -90,3 +90,4 @@ export class OrderController {
     }
   }
 }
+
