@@ -95,8 +95,23 @@ export default function CheckoutModal({
   });
 
   const [useDefaultAddress, setUseDefaultAddress] = useState(false);
+  const [addressStatus, setAddressStatus] = useState("loading"); // "loading" | "found" | "none" | "auth_error" | "server_error"
 
   const idempotencyKey = useRef(null);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
@@ -104,57 +119,37 @@ export default function CheckoutModal({
     }
 
     let ignore = false;
+    setAddressStatus("loading");
 
-    let name = "";
-    let phone = "";
-    let address = "";
+    async function loadCustomerAddress() {
+      let resolvedName = "";
+      let resolvedPhone = "";
+      let resolvedAddress = "";
+      let found = false;
+      let authError = false;
+      let serverError = false;
 
-    const userStr =
-      typeof window !== "undefined"
-        ? localStorage.getItem("currentUser")
-        : null;
-
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-
-        name = user.name || "";
-        phone = user.contact || user.phone || "";
-
-        if (user.address) {
-          address =
-            user.pincode &&
-            !user.address.includes(user.pincode)
-              ? `${user.address}, ${user.pincode}`
-              : user.address;
-        }
-      } catch {
-        // Ignore malformed local storage.
-      }
-    }
-
-    async function loadProfile() {
-      let profileName = name;
-      let profilePhone = phone;
-      let profileAddress = address;
-
+      // 1. Try customer addresses list from DB table
       try {
         const response = await fetch("/api/customer/addresses", {
+          method: "GET",
           credentials: "include",
+          cache: "no-store",
         });
 
-        if (response.ok) {
-          const json = await response.json();
-
-          const addresses = json?.data || json || [];
+        if (response.status === 401) {
+          authError = true;
+        } else if (response.ok) {
+          const json = await response.json().catch(() => ({}));
+          const addresses = json?.data || (Array.isArray(json) ? json : []);
 
           if (Array.isArray(addresses) && addresses.length > 0) {
             const defaultAddress =
               addresses.find(
                 (item) =>
-                  item.is_default ||
-                  item.isDefault ||
-                  item.is_default === 1
+                  item.is_default === 1 ||
+                  item.is_default === true ||
+                  item.isDefault === true
               ) || addresses[0];
 
             if (defaultAddress) {
@@ -162,95 +157,118 @@ export default function CheckoutModal({
                 defaultAddress.address_line1 ||
                 defaultAddress.addressLine1 ||
                 "";
-
               const line2 =
                 defaultAddress.address_line2 ||
                 defaultAddress.addressLine2 ||
                 "";
-
               const city = defaultAddress.city || "";
               const state = defaultAddress.state || "";
               const pin = defaultAddress.pincode || "";
 
-              const dbAddress = [
-                line1,
-                line2,
-                city,
-                state,
-                pin,
-              ]
+              const fullAddress = [line1, line2, city, state, pin]
                 .filter(Boolean)
                 .join(", ");
 
-              const dbName =
-                defaultAddress.full_name ||
-                defaultAddress.fullName ||
-                name;
-
-              const dbPhone =
-                defaultAddress.phone || phone;
-
-              if (dbAddress) {
-                profileName = dbName;
-                profilePhone = dbPhone;
-                profileAddress = dbAddress;
-              }
-            }
-          } else {
-            const profileResponse = await fetch(
-              "/api/auth/profile",
-              {
-                credentials: "include",
-              }
-            );
-
-            if (profileResponse.ok) {
-              const data = await profileResponse.json();
-
-              if (data?.data) {
-                const profile = data.data;
-
-                profileName = profile.name || name;
-
-                profilePhone =
-                  profile.phone ||
-                  profile.contact ||
-                  phone;
-
-                profileAddress =
-                  profile.address || address;
-
-                if (
-                  profile.pincode &&
-                  profileAddress &&
-                  !profileAddress.includes(profile.pincode)
-                ) {
-                  profileAddress = `${profileAddress}, ${profile.pincode}`;
-                }
+              if (fullAddress) {
+                resolvedAddress = fullAddress;
+                resolvedName =
+                  defaultAddress.full_name ||
+                  defaultAddress.fullName ||
+                  "";
+                resolvedPhone = defaultAddress.phone || "";
+                found = true;
               }
             }
           }
         }
-      } catch {
-        // Profile loading should never block checkout.
+      } catch (err) {
+        console.warn("Addresses fetch error:", err);
+      }
+
+      // 2. If no address found from Addresses table, fallback to user profile
+      if (!found && !authError) {
+        try {
+          const profileResponse = await fetch("/api/auth/profile", {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
+          });
+
+          if (profileResponse.status === 401) {
+            authError = true;
+          } else if (profileResponse.ok) {
+            const profileJson = await profileResponse
+              .json()
+              .catch(() => ({}));
+            const profile = profileJson?.data || profileJson;
+
+            if (profile) {
+              resolvedName = profile.name || resolvedName;
+              resolvedPhone =
+                profile.phone ||
+                profile.contact ||
+                resolvedPhone;
+
+              let pAddr = profile.address || "";
+              if (
+                profile.pincode &&
+                pAddr &&
+                !pAddr.includes(profile.pincode)
+              ) {
+                pAddr = `${pAddr}, ${profile.pincode}`;
+              }
+
+              if (pAddr) {
+                resolvedAddress = pAddr;
+                found = true;
+              }
+            }
+          } else {
+            serverError = true;
+          }
+        } catch (err) {
+          console.warn("Profile fetch error:", err);
+          serverError = true;
+        }
       }
 
       if (!ignore) {
-        setProfileData({
-          name: profileName,
-          phone: profilePhone,
-          address: profileAddress,
-        });
+        if (found && resolvedAddress) {
+          setProfileData({
+            name: resolvedName,
+            phone: resolvedPhone,
+            address: resolvedAddress,
+          });
+          setAddressStatus("found");
 
-        setDetails((current) => ({
-          ...current,
-          name: current.name || profileName,
-          phone: current.phone || profilePhone,
-        }));
+          setDetails((current) => ({
+            ...current,
+            name: current.name || resolvedName,
+            phone: current.phone || resolvedPhone,
+          }));
+        } else if (authError) {
+          setAddressStatus("auth_error");
+        } else if (serverError) {
+          setAddressStatus("server_error");
+        } else {
+          setAddressStatus("none");
+          if (resolvedName || resolvedPhone) {
+            setProfileData((prev) => ({
+              ...prev,
+              name: resolvedName,
+              phone: resolvedPhone,
+            }));
+            setDetails((current) => ({
+              ...current,
+              name: current.name || resolvedName,
+              phone: current.phone || resolvedPhone,
+            }));
+          }
+        }
       }
     }
 
-    loadProfile();
+    loadCustomerAddress();
 
     return () => {
       ignore = true;
@@ -290,15 +308,15 @@ export default function CheckoutModal({
       setDetails((current) => ({
         ...current,
         address: profileData.address,
-        name: current.name || profileData.name,
-        phone: current.phone || profileData.phone,
+        name: profileData.name || current.name,
+        phone: profileData.phone || current.phone,
       }));
 
       setErrors((current) => ({
         ...current,
         address: "",
-        name: "",
-        phone: "",
+        ...(profileData.name ? { name: "" } : {}),
+        ...(profileData.phone ? { phone: "" } : {}),
       }));
     }
   };
@@ -376,6 +394,20 @@ export default function CheckoutModal({
           await response.json().catch(() => ({}));
 
         if (!response.ok) {
+          if (response.status === 401) {
+            window.dispatchEvent(
+              new CustomEvent("tharani-auth-required", {
+                detail: {
+                  message:
+                    "Your session has expired. Please sign in again to complete your order.",
+                },
+              })
+            );
+            throw new Error(
+              "Your session has expired. Please sign in again to complete your order."
+            );
+          }
+
           throw new Error(
             data?.error ||
               "Unable to place your test order."
@@ -423,6 +455,20 @@ export default function CheckoutModal({
         await response.json().catch(() => ({}));
 
       if (!response.ok) {
+        if (response.status === 401) {
+          window.dispatchEvent(
+            new CustomEvent("tharani-auth-required", {
+              detail: {
+                message:
+                  "Your session has expired. Please sign in again to complete your payment.",
+              },
+            })
+          );
+          throw new Error(
+            "Your session has expired. Please sign in again to complete your payment."
+          );
+        }
+
         throw new Error(
           payment?.error ||
             "Unable to initialize online payment."
@@ -576,23 +622,23 @@ export default function CheckoutModal({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#2F2417]/45 p-3 backdrop-blur-[1px] sm:p-5"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#2F2417]/50 p-3 sm:p-4 md:p-6 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="checkout-title"
     >
-      <div className="relative flex max-h-[calc(100dvh-1.5rem)] w-full flex-col overflow-hidden border border-[#DDCFBD] bg-[#FFF9F0] shadow-2xl sm:max-h-[calc(100dvh-2.5rem)] sm:max-w-xl sm:rounded-sm">
+      <div className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg sm:max-w-xl flex-col overflow-hidden rounded-2xl border border-[#DDCFBD] bg-[#FFF9F0] shadow-2xl">
 
         {/* Header */}
-        <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-[#E8DCCB] bg-[#FFF9F0] px-5 py-4 sm:px-7">
+        <div className="flex shrink-0 items-center justify-between border-b border-[#E8DCC8] bg-[#FFF9F0] px-5 py-4 sm:px-7">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-[#B58A45]">
+            <p className="text-xs uppercase tracking-[0.18em] text-[#B58A45] font-semibold">
               Secure checkout
             </p>
 
             <h2
               id="checkout-title"
-              className="mt-1 font-serif text-2xl text-[#5A1F2F]"
+              className="mt-0.5 font-serif text-xl sm:text-2xl text-[#5A1F2F]"
             >
               Delivery & payment
             </h2>
@@ -603,16 +649,16 @@ export default function CheckoutModal({
             onClick={onClose}
             disabled={submitting}
             aria-label="Close checkout"
-            className="rounded-full p-2 text-[#5A1F2F] hover:bg-[#F2E6D3] disabled:opacity-50"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-[#5A1F2F] transition-colors hover:bg-[#F2E6D3] focus:outline-none focus:ring-2 focus:ring-[#C79127] disabled:opacity-50"
           >
-            <X size={20} />
+            <X size={22} />
           </button>
         </div>
 
         {/* Scrollable Checkout Content */}
         <form
           onSubmit={submit}
-          className="min-h-0 flex-1 overflow-y-auto space-y-7 p-5 sm:p-7"
+          className="min-h-0 flex-1 overflow-y-auto space-y-6 p-5 sm:p-7 overscroll-contain"
         >
           {/* Customer Information */}
           <fieldset
@@ -696,12 +742,13 @@ export default function CheckoutModal({
                 <input
                   type="checkbox"
                   checked={useDefaultAddress}
+                  disabled={addressStatus === "loading"}
                   onChange={(event) =>
                     handleToggleDefaultAddress(
                       event.target.checked
                     )
                   }
-                  className="h-4 w-4 rounded border-[#D8CCB4] accent-[#8F4E20] focus:ring-[#C79127]"
+                  className="h-4 w-4 rounded border-[#D8CCB4] accent-[#8F4E20] focus:ring-[#C79127] disabled:opacity-50"
                 />
 
                 <span>
@@ -710,14 +757,30 @@ export default function CheckoutModal({
               </label>
             </div>
 
-            {useDefaultAddress &&
-              !profileData.address && (
-                <p className="text-xs italic text-[#8F4E20]">
-                  No saved address found in
-                  profile. Please type your
-                  delivery address above.
-                </p>
-              )}
+            {addressStatus === "loading" && (
+              <p className="text-xs text-[#8A7A65] flex items-center gap-1.5">
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#B58A45] border-t-transparent inline-block" />
+                Loading saved address...
+              </p>
+            )}
+
+            {useDefaultAddress && addressStatus === "none" && (
+              <p className="text-xs italic text-[#8F4E20]">
+                No saved address found in your profile. Please enter your delivery address above.
+              </p>
+            )}
+
+            {useDefaultAddress && addressStatus === "auth_error" && (
+              <p className="text-xs italic text-[#8F4E20]">
+                Please sign in again to use your saved address.
+              </p>
+            )}
+
+            {useDefaultAddress && addressStatus === "server_error" && (
+              <p className="text-xs italic text-[#8F4E20]">
+                Unable to load your saved address right now.
+              </p>
+            )}
           </fieldset>
 
           {/* Payment Method */}

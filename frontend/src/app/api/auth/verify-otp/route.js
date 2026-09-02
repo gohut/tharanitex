@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { verifyOtpAndLogin, buildSessionCookieHeader } from '../../../../lib/auth';
 import { signJWT } from '../../../../utils/jwt';
 import { getJwtSecret } from '../../../../utils/jwt-secret';
 
 export async function POST(request) {
   try {
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
     const body = await request.json();
 
     if (!body || !body.fullName || !body.phoneNumber || !body.otp) {
@@ -26,7 +28,8 @@ export async function POST(request) {
       body.phoneNumber,
       body.otp,
       userAgent,
-      ipAddress
+      ipAddress,
+      env
     );
 
     const cookieHeader = buildSessionCookieHeader(authResult.sessionToken);
@@ -34,7 +37,7 @@ export async function POST(request) {
     // Also issue JWT for System A compatibility
     let jwtToken = null;
     try {
-      const secret = getJwtSecret();
+      const secret = getJwtSecret(env);
       jwtToken = await signJWT({ id: authResult.user.id, email: `${body.phoneNumber}@customer.tharanitex.com`, role: 'customer' }, secret);
     } catch {
       // JWT fallback optional

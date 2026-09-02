@@ -1,11 +1,15 @@
 import { AddressController } from "@/controllers/AddressController";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export const runtime = "edge";
 
 export async function GET(request) {
-  return await AddressController.getAddresses(request);
+  const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+  return await AddressController.getAddresses(request, env);
 }
 
 export async function POST(request) {
-  return await AddressController.createAddress(request);
+  const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+  return await AddressController.createAddress(request, env);
 }
+

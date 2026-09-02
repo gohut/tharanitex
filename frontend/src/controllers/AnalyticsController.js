@@ -3,9 +3,9 @@ import { ApiResponse } from "../utils/ApiResponse";
 import { authenticateAdmin } from "../middleware/auth";
 
 export class AnalyticsController {
-  static async getDashboardStats(request) {
+  static async getDashboardStats(request, env) {
     try {
-      if (!await authenticateAdmin(request)) {
+      if (!await authenticateAdmin(request, env)) {
         return ApiResponse.forbidden("Admin access required");
       }
       const stats = await AnalyticsService.getDashboardStats();
@@ -15,9 +15,9 @@ export class AnalyticsController {
     }
   }
 
-  static async getDetailedAnalytics(request) {
+  static async getDetailedAnalytics(request, env) {
     try {
-      if (!await authenticateAdmin(request)) {
+      if (!await authenticateAdmin(request, env)) {
         return ApiResponse.forbidden("Admin access required");
       }
       const analytics = await AnalyticsService.getDetailedAnalytics();
@@ -27,3 +27,4 @@ export class AnalyticsController {
     }
   }
 }
+

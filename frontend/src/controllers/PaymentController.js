@@ -3,9 +3,9 @@ import { ApiResponse } from "../utils/ApiResponse";
 import { authenticate } from "../middleware/auth";
 
 export class PaymentController {
-  static async initializePayment(request) {
+  static async initializePayment(request, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
@@ -21,7 +21,7 @@ export class PaymentController {
     }
   }
 
-  static async handleWebhook(request) {
+  static async handleWebhook(request, env) {
     try {
       const body = await request.json();
       const result = await PaymentService.handleWebhook(body);
@@ -31,3 +31,4 @@ export class PaymentController {
     }
   }
 }
+

@@ -2,12 +2,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Search, Edit2, Trash2, Star, Package, Upload } from "lucide-react";
-import StatusBadge from "../../../components/ui/StatusBadge";
-import Modal from "../../../components/ui/Modal";
-import Button from "../../../components/ui/Button";
-import FormInput from "../../../components/ui/FormInput";
-import Toggle from "../../../components/ui/Toggle";
-import Pagination from "../../../components/ui/Pagination";
+import StatusBadge from "@/components/ui/StatusBadge";
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
+import FormInput from "@/components/ui/FormInput";
+import Toggle from "@/components/ui/Toggle";
+import Pagination from "@/components/ui/Pagination";
 
 const PAGE_SIZE = 6;
 

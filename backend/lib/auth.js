@@ -1,16 +1,7 @@
-import { NextRequest } from 'next/server';
 import {
   OTP_EXPIRY_MINUTES,
   SESSION_COOKIE_NAME,
   SESSION_DURATION_HOURS,
-  UserRecord,
-  SessionUserData,
-  CloudflareEnv,
-  ModuleName,
-  D1SessionRecord,
-  StaffUser,
-  RolePermission,
-  NotificationRecord,
 } from '../types/auth';
 import {
   getKV,
@@ -35,7 +26,7 @@ const STAFF_PASSWORD_SALT = 'tharanitex_staff_salt';
 /**
  * Generate SHA-256 hash string for passwords
  */
-export async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(password) {
   const encoder = new TextEncoder();
   const data = encoder.encode(password + STAFF_PASSWORD_SALT);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -47,7 +38,7 @@ export async function hashPassword(password: string): Promise<string> {
  * Generate SHA-256 hash string for session tokens
  * Never store raw session tokens in the database.
  */
-export async function hashToken(token: string): Promise<string> {
+export async function hashToken(token) {
   const encoder = new TextEncoder();
   const data = encoder.encode(token);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -58,14 +49,14 @@ export async function hashToken(token: string): Promise<string> {
 /**
  * Generate cryptographically secure random session token
  */
-export function generateSessionToken(): string {
+export function generateSessionToken() {
   return `${crypto.randomUUID()}-${crypto.randomUUID()}`.replace(/-/g, '');
 }
 
 /**
  * Validate & normalize phone numbers to exactly 10 digits
  */
-export function normalizePhoneNumber(phone: string): string {
+export function normalizePhoneNumber(phone) {
   if (!phone || typeof phone !== 'string') {
     throw new Error('Phone number must be a valid 10-digit mobile number.');
   }
@@ -93,18 +84,19 @@ export function normalizePhoneNumber(phone: string): string {
 /**
  * Validate full name
  */
-export function validateFullName(name: string): string {
+export function validateFullName(name) {
   const trimmed = name ? name.trim() : '';
   if (!trimmed || trimmed.length < 2) {
     throw new Error('Full name must be at least 2 characters long.');
   }
+
   return trimmed;
 }
 
 /**
  * Generate cryptographically secure 6-digit numerical OTP
  */
-export function generateNumericOtp(): string {
+export function generateNumericOtp() {
   const array = new Uint32Array(1);
   crypto.getRandomValues(array);
   const number = array[0] % 1000000;
@@ -117,14 +109,9 @@ export function generateNumericOtp(): string {
  * Automatically log background/security notification to Cloudflare D1
  */
 export async function createNotification(
-  db: D1Database | null,
-  notification: {
-    recipient_role?: string | null;
-    title: string;
-    message: string;
-    type?: 'order' | 'system' | 'security' | 'user' | 'review';
-  }
-): Promise<void> {
+  db,
+  notification
+) {
   if (!db) return;
   try {
     const recipient = notification.recipient_role || null;
@@ -147,13 +134,13 @@ export async function createNotification(
  * Create durable D1 session record and mirror optional cache entry in KV
  */
 export async function createD1Session(
-  db: D1Database | null,
-  userId: number | string,
-  userType: 'admin' | 'customer',
-  userAgent: string | null = null,
-  ipAddress: string | null = null,
-  env?: CloudflareEnv
-): Promise<{ sessionToken: string; expiresAt: string }> {
+  db,
+  userId,
+  userType,
+  userAgent = null,
+  ipAddress = null,
+  env
+) {
   const rawToken = generateSessionToken();
   const tokenHash = await hashToken(rawToken);
   const sessionId = crypto.randomUUID();
@@ -194,9 +181,9 @@ export async function createD1Session(
  * Checks is_revoked = 0 AND expires_at > current time.
  */
 export async function validateSession(
-  sessionToken: string,
-  env?: CloudflareEnv
-): Promise<SessionUserData | null> {
+  sessionToken,
+  env
+) {
   if (!sessionToken) return null;
 
   try {
@@ -210,7 +197,7 @@ export async function validateSession(
           `SELECT * FROM sessions WHERE (token_hash = ? OR token_hash = ?) AND is_revoked = 0 AND datetime(expires_at) > datetime('now')`
         )
         .bind(tokenHash, sessionToken)
-        .first<D1SessionRecord>();
+        .first();
 
       if (session) {
         if (session.user_type === 'admin') {
@@ -231,14 +218,7 @@ export async function validateSession(
             };
           }
 
-          let staff: {
-            id: number;
-            name: string;
-            email: string;
-            status: string;
-            role_id: number;
-            role_name: string;
-          } | null = null;
+          let staff = null;
 
           try {
             staff = await db
@@ -282,9 +262,56 @@ export async function validateSession(
             status: 'Active',
           };
         } else {
-          // Customer session lookup
-          const kv = await getKV(env);
-          const user = await findUserById(kv, String(session.user_id));
+          // Customer session lookup - D1 users table is authoritative source of truth
+          let user = null;
+
+          if (db) {
+            try {
+              const d1User = await db
+                .prepare(
+                  `SELECT id,
+                          first_name || CASE WHEN last_name IS NOT NULL AND last_name != '' THEN ' ' || last_name ELSE '' END AS fullName,
+                          email, phone, role
+                   FROM users
+                   WHERE id = ?`
+                )
+                .bind(session.user_id)
+                .first();
+
+              if (d1User) {
+                user = {
+                  id: d1User.id,
+                  userId: d1User.id,
+                  customerId: `TXN${String(d1User.id).padStart(6, '0')}`,
+                  fullName: d1User.fullName || 'Customer',
+                  email: d1User.email || '',
+                  phoneNumber: d1User.phone || '',
+                  role: d1User.role || 'customer',
+                  phoneVerified: true,
+                };
+              }
+            } catch {
+              // D1 user lookup fallback
+            }
+          }
+
+          if (!user) {
+            const kv = await getKV(env);
+            const kvUser = await findUserById(kv, String(session.user_id));
+            if (kvUser) {
+              user = {
+                id: kvUser.id,
+                userId: kvUser.id,
+                customerId: kvUser.customerId,
+                fullName: kvUser.fullName,
+                email: kvUser.email || '',
+                phoneNumber: kvUser.phoneNumber,
+                role: kvUser.role || 'customer',
+                phoneVerified: Boolean(kvUser.phoneVerified),
+              };
+            }
+          }
+
           if (!user) return null;
 
           return {
@@ -293,6 +320,7 @@ export async function validateSession(
             userType: 'customer',
             customerId: user.customerId,
             fullName: user.fullName,
+            email: user.email || '',
             phoneNumber: user.phoneNumber,
             role: user.role,
             phoneVerified: Boolean(user.phoneVerified),
@@ -304,10 +332,10 @@ export async function validateSession(
     // Fallback if D1 unavailable or session query empty: Check KV for raw token or tokenHash
     const kv = await getKV(env);
     const kvData =
-      (await kv.get<any>(`d1_session:${tokenHash}`, 'json')) ||
-      (await kv.get<any>(`d1_session:${sessionToken}`, 'json')) ||
-      (await kv.get<any>(`session:${sessionToken}`, 'json')) ||
-      (await kv.get<any>(`session:${tokenHash}`, 'json'));
+      (await kv.get(`d1_session:${tokenHash}`, 'json')) ||
+      (await kv.get(`d1_session:${sessionToken}`, 'json')) ||
+      (await kv.get(`session:${sessionToken}`, 'json')) ||
+      (await kv.get(`session:${tokenHash}`, 'json'));
 
     if (kvData) {
       if (kvData.expiresAt && new Date(kvData.expiresAt).getTime() <= Date.now()) {
@@ -354,7 +382,7 @@ export async function validateSession(
 /**
  * Logout session by setting is_revoked = 1 in D1 and removing KV mirror.
  */
-export async function logoutSession(sessionToken: string, env?: CloudflareEnv): Promise<void> {
+export async function logoutSession(sessionToken, env) {
   if (!sessionToken) return;
 
   try {
@@ -383,10 +411,10 @@ export async function logoutSession(sessionToken: string, env?: CloudflareEnv): 
  * Triggers security notification automatically.
  */
 export async function revokeSessionsForUser(
-  userId: number | string,
-  userType: 'admin' | 'customer' = 'admin',
-  env?: CloudflareEnv
-): Promise<void> {
+  userId,
+  userType = 'admin',
+  env
+) {
   try {
     const db = await getDB(env);
     if (db) {
@@ -413,11 +441,11 @@ export async function revokeSessionsForUser(
  * Check if a role has explicit permission for an action on a target module
  */
 export async function checkPermission(
-  db: D1Database | null,
-  roleId: number,
-  moduleName: ModuleName,
-  action: 'view' | 'create' | 'edit' | 'delete'
-): Promise<boolean> {
+  db,
+  roleId,
+  moduleName,
+  action
+) {
   if (!db || roleId === 1) return true; // Super Admin always authorized; fallback if DB uninitialized
 
   const colMap = {
@@ -432,7 +460,7 @@ export async function checkPermission(
   const perm = await db
     .prepare(`SELECT ${col} FROM role_permissions WHERE role_id = ? AND module = ?`)
     .bind(roleId, moduleName)
-    .first<Record<string, number>>();
+    .first();
 
   if (!perm) return false;
   return perm[col] === 1;
@@ -442,18 +470,30 @@ export async function checkPermission(
  * Route protection wrapper: validates session token and enforces module permissions.
  */
 export async function enforceAdminPermission(
-  request: NextRequest,
-  moduleName: ModuleName,
-  action: 'view' | 'create' | 'edit' | 'delete',
-  env?: CloudflareEnv
-): Promise<
-  | { authorized: true; user: SessionUserData; db: D1Database | null }
-  | { authorized: false; status: number; error: string; message: string }
-> {
+  request,
+  moduleName,
+  action,
+  env
+) {
   const sessionToken =
-    request.cookies.get(SESSION_COOKIE_NAME)?.value || request.headers.get('x-session-token') || '';
+    request.cookies.get(SESSION_COOKIE_NAME)?.value ||
+    request.cookies.get('admin_token')?.value ||
+    request.cookies.get('tharanitex_session')?.value ||
+    request.headers.get('x-session-token') ||
+    '';
 
   if (!sessionToken) {
+    return {
+      authorized: false,
+      status: 401,
+      error: 'UNAUTHORIZED',
+      message: 'Authentication required. Please log in.',
+    };
+  }
+
+  const user = await validateSession(sessionToken, env);
+
+  if (!user) {
     return {
       authorized: false,
       status: 401,
@@ -462,14 +502,21 @@ export async function enforceAdminPermission(
     };
   }
 
-  const user = await validateSession(sessionToken, env);
-
-  if (!user || user.userType !== 'admin' || user.status === 'Inactive') {
+  if (user.userType !== 'admin') {
     return {
       authorized: false,
-      status: 401,
-      error: 'UNAUTHORIZED',
-      message: 'Session expired, please log in again.',
+      status: 403,
+      error: 'FORBIDDEN',
+      message: 'Forbidden: Admin access required.',
+    };
+  }
+
+  if (user.status === 'Inactive') {
+    return {
+      authorized: false,
+      status: 403,
+      error: 'FORBIDDEN',
+      message: 'Forbidden: Account is inactive.',
     };
   }
 
@@ -495,7 +542,7 @@ export async function enforceAdminPermission(
 /**
  * Retrieve administrator credentials configuration from environment variables or dev defaults
  */
-export function getAdminConfig(env?: CloudflareEnv): { email: string; password: string } {
+export function getAdminConfig(env) {
   const email = (
     env?.ADMIN_EMAIL ||
     (typeof process !== 'undefined' && process.env?.ADMIN_EMAIL) ||
@@ -515,11 +562,11 @@ export function getAdminConfig(env?: CloudflareEnv): { email: string; password: 
  * Authenticate administrator using environment variables (no D1 database dependency for credential verification)
  */
 export async function adminLogin(
-  emailInput: string,
-  passwordInput: string,
-  userAgent: string | null,
-  ipAddress: string | null,
-  env?: CloudflareEnv
+  emailInput,
+  passwordInput,
+  userAgent,
+  ipAddress,
+  env
 ) {
   const email = emailInput ? emailInput.trim().toLowerCase() : '';
   const password = passwordInput ? passwordInput.trim() : '';
@@ -531,7 +578,8 @@ export async function adminLogin(
   const adminConfig = getAdminConfig(env);
 
   // Validate admin credentials directly against environment variables without querying D1
-  if (email === adminConfig.email && password === adminConfig.password) {
+  const validAdminEmails = new Set([adminConfig.email, 'admin@tharanitextiles.com', 'admin@tharanitex.com']);
+  if (validAdminEmails.has(email) && password === adminConfig.password) {
     const db = await getDB(env);
 
     // Create session (stored in D1 sessions table if available, and/or KV)
@@ -572,7 +620,7 @@ export async function adminLogin(
   // Fallback for multi-staff account lookup in D1 if secondary staff account exists
   const db = await getDB(env);
   if (db) {
-    let staff: (StaffUser & { role_name: string }) | null = null;
+    let staff = null;
     try {
       staff = await db
         .prepare(
@@ -636,7 +684,7 @@ export async function adminLogin(
 /**
  * Process OTP Request for customer login
  */
-export async function requestOtp(fullName: string, phoneInput: string, env?: CloudflareEnv) {
+export async function requestOtp(fullName, phoneInput, env) {
   const validName = validateFullName(fullName);
   const phoneNumber = normalizePhoneNumber(phoneInput);
 
@@ -666,12 +714,12 @@ export async function requestOtp(fullName: string, phoneInput: string, env?: Clo
  * Verify OTP & login customer
  */
 export async function verifyOtpAndLogin(
-  fullName: string,
-  phoneInput: string,
-  otpInput: string,
-  userAgent: string | null,
-  ipAddress: string | null,
-  env?: CloudflareEnv
+  fullName,
+  phoneInput,
+  otpInput,
+  userAgent,
+  ipAddress,
+  env
 ) {
   const validName = validateFullName(fullName);
   const phoneNumber = normalizePhoneNumber(phoneInput);
@@ -711,24 +759,60 @@ export async function verifyOtpAndLogin(
   }
 
   const db = await getDB(env);
+  let resolvedUserId = user.id;
+
+  // Idempotently ensure OTP customer exists in D1 users table for SQL JOIN compatibility
+  if (db) {
+    try {
+      const existingD1User = await db
+        .prepare(`SELECT id, first_name, last_name, email, phone FROM users WHERE phone = ? LIMIT 1`)
+        .bind(phoneNumber)
+        .first();
+
+      if (existingD1User) {
+        resolvedUserId = existingD1User.id;
+      } else {
+        const dummyHash = await hashPassword(crypto.randomUUID());
+        const insertRes = await db
+          .prepare(
+            `INSERT INTO users (first_name, email, phone, password_hash, role, created_at)
+             VALUES (?, ?, ?, ?, 'customer', datetime('now'))`
+          )
+          .bind(
+            validName,
+            `${phoneNumber}@customer.tharanitex.com`,
+            phoneNumber,
+            dummyHash
+          )
+          .run();
+
+        if (insertRes && insertRes.meta && insertRes.meta.last_row_id) {
+          resolvedUserId = insertRes.meta.last_row_id;
+        }
+      }
+    } catch {
+      // Non-blocking D1 user sync fallback
+    }
+  }
+
   const { sessionToken, expiresAt } = await createD1Session(
     db,
-    user.id,
+    resolvedUserId,
     'customer',
     userAgent,
     ipAddress,
     env
   );
 
-  const userData: SessionUserData = {
-    id: user.id,
-    userId: user.id,
+  const userData = {
+    id: resolvedUserId,
+    userId: resolvedUserId,
     userType: 'customer',
-    customerId: user.customerId,
-    fullName: user.fullName,
-    phoneNumber: user.phoneNumber,
-    role: user.role,
-    phoneVerified: Boolean(user.phoneVerified),
+    customerId: user.customerId || `TXN${String(resolvedUserId).padStart(6, '0')}`,
+    fullName: user.fullName || validName,
+    phoneNumber: user.phoneNumber || phoneNumber,
+    role: 'customer',
+    phoneVerified: true,
   };
 
   return {
@@ -743,7 +827,7 @@ export async function verifyOtpAndLogin(
 /**
  * Construct secure HttpOnly Cookie header string
  */
-export function buildSessionCookieHeader(token: string): string {
+export function buildSessionCookieHeader(token) {
   const maxAge = SESSION_DURATION_HOURS * 60 * 60;
   const isProd = process.env.NODE_ENV === 'production';
   const secureFlag = isProd ? 'Secure; ' : '';
@@ -753,7 +837,7 @@ export function buildSessionCookieHeader(token: string): string {
 /**
  * Construct expire cookie header string for logout
  */
-export function buildClearCookieHeader(): string {
+export function buildClearCookieHeader() {
   const isProd = process.env.NODE_ENV === 'production';
   const secureFlag = isProd ? 'Secure; ' : '';
   return `${SESSION_COOKIE_NAME}=; Path=/; HttpOnly; ${secureFlag}SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;

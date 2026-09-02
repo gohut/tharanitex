@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
 import { Plus, Edit2, Trash2, Shield, Check } from "lucide-react";
-import StatusBadge from "../../../components/ui/StatusBadge";
-import Modal from "../../../components/ui/Modal";
-import Button from "../../../components/ui/Button";
-import FormInput from "../../../components/ui/FormInput";
-import { adminUsers as initUsers, roles, permissions } from "../../../data/users";
+import StatusBadge from "@/components/ui/StatusBadge";
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
+import FormInput from "@/components/ui/FormInput";
+import { adminUsers as initUsers, roles, permissions } from "@/data/users";
 
 export default function UsersPage() {
   const [users, setUsers] = useState(initUsers);

@@ -1,15 +1,16 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { logoutSession, buildClearCookieHeader } from "@/lib/auth";
+import { logoutSession, buildClearCookieHeader, buildClearAdminCookieHeader } from "@/lib/auth";
 import { SESSION_COOKIE_NAME } from "@/types/auth";
 
 export const runtime = "edge";
 
 export async function POST(request) {
   try {
-    const { env } = await getCloudflareContext({ async: true });
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
     const token =
       request.cookies?.get?.(SESSION_COOKIE_NAME)?.value ||
       request.cookies?.get?.("admin_token")?.value ||
+      request.cookies?.get?.("tharanitex_session")?.value ||
       "";
 
     if (token) {
@@ -17,16 +18,14 @@ export async function POST(request) {
     }
 
     const clearHeader = buildClearCookieHeader();
+    const clearAdminHeader = buildClearAdminCookieHeader();
     const response = Response.json({
       success: true,
       message: "Admin logged out successfully.",
     });
 
     response.headers.append("Set-Cookie", clearHeader);
-    response.headers.append(
-      "Set-Cookie",
-      `admin_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
-    );
+    response.headers.append("Set-Cookie", clearAdminHeader);
     return response;
   } catch (err) {
     return Response.json(

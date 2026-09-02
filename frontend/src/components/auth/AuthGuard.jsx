@@ -32,6 +32,9 @@ export default function AuthGuard() {
   const [showModal, setShowModal] =
     useState(false);
 
+  const [modalMessage, setModalMessage] =
+    useState("Please sign in to continue.");
+
   const checkAuthentication =
     useCallback(async () => {
       try {
@@ -69,15 +72,31 @@ export default function AuthGuard() {
       checkAuthentication();
     };
 
+    const handleAuthRequired = (event) => {
+      setIsAuthenticated(false);
+      const customMessage = event?.detail?.message || "Please sign in to continue.";
+      setModalMessage(customMessage);
+      setShowModal(true);
+    };
+
     window.addEventListener(
       "auth-change",
       handleAuthChange
+    );
+
+    window.addEventListener(
+      "tharani-auth-required",
+      handleAuthRequired
     );
 
     return () => {
       window.removeEventListener(
         "auth-change",
         handleAuthChange
+      );
+      window.removeEventListener(
+        "tharani-auth-required",
+        handleAuthRequired
       );
     };
   }, [checkAuthentication]);
@@ -227,6 +246,7 @@ export default function AuthGuard() {
     <AuthRequiredModal
       open={showModal}
       onClose={() => setShowModal(false)}
+      message={modalMessage}
     />
   );
 }

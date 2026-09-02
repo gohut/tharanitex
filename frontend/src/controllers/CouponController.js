@@ -69,9 +69,9 @@ export class CouponController {
     }
   }
 
-  static async validateCoupon(request) {
+  static async validateCoupon(request, env) {
     try {
-      const payload = await authenticate(request);
+      const payload = await authenticate(request, env);
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }

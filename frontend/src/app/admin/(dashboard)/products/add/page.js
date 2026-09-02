@@ -23,9 +23,9 @@ import {
   X,
 } from "lucide-react";
 
-import Button from "../../../../components/ui/Button";
-import FormInput from "../../../../components/ui/FormInput";
-import Toggle from "../../../../components/ui/Toggle";
+import Button from "@/components/ui/Button";
+import FormInput from "@/components/ui/FormInput";
+import Toggle from "@/components/ui/Toggle";
 
 function AddProductContent() {
   const router = useRouter();

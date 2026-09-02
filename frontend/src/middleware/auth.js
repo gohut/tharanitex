@@ -5,7 +5,33 @@ import {
 } from "../lib/auth";
 
 /**
- * Read a cookie safely.
+ * Check whether a string looks like a JWT (header.payload.signature)
+ */
+function isJwt(token) {
+  return typeof token === "string" && token.split(".").length === 3;
+}
+
+/**
+ * Helper to resolve Cloudflare runtime env if not explicitly passed
+ */
+async function resolveEnv(env) {
+  if (env && (env.JWT_SECRET || env.DB || env.KV)) {
+    return env;
+  }
+  try {
+    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+    const ctx = await getCloudflareContext({ async: true });
+    if (ctx && ctx.env) {
+      return ctx.env;
+    }
+  } catch {
+    // Cloudflare context unavailable in local or static context
+  }
+  return env;
+}
+
+/**
+ * Read a cookie safely from Next.js request cookies or raw cookie header.
  */
 function getCookie(
   request,
@@ -68,23 +94,21 @@ function getCookie(
 }
 
 /** 
- * Get the normal authentication token.
- *
- * Used by customer/general routes.
+ * Get the general customer authentication token.
  *
  * Priority:
- * Authorization header
- * x-session-token
- * auth_token
- * token
- * tharanitex_session
- * admin_token
+ * 1. Authorization: Bearer <token>
+ * 2. auth_token (Primary customer cookie)
+ * 3. token (Customer cookie alias)
+ * 4. tharanitex_session (D1 session cookie)
+ * 5. x-session-token (Header)
+ * 6. admin_token (Admin accessing customer endpoints)
  */
 function getGeneralToken(
   request
 ) {
   const authHeader =
-    request.headers.get(
+    request.headers?.get?.(
       "Authorization"
     );
 
@@ -96,16 +120,7 @@ function getGeneralToken(
   ) {
     return authHeader.substring(
       7
-    );
-  }
-
-  const sessionHeader =
-    request.headers.get(
-      "x-session-token"
-    );
-
-  if (sessionHeader) {
-    return sessionHeader;
+    ).trim();
   }
 
   return (
@@ -117,6 +132,17 @@ function getGeneralToken(
       request,
       "token"
     ) ||
+    getCookie(
+      request,
+      "tharanitex_session"
+    ) ||
+    request.headers?.get?.(
+      "x-session-token"
+    ) ||
+    getCookie(
+      request,
+      "admin_token"
+    ) ||
     null
   );
 }
@@ -124,19 +150,16 @@ function getGeneralToken(
 /**
  * Get the ADMIN authentication token.
  *
- * IMPORTANT:
- * Admin sessions are intentionally checked before
- * normal customer authentication cookies.
- *
- * This prevents a stale customer auth_token from
- * overriding an active admin_token.
+ * Priority:
+ * 1. admin_token (Dedicated admin cookie)
+ * 2. tharanitex_session (Admin D1 session cookie)
+ * 3. x-session-token (Explicit session header)
+ * 4. Authorization: Bearer <token>
+ * 5. auth_token / token
  */
 function getAdminToken(
   request
 ) {
-  /*
-   * Admin session cookie has priority.
-   */
   const adminToken =
     getCookie(
       request,
@@ -147,10 +170,6 @@ function getAdminToken(
     return adminToken;
   }
 
-  /*
-   * The admin login also creates the normal
-   * TharaniTex session cookie.
-   */
   const sessionToken =
     getCookie(
       request,
@@ -161,11 +180,8 @@ function getAdminToken(
     return sessionToken;
   }
 
-  /*
-   * Explicit session header fallback.
-   */
   const sessionHeader =
-    request.headers.get(
+    request.headers?.get?.(
       "x-session-token"
     );
 
@@ -173,11 +189,8 @@ function getAdminToken(
     return sessionHeader;
   }
 
-  /*
-   * Authorization header fallback.
-   */
   const authHeader =
-    request.headers.get(
+    request.headers?.get?.(
       "Authorization"
     );
 
@@ -189,12 +202,9 @@ function getAdminToken(
   ) {
     return authHeader.substring(
       7
-    );
+    ).trim();
   }
 
-  /*
-   * Last-resort legacy cookies.
-   */
   return (
     getCookie(
       request,
@@ -209,9 +219,9 @@ function getAdminToken(
 }
 
 /**
- * Normal authentication.
+ * Canonical customer authentication resolver.
  *
- * Accepts JWT or D1 session tokens.
+ * Resolves both JWT and D1 session tokens seamlessly into a unified identity object.
  */
 export async function authenticate(
   request,
@@ -229,83 +239,81 @@ export async function authenticate(
   if (!token) {
     if (debug) {
       console.info(
-        "AUTHENTICATE DEBUG",
-        {
-          authenticated: false,
-          reason:
-            "No authentication token was supplied.",
-        }
+        "AUTHENTICATE DEBUG: No authentication token supplied."
       );
     }
-
     return null;
   }
 
+  const resolvedEnv = await resolveEnv(env);
+
   /*
-   * 1. Try JWT.
+   * 1. If token is formatted as JWT (3 dot-separated base64 segments)
+   */
+  if (isJwt(token)) {
+    try {
+      const secret = getJwtSecret(resolvedEnv);
+      const payload = await verifyJWT(token, secret);
+
+      if (payload && payload.id) {
+        if (debug) {
+          console.info("AUTHENTICATE DEBUG: Successfully verified JWT identity", { id: payload.id, role: payload.role });
+        }
+
+        return {
+          ...payload,
+          id: String(payload.id),
+          userId: String(payload.id),
+          email: payload.email || "",
+          role: payload.role || "customer",
+          userType: (payload.role === "admin" || payload.userType === "admin") ? "admin" : "customer",
+          name: payload.name || payload.fullName || "",
+          fullName: payload.fullName || payload.name || "",
+        };
+      }
+    } catch (err) {
+      if (debug) {
+        console.warn("AUTHENTICATE DEBUG: JWT signature verification failed:", err?.message);
+      }
+    }
+  }
+
+  /*
+   * 2. If token is an opaque D1 session identifier (or fallback for non-JWT tokens)
    */
   try {
-    const secret =
-      getJwtSecret(env);
-
-    const payload =
-      await verifyJWT(
-        token,
-        secret
-      );
-
-    if (payload) {
+    const sessionUser = await validateSession(token, resolvedEnv);
+    if (sessionUser && (sessionUser.id || sessionUser.userId)) {
+      const userId = String(sessionUser.id || sessionUser.userId);
       if (debug) {
-        console.info(
-          "AUTHENTICATE DEBUG",
-          {
-            method: "JWT",
-            success: true,
-            role:
-              payload.role ||
-              null,
-          }
-        );
+        console.info("AUTHENTICATE DEBUG: Successfully verified D1 session identity", { userId, userType: sessionUser.userType });
       }
 
       return {
-        ...payload,
-        id: String(
-          payload.id
-        ),
-        userId: String(
-          payload.id
-        ),
+        ...sessionUser,
+        id: userId,
+        userId: userId,
+        email: sessionUser.email || "",
+        role: sessionUser.role || (sessionUser.userType === "admin" ? "admin" : "customer"),
+        userType: sessionUser.userType || "customer",
+        name: sessionUser.name || sessionUser.fullName || "",
+        fullName: sessionUser.fullName || sessionUser.name || "",
       };
     }
-  } catch {
-     //JWT verification failed.
-  }
-
-  if (debug) {
-    console.info(
-      "AUTHENTICATE DEBUG",
-      {
-        authenticated: false,
-        reason:
-          "JWT and D1 session validation failed.",
-      }
-    );
+  } catch (err) {
+    if (debug) {
+      console.warn("AUTHENTICATE DEBUG: D1 session validation failed:", err?.message);
+    }
   }
 
   return null;
 }
 
 /**
- * ADMIN authentication.
+ * Canonical ADMIN authentication & authorization resolver.
  *
- * IMPORTANT:
- * This function does NOT call authenticate()
- * first because authenticate() intentionally supports
- * customer authentication too.
- *
- * Admin routes must specifically prefer the
- * admin_token / admin session.
+ * Strictly enforces that the authenticated identity is an active administrator.
+ * Normal customer tokens are strictly rejected.
  */
 export async function authenticateAdmin(
   request,
@@ -323,179 +331,107 @@ export async function authenticateAdmin(
   if (!adminToken) {
     if (debug) {
       console.info(
-        "AUTHENTICATE ADMIN DEBUG",
-        {
-          success: false,
-          reason:
-            "No admin session token supplied.",
-        }
+        "AUTHENTICATE ADMIN DEBUG: No admin session token supplied."
       );
     }
-
     return null;
   }
 
+  const resolvedEnv = await resolveEnv(env);
+
   /*
-   * First validate as a D1 session.
-   *
-   * This is the important path for your current
-   * admin login implementation.
+   * 1. Validate D1 session first (primary for staff/admin logins)
    */
   try {
-    const sessionUser =
-      await validateSession(
-        adminToken,
-        env
-      );
+    const sessionUser = await validateSession(adminToken, resolvedEnv);
 
     if (sessionUser) {
       const isAdmin =
-        sessionUser.userType ===
-          "admin" ||
-        sessionUser.role ===
-          "Super Admin" ||
-        sessionUser.role ===
-          "admin";
+        sessionUser.userType === "admin" ||
+        sessionUser.role === "Super Admin" ||
+        sessionUser.role === "admin" ||
+        sessionUser.role === "Manager" ||
+        sessionUser.role === "Support Staff";
 
-      if (isAdmin) {
+      if (isAdmin && sessionUser.status !== "Inactive") {
         if (debug) {
-          console.info(
-            "AUTHENTICATE ADMIN DEBUG",
-            {
-              method:
-                "D1_SESSION",
-              success: true,
-              userId:
-                sessionUser.userId ||
-                sessionUser.id,
-              userType:
-                sessionUser.userType,
-              role:
-                sessionUser.role,
-            }
-          );
+          console.info("AUTHENTICATE ADMIN DEBUG: D1 session authorized as admin", { userId: sessionUser.id, role: sessionUser.role });
         }
 
         return {
           ...sessionUser,
-
-          id: String(
-            sessionUser.id ||
-              sessionUser.userId
-          ),
-
-          userId: String(
-            sessionUser.userId ||
-              sessionUser.id
-          ),
-
-          role: "admin",
-
+          id: String(sessionUser.id || sessionUser.userId),
+          userId: String(sessionUser.userId || sessionUser.id),
+          email: sessionUser.email || "",
+          role: sessionUser.role || "Super Admin",
+          roleId: sessionUser.roleId || 1,
+          roleName: sessionUser.roleName || sessionUser.role || "Super Admin",
           userType: "admin",
+          status: sessionUser.status || "Active",
+          name: sessionUser.name || sessionUser.fullName || "Admin",
+          fullName: sessionUser.fullName || sessionUser.name || "Admin",
         };
       }
 
-      /*
-       * Token is valid but belongs to a customer.
-       * DO NOT fall through to a different cookie.
-       */
+      // If session exists but belongs to a normal customer, strictly refuse admin access
       if (debug) {
-        console.info(
-          "AUTHENTICATE ADMIN DEBUG",
-          {
-            success: false,
-            reason:
-              "Supplied session belongs to a non-admin user.",
-            userType:
-              sessionUser.userType,
-            role:
-              sessionUser.role,
-          }
-        );
+        console.warn("AUTHENTICATE ADMIN DEBUG: Token belongs to non-admin user; access denied.");
       }
-
       return null;
     }
   } catch (error) {
     if (debug) {
-      console.error(
-        "AUTHENTICATE ADMIN SESSION ERROR:",
-        error
-      );
+      console.error("AUTHENTICATE ADMIN DEBUG: Session lookup error:", error);
     }
   }
 
   /*
-   * Legacy JWT fallback.
+   * 2. Fallback: Validate JWT if token is formatted as JWT
    */
-  try {
-    const secret =
-      getJwtSecret(env);
+  if (isJwt(adminToken)) {
+    try {
+      const secret = getJwtSecret(resolvedEnv);
+      const payload = await verifyJWT(adminToken, secret);
 
-    const payload =
-      await verifyJWT(
-        adminToken,
-        secret
-      );
+      if (payload) {
+        const isAdmin =
+          payload.role === "admin" ||
+          payload.userType === "admin" ||
+          payload.role === "Super Admin" ||
+          payload.role === "Manager";
 
-    if (payload) {
-      const isAdmin =
-        payload.role ===
-          "admin" ||
-        payload.userType ===
-          "admin" ||
-        payload.role ===
-          "Super Admin";
+        if (isAdmin) {
+          if (debug) {
+            console.info("AUTHENTICATE ADMIN DEBUG: JWT authorized as admin", { id: payload.id, role: payload.role });
+          }
 
-      if (isAdmin) {
-        if (debug) {
-          console.info(
-            "AUTHENTICATE ADMIN DEBUG",
-            {
-              method: "JWT",
-              success: true,
-              userId:
-                payload.id,
-            }
-          );
+          return {
+            ...payload,
+            id: String(payload.id),
+            userId: String(payload.id),
+            email: payload.email || "",
+            role: payload.role || "admin",
+            roleId: payload.roleId || 1,
+            roleName: payload.roleName || payload.role || "Super Admin",
+            userType: "admin",
+            status: "Active",
+            name: payload.name || payload.fullName || "Admin",
+            fullName: payload.fullName || payload.name || "Admin",
+          };
         }
 
-        return {
-          ...payload,
-
-          id: String(
-            payload.id
-          ),
-
-          userId: String(
-            payload.id
-          ),
-
-          role: "admin",
-
-          userType: "admin",
-        };
+        // JWT is valid but belongs to customer; refuse admin access
+        if (debug) {
+          console.warn("AUTHENTICATE ADMIN DEBUG: JWT payload is customer; access denied.");
+        }
+        return null;
+      }
+    } catch (error) {
+      if (debug) {
+        console.error("AUTHENTICATE ADMIN DEBUG: JWT verification error:", error);
       }
     }
-  } catch (error) {
-    if (debug) {
-      console.error(
-        "AUTHENTICATE ADMIN JWT ERROR:",
-        error
-      );
-    }
-  }
-
-  if (debug) {
-    console.info(
-      "AUTHENTICATE ADMIN DEBUG",
-      {
-        success: false,
-        reason:
-          "Admin token could not be authenticated.",
-      }
-    );
   }
 
   return null;
-}
+}

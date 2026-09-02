@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight, Search, RefreshCw } from "lucide-react";
-import Pagination from "../../../components/ui/Pagination";
-import StatusBadge from "../../../components/ui/StatusBadge";
+import Pagination from "@/components/ui/Pagination";
+import StatusBadge from "@/components/ui/StatusBadge";
 
 const TABS = ["All", "Placed", "Processing", "Shipped", "Delivered", "Cancelled"];
 const PAGE_SIZE = 8;

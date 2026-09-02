@@ -3,7 +3,6 @@ import "./globals.css";
 import localFont from "next/font/local";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { Toaster } from "react-hot-toast";
-import { Cormorant_Garamond } from "next/font/google";
 import InitialLoadingShell from "@/components/ui/InitialLoadingShell";
 import ConditionalFooter from "@/components/Footer/ConditionalFooter";
 import AuthGuard from "@/components/auth/AuthGuard";
@@ -49,12 +48,31 @@ const cormorant = localFont({
   variable: "--font-cormorant",
 });
 
-const cormorantGaramond =
-  Cormorant_Garamond({
-    subsets: ["latin"],
-    weight: ["300", "400", "500", "600"],
-    variable: "--font-cormorant-garamond",
-  });
+const cormorantGaramond = localFont({
+  src: [
+    {
+      path: "../fonts/CormorantInfant-Light.otf",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../fonts/CormorantInfant-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../fonts/CormorantInfant-Medium.otf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../fonts/CormorantInfant-Bold.otf",
+      weight: "600",
+      style: "normal",
+    },
+  ],
+  variable: "--font-cormorant-garamond",
+});
 
 export const metadata = {
   title: "Tharani Textiles",

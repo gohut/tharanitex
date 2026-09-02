@@ -16,9 +16,10 @@ import {
   XCircle,
   RefreshCw,
   AlertTriangle,
+  X,
 } from "lucide-react";
-import Button from "../../../../components/ui/Button";
-import StatusBadge from "../../../../components/ui/StatusBadge";
+import Button from "@/components/ui/Button";
+import StatusBadge from "@/components/ui/StatusBadge";
 
 const PROCESS_STEPS = ["Placed", "Processing", "Shipped", "Delivered"];
 
@@ -49,6 +50,8 @@ export default function OrderDetailPage() {
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState("");
   const [cancellationReason, setCancellationReason] = useState("");
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [approving, setApproving] = useState(false);
 
   const fetchOrder = useCallback(async () => {
     if (!orderId) return;
@@ -118,17 +121,9 @@ export default function OrderDetailPage() {
     }
   };
 
-  const handleCancellationAction = async (action) => {
-    const isApprove = action === "approve" || action === "APPROVED";
-    if (
-      isApprove &&
-      !window.confirm(
-        `Approve cancellation and refund Rs. ${Number(order?.total_amount || 0).toLocaleString()} to customer's original payment method?`
-      )
-    ) {
-      return;
-    }
-
+  const executeApproveCancellation = async () => {
+    if (approving || updating) return;
+    setApproving(true);
     setUpdating(true);
     setError("");
     try {
@@ -137,7 +132,34 @@ export default function OrderDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "cancellation",
-          decision: isApprove ? "APPROVED" : "REJECTED",
+          decision: "APPROVED",
+          cancellationReason: cancellationReason.trim() || undefined,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || "Cancellation action failed");
+      setCancellationReason("");
+      setShowApproveModal(false);
+      await fetchOrder();
+    } catch (err) {
+      setError(err.message || "Cancellation action failed");
+    } finally {
+      setApproving(false);
+      setUpdating(false);
+    }
+  };
+
+  const handleRejectCancellation = async () => {
+    if (updating) return;
+    setUpdating(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "cancellation",
+          decision: "REJECTED",
           cancellationReason: cancellationReason.trim() || undefined,
         }),
       });
@@ -413,15 +435,15 @@ export default function OrderDetailPage() {
                   />
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handleCancellationAction("approve")}
-                      disabled={updating}
+                      onClick={() => setShowApproveModal(true)}
+                      disabled={updating || approving}
                       className="px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded-lg text-xs font-semibold transition disabled:opacity-50"
                     >
                       Approve Cancellation
                     </button>
                     <button
-                      onClick={() => handleCancellationAction("reject")}
-                      disabled={updating}
+                      onClick={handleRejectCancellation}
+                      disabled={updating || approving}
                       className="px-4 py-2 bg-green-800 hover:bg-green-700 text-white rounded-lg text-xs font-semibold transition disabled:opacity-50"
                     >
                       Reject Request
@@ -502,6 +524,79 @@ export default function OrderDetailPage() {
           </section>
         </aside>
       </div>
+
+      {/* Cancellation Approval Confirmation Modal */}
+      {showApproveModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="approve-modal-title"
+        >
+          <div className="relative w-full max-w-md rounded-2xl border border-green-700 bg-green-900 p-6 shadow-2xl space-y-5">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-950/80 border border-red-800 text-red-400">
+                  <AlertTriangle size={20} />
+                </span>
+                <div>
+                  <h3 id="approve-modal-title" className="text-lg font-bold text-white">
+                    Approve Cancellation
+                  </h3>
+                  <p className="text-xs text-green-400 font-medium">
+                    Order #{order.id}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => !approving && setShowApproveModal(false)}
+                disabled={approving}
+                aria-label="Close modal"
+                className="rounded-lg p-1.5 text-green-400 hover:bg-green-800 hover:text-white transition disabled:opacity-50"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p className="text-sm leading-relaxed text-green-200">
+              Are you sure you want to approve this cancellation and refund{" "}
+              <strong className="text-gold-300 font-semibold">
+                Rs. {totalAmount.toLocaleString()}
+              </strong>{" "}
+              to the customer's original payment method?
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowApproveModal(false)}
+                disabled={approving}
+                className="px-4 py-2.5 rounded-xl border border-green-700 bg-green-950/60 text-xs font-semibold text-green-300 hover:bg-green-800 hover:text-white transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={executeApproveCancellation}
+                disabled={approving || updating}
+                className="px-5 py-2.5 rounded-xl bg-red-700 hover:bg-red-600 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {approving ? (
+                  <>
+                    <RefreshCw size={13} className="animate-spin" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <span>Approve & Refund</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

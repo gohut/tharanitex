@@ -8,6 +8,7 @@ import {
 import { useRouter } from "next/navigation";
 import { Minus, Plus } from "lucide-react";
 import ProductAccordion from "./ProductAccordion";
+import CheckoutModal from "@/components/Cart/CheckoutModal";
 import toast from "react-hot-toast";
 
 export default function ProductDetails({ product }) {
@@ -22,7 +23,7 @@ export default function ProductDetails({ product }) {
               variant.isActive !== false
           )
         : [],
-    [product?.variants]
+    [product]
   );
 
   const [selectedVariantId, setSelectedVariantId] =
@@ -33,6 +34,8 @@ export default function ProductDetails({ product }) {
     );
 
   const [qty, setQty] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isBuyNowOpen, setIsBuyNowOpen] = useState(false);
 
   /*
    * Keep the selected variant valid whenever
@@ -40,7 +43,9 @@ export default function ProductDetails({ product }) {
    */
   useEffect(() => {
     if (!variants.length) {
-      setSelectedVariantId(null);
+      if (selectedVariantId !== null) {
+        setSelectedVariantId(null);
+      }
       return;
     }
 
@@ -223,6 +228,10 @@ export default function ProductDetails({ product }) {
    * Add selected product + variant to cart.
    */
   async function addToCart() {
+    if (isAddingToCart) {
+      return;
+    }
+
     if (
       selectedVariant &&
       availableStock <= 0
@@ -245,6 +254,8 @@ export default function ProductDetails({ product }) {
     }
 
     try {
+      setIsAddingToCart(true);
+
       const res = await fetch("/api/cart", {
         method: "POST",
         credentials: "include",
@@ -265,9 +276,15 @@ export default function ProductDetails({ product }) {
 
       if (!res.ok) {
         if (res.status === 401) {
+          toast.error("Please sign in to add items to your cart.");
           window.dispatchEvent(
             new CustomEvent(
-              "tharani-auth-required"
+              "tharani-auth-required",
+              {
+                detail: {
+                  message: "Please sign in to add items to your cart.",
+                },
+              }
             )
           );
           return;
@@ -296,82 +313,79 @@ export default function ProductDetails({ product }) {
         error.message ||
           "Unable to add product to cart."
       );
+    } finally {
+      setIsAddingToCart(false);
     }
   }
 
   /*
-   * Buy now.
+   * Direct BUY NOW checkout:
+   * Validates authentication, variant, and stock, then directly opens CheckoutModal
+   * without polluting persistent cart or navigating to /cart.
    */
   async function buyNow() {
+    if (isAddingToCart || isBuyNowOpen) {
+      return;
+    }
+
+    if (!selectedVariant && variants.length > 0) {
+      toast.error(
+        "Please select a color/variant."
+      );
+      return;
+    }
+
+    const currentStock =
+      selectedVariant?.stock ??
+      product.stock;
+
     if (
-      selectedVariant &&
-      availableStock <= 0
+      currentStock !== null &&
+      currentStock !== undefined &&
+      currentStock < 1
     ) {
       toast.error(
-        "This variant is currently out of stock."
+        "This item is currently out of stock."
       );
       return;
     }
 
     if (
-      selectedVariant &&
-      availableStock > 0 &&
-      qty > availableStock
+      currentStock !== null &&
+      currentStock !== undefined &&
+      qty > currentStock
     ) {
       toast.error(
-        `Only ${availableStock} available.`
+        `Only ${currentStock} available in stock.`
       );
       return;
     }
 
     try {
-      const res = await fetch("/api/cart", {
-        method: "POST",
+      const authRes = await fetch("/api/auth/profile", {
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: product.id,
-          variantId:
-            selectedVariant?.id || null,
-          quantity: qty,
-        }),
+        cache: "no-store",
       });
 
-      const data = await res
-        .json()
-        .catch(() => null);
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          window.dispatchEvent(
-            new CustomEvent(
-              "tharani-auth-required"
-            )
-          );
-          return;
-        }
-
-        throw new Error(
-          data?.error ||
-            "Unable to continue to checkout."
+      if (!authRes.ok) {
+        toast.error("Please sign in to continue with checkout.");
+        window.dispatchEvent(
+          new CustomEvent("tharani-auth-required", {
+            detail: {
+              message: "Please sign in to continue with checkout.",
+            },
+          })
         );
+        return;
       }
-
-      router.push("/cart");
-    } catch (error) {
-      console.error(
-        "Buy now error:",
-        error
-      );
-
-      toast.error(
-        error.message ||
-          "Unable to continue to checkout."
-      );
+    } catch {
+      // Fall through to modal which enforces authentication on order submission
     }
+
+    setIsBuyNowOpen(true);
   }
+
+  const handleBuyNow = buyNow;
 
   return (
     <div className="flex flex-col pt-1">
@@ -480,6 +494,7 @@ export default function ProductDetails({ product }) {
       <div className="mt-7 flex flex-col gap-3">
         <button
           type="button"
+          data-requires-auth="true"
           onClick={addToCart}
           disabled={
             selectedVariant
@@ -493,6 +508,7 @@ export default function ProductDetails({ product }) {
 
         <button
           type="button"
+          data-requires-auth="true"
           onClick={buyNow}
           disabled={
             selectedVariant
@@ -508,6 +524,21 @@ export default function ProductDetails({ product }) {
       <div className="mt-5">
         <ProductAccordion />
       </div>
+
+      <CheckoutModal
+        open={isBuyNowOpen}
+        onClose={() => setIsBuyNowOpen(false)}
+        checkoutType="BUY_NOW"
+        buyNowItem={{
+          productId: product.id,
+          variantId: selectedVariant?.id || null,
+          quantity: qty,
+        }}
+        onOrderCreated={(order) => {
+          setIsBuyNowOpen(false);
+          router.push(`/orders/${order.orderId || order.id}`);
+        }}
+      />
     </div>
   );
-}
+}

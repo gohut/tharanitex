@@ -113,8 +113,7 @@ export default function LoginPage() {
         toast.dismiss();
         toast.success("Successfully signed in with Google!");
 
-        router.replace("/home ");
-        router.refresh();
+        router.replace("/home");
       } catch (error) {
         toast.dismiss();
         toast.error(
@@ -169,7 +168,6 @@ export default function LoginPage() {
       );
 
       router.replace("/home");
-      router.refresh();
     } catch (error) {
       console.error("Login request error:", error);
       toast.error(
@@ -195,9 +193,8 @@ export default function LoginPage() {
 
     try {
       /*
-       * Registration API currently accepts name/email/password/phone.
-       * We also send address and pincode so the backend can persist them
-       * after the corresponding DB columns are added.
+       * Registration API accepts name/email/password/phone/address/pincode.
+       * The backend creates the customer account and sets the HttpOnly cookie.
        */
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -235,7 +232,6 @@ export default function LoginPage() {
       toast.success("Account created successfully!");
 
       router.replace("/home");
-      router.refresh();
     } catch (error) {
       console.error("Register request error:", error);
       toast.error(

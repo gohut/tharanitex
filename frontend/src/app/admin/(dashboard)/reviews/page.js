@@ -16,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 
-import Pagination from "../../../components/ui/Pagination";
+import Pagination from "@/components/ui/Pagination";
 
 const PAGE_SIZE = 8;
 
