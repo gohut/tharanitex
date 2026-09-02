@@ -150,7 +150,7 @@ export class AuthController {
       const profile = await AuthService.getProfile(payload.id);
       return ApiResponse.success(profile);
     } catch (error) {
-      return ApiResponse.error(error.message);
+      return ApiResponse.unauthorized("Authentication required");
     }
   }
 

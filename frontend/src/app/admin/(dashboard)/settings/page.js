@@ -2,15 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Eye, Palette, Phone, RotateCcw, Save, Store, Upload } from "lucide-react";
-import Button from "../../../components/ui/Button";
-import FormInput from "../../../components/ui/FormInput";
-import Toggle from "../../../components/ui/Toggle";
+import Button from "@/components/ui/Button";
+import FormInput from "@/components/ui/FormInput";
+import Toggle from "@/components/ui/Toggle";
 import {
   applyBrandingTheme,
   BRANDING_STORAGE_KEY,
   DEFAULT_BRANDING_THEME,
   getSavedBrandingTheme,
-} from "../../../lib/theme";
+} from "@/lib/theme";
 
 const COLOR_GROUPS = [
   {

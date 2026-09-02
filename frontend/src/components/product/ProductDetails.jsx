@@ -33,6 +33,7 @@ export default function ProductDetails({ product }) {
     );
 
   const [qty, setQty] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   /*
    * Keep the selected variant valid whenever
@@ -223,6 +224,10 @@ export default function ProductDetails({ product }) {
    * Add selected product + variant to cart.
    */
   async function addToCart() {
+    if (isAddingToCart) {
+      return;
+    }
+
     if (
       selectedVariant &&
       availableStock <= 0
@@ -245,6 +250,8 @@ export default function ProductDetails({ product }) {
     }
 
     try {
+      setIsAddingToCart(true);
+
       const res = await fetch("/api/cart", {
         method: "POST",
         credentials: "include",
@@ -307,14 +314,14 @@ export default function ProductDetails({ product }) {
     }
   }
 
-  const handleBuyNow = async () => {
+  async function buyNow() {
     if (isAddingToCart) {
       return;
     }
 
-    if (!selectedVariant && isSareeProduct) {
+    if (!selectedVariant && variants.length > 0) {
       toast.error(
-        "Please select a saree color."
+        "Please select a color/variant."
       );
       return;
     }
@@ -347,7 +354,7 @@ export default function ProductDetails({ product }) {
           productId: product.id,
           variantId:
             selectedVariant?.id || null,
-          quantity: 1,
+          quantity: qty,
         }),
       });
 
@@ -388,8 +395,12 @@ export default function ProductDetails({ product }) {
         error.message ||
           "Unable to continue to checkout."
       );
+    } finally {
+      setIsAddingToCart(false);
     }
   }
+
+  const handleBuyNow = buyNow;
 
   return (
     <div className="flex flex-col pt-1">
@@ -498,6 +509,7 @@ export default function ProductDetails({ product }) {
       <div className="mt-7 flex flex-col gap-3">
         <button
           type="button"
+          data-requires-auth="true"
           onClick={addToCart}
           disabled={
             selectedVariant
@@ -511,6 +523,7 @@ export default function ProductDetails({ product }) {
 
         <button
           type="button"
+          data-requires-auth="true"
           onClick={buyNow}
           disabled={
             selectedVariant

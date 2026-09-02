@@ -15,10 +15,10 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
-import Modal from "../../../components/ui/Modal";
-import Button from "../../../components/ui/Button";
-import FormInput from "../../../components/ui/FormInput";
-import Toggle from "../../../components/ui/Toggle";
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
+import FormInput from "@/components/ui/FormInput";
+import Toggle from "@/components/ui/Toggle";
 
 const emptyHero = {
   image: "",
