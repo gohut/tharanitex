@@ -47,9 +47,12 @@ export default function OrderCard({ order, reviewedItems = {}}) {
             Order ID
           </p>
 
-          <p className="mt-1 text-sm font-semibold text-[#25211C]">
+          <Link
+            href={`/orders/${order.id}`}
+            className="mt-1 inline-block text-sm font-semibold text-[#25211C] transition hover:text-[#B5986B] hover:underline"
+          >
             #{order.id}
-          </p>
+          </Link>
         </div>
 
         <OrderStatusPill status={status} />
@@ -76,22 +79,32 @@ export default function OrderCard({ order, reviewedItems = {}}) {
               key={item.id || `${order.id}-${item.product_id}`}
               className="grid gap-4 border-b border-[#E7DAC8] pb-6 last:border-b-0 last:pb-0 md:grid-cols-[120px_minmax(0,1fr)_auto] md:items-start"
             >
-              {item.image ? (
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="h-[140px] w-[120px] object-cover"
-                />
-              ) : (
-                <div className="flex h-[140px] w-[120px] items-center justify-center bg-[#F1E7D8] text-xs text-[#9A8B78]">
-                  No Image
-                </div>
-              )}
+              <Link
+                href={`/orders/${order.id}`}
+                className="group block overflow-hidden"
+              >
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="h-[140px] w-[120px] object-cover transition duration-300 group-hover:scale-105 group-hover:opacity-90"
+                  />
+                ) : (
+                  <div className="flex h-[140px] w-[120px] items-center justify-center bg-[#F1E7D8] text-xs text-[#9A8B78] transition duration-300 group-hover:bg-[#E9DEC9]">
+                    No Image
+                  </div>
+                )}
+              </Link>
 
               <div>
-                <h3 className="line-clamp-2 text-[19px] font-semibold leading-tight text-[#25211C] sm:text-[23px]">
-                  {item.name || "Product"}
-                </h3>
+                <Link
+                  href={`/orders/${order.id}`}
+                  className="group block"
+                >
+                  <h3 className="line-clamp-2 text-[19px] font-semibold leading-tight text-[#25211C] transition group-hover:text-[#B5986B] sm:text-[23px]">
+                    {item.name || "Product"}
+                  </h3>
+                </Link>
 
                 {item.variant_name && (
                   <p className="mt-2 text-sm text-[#8A8175]">
