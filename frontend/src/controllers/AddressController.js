@@ -10,7 +10,7 @@ export class AddressController {
       if (!payload) {
         return ApiResponse.unauthorized("Authentication required");
       }
-      const addresses = await AddressService.getAddresses(payload.id);
+      const addresses = await AddressService.getAddresses(payload.id, env);
       return ApiResponse.success(addresses);
     } catch (error) {
       return ApiResponse.error(error.message);
@@ -25,7 +25,7 @@ export class AddressController {
       }
       const resolvedParams = await params;
       const id = resolvedParams.id;
-      const address = await AddressService.getAddressById(payload.id, id);
+      const address = await AddressService.getAddressById(payload.id, id, env);
       return ApiResponse.success(address);
     } catch (error) {
       return ApiResponse.error(error.message, 404);
@@ -44,7 +44,7 @@ export class AddressController {
         return ApiResponse.badRequest("Validation failed", valErrors);
       }
 
-      const address = await AddressService.createAddress(payload.id, body);
+      const address = await AddressService.createAddress(payload.id, body, env);
       return ApiResponse.success(address, "Address created successfully", 201);
     } catch (error) {
       return ApiResponse.error(error.message, 400);
@@ -65,7 +65,7 @@ export class AddressController {
         return ApiResponse.badRequest("Validation failed", valErrors);
       }
 
-      const address = await AddressService.updateAddress(payload.id, id, body);
+      const address = await AddressService.updateAddress(payload.id, id, body, env);
       return ApiResponse.success(address, "Address updated successfully");
     } catch (error) {
       return ApiResponse.error(error.message, 400);
@@ -81,7 +81,7 @@ export class AddressController {
       const resolvedParams = await params;
       const id = resolvedParams.id;
 
-      await AddressService.deleteAddress(payload.id, id);
+      await AddressService.deleteAddress(payload.id, id, env);
       return ApiResponse.success(null, "Address deleted successfully");
     } catch (error) {
       return ApiResponse.error(error.message, 400);

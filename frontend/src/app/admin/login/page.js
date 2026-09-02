@@ -14,10 +14,11 @@ export default function AdminLoginPage() {
 
   // Check if admin is already logged in
   useEffect(() => {
-    fetch("/api/admin/orders")
-      .then((res) => {
-        if (res.ok) {
-          router.push("/admin");
+    fetch("/api/auth/session")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.success && data?.data?.user?.userType === "admin") {
+          router.replace("/admin");
         }
       })
       .catch(() => {});
@@ -59,7 +60,8 @@ export default function AdminLoginPage() {
         );
         window.dispatchEvent(new Event("auth-change"));
         toast.success("Welcome back to Tharani Textiles Admin Panel!");
-        router.push("/admin");
+        router.replace("/admin");
+        router.refresh();
       } else {
         const errorMsg = json.message || json.error || "Invalid admin credentials";
         setError(errorMsg);

@@ -825,7 +825,7 @@ export async function verifyOtpAndLogin(
 // ==================== Cookie Helpers ====================
 
 /**
- * Construct secure HttpOnly Cookie header string
+ * Construct secure HttpOnly Cookie header string for session
  */
 export function buildSessionCookieHeader(token) {
   const maxAge = SESSION_DURATION_HOURS * 60 * 60;
@@ -835,10 +835,30 @@ export function buildSessionCookieHeader(token) {
 }
 
 /**
- * Construct expire cookie header string for logout
+ * Construct secure HttpOnly Cookie header string for admin_token
+ */
+export function buildAdminCookieHeader(token) {
+  const maxAge = SESSION_DURATION_HOURS * 60 * 60;
+  const isProd = process.env.NODE_ENV === 'production';
+  const secureFlag = isProd ? 'Secure; ' : '';
+  return `admin_token=${token}; Path=/; HttpOnly; ${secureFlag}SameSite=Lax; Max-Age=${maxAge}`;
+}
+
+/**
+ * Construct expire cookie header string for session logout
  */
 export function buildClearCookieHeader() {
   const isProd = process.env.NODE_ENV === 'production';
   const secureFlag = isProd ? 'Secure; ' : '';
   return `${SESSION_COOKIE_NAME}=; Path=/; HttpOnly; ${secureFlag}SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 }
+
+/**
+ * Construct expire cookie header string for admin_token logout
+ */
+export function buildClearAdminCookieHeader() {
+  const isProd = process.env.NODE_ENV === 'production';
+  const secureFlag = isProd ? 'Secure; ' : '';
+  return `admin_token=; Path=/; HttpOnly; ${secureFlag}SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+}
+

@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import { validateSession } from '../../../../lib/auth';
 import { SESSION_COOKIE_NAME } from '../../../../types/auth';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 export async function GET(request) {
   try {
     const sessionToken =
       request.cookies.get(SESSION_COOKIE_NAME)?.value ||
+      request.cookies.get('admin_token')?.value ||
+      request.cookies.get('tharanitex_session')?.value ||
       request.headers.get('x-session-token');
 
     if (!sessionToken) {
@@ -19,7 +22,8 @@ export async function GET(request) {
       );
     }
 
-    const userData = await validateSession(sessionToken);
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+    const userData = await validateSession(sessionToken, env);
 
     if (!userData) {
       return NextResponse.json(

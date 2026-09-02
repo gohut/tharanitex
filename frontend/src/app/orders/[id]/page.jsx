@@ -158,8 +158,8 @@ export default async function OrderDetailsPage({ params }) {
               </h3>
 
               <div className="text-[18px] leading-10 text-[#211D19]">
-                {order.shippingAddress.lines.map((line) => (
-                  <p key={line}>{line}</p>
+                {order.shippingAddress.lines.map((line, index) => (
+                  <p key={`shipping-addr-${index}-${line}`}>{line}</p>
                 ))}
               </div>
             </div>

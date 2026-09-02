@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminLogin, buildSessionCookieHeader } from '../../../../../lib/auth';
+import { adminLogin, buildSessionCookieHeader, buildAdminCookieHeader } from '../../../../../lib/auth';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 /**
@@ -15,7 +15,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Invalid JSON format in request body. Keys and string values must use double quotes ("). Example: {"email": "admin@tharanitex.com", "password": "AdminPassword123!"}',
+          message: 'Invalid JSON format in request body.',
           error: 'BAD_REQUEST',
         },
         { status: 400 }
@@ -37,7 +37,7 @@ export async function POST(request) {
     const ipAddress =
       request.headers.get('x-forwarded-for') || request.headers.get('cf-connecting-ip');
 
-      const { env } = await getCloudflareContext({ async: true });
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
 
     const result = await adminLogin(
       body.email,
@@ -47,7 +47,8 @@ export async function POST(request) {
       env
     );
 
-    const cookieHeader = buildSessionCookieHeader(result.sessionToken);
+    const sessionCookieHeader = buildSessionCookieHeader(result.sessionToken);
+    const adminCookieHeader = buildAdminCookieHeader(result.sessionToken);
 
     const response = NextResponse.json({
       success: true,
@@ -58,7 +59,8 @@ export async function POST(request) {
       },
     });
 
-    response.headers.append('Set-Cookie', cookieHeader);
+    response.headers.append('Set-Cookie', sessionCookieHeader);
+    response.headers.append('Set-Cookie', adminCookieHeader);
     return response;
   } catch (err) {
     return NextResponse.json(

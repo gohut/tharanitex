@@ -63,7 +63,7 @@ export default function DeliveryCard() {
           type: "error",
           message:
             data?.message ||
-            "Unable to check delivery availability.",
+            "Unable to check delivery availability right now. Please try again.",
         });
 
         return;

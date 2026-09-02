@@ -1,6 +1,13 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-export function getDB() {
+export function getDB(envOrDb) {
+  if (envOrDb?.prepare) {
+    return envOrDb;
+  }
+  if (envOrDb?.DB?.prepare) {
+    return envOrDb.DB;
+  }
+
   try {
     const { env } = getCloudflareContext();
     if (env?.DB) {
@@ -18,3 +25,4 @@ export function getDB() {
   }
   return db;
 }
+
