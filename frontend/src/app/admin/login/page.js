@@ -7,18 +7,17 @@ import toast from "react-hot-toast";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("admin@tharanitextiles.com");
+  const [password, setPassword] = useState("AdminPassword123!");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   // Check if admin is already logged in
   useEffect(() => {
-    fetch("/api/auth/session")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.success && data?.data?.user?.userType === "admin") {
-          router.replace("/admin");
+    fetch("/api/admin/profile")
+      .then((res) => {
+        if (res.ok) {
+          router.push("/admin");
         }
       })
       .catch(() => {});
@@ -35,16 +34,10 @@ export default function AdminLoginPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/admin/auth/login", {
+      const res = await fetch("/api/admin/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          email: email.trim(),
-          password,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password: password.trim() }),
       });
 
       const json = await res.json().catch(() => ({}));
@@ -60,8 +53,7 @@ export default function AdminLoginPage() {
         );
         window.dispatchEvent(new Event("auth-change"));
         toast.success("Welcome back to Tharani Textiles Admin Panel!");
-        router.replace("/admin");
-        router.refresh();
+        router.push("/admin");
       } else {
         const errorMsg = json.message || json.error || "Invalid admin credentials";
         setError(errorMsg);
