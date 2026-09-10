@@ -103,6 +103,10 @@ export class AuthController {
     }
   }
 
+  static async adminLogout(request, env) {
+    return this.logout(request, env);
+  }
+
   static async getProfile(request, env) {
     try {
       const payload = await authenticate(request, env);

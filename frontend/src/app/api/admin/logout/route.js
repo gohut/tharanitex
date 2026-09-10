@@ -10,6 +10,8 @@ export async function POST(request) {
       request.cookies?.get?.("admin_token")?.value ||
       request.cookies?.get?.(SESSION_COOKIE_NAME)?.value ||
       request.cookies?.get?.("tharanitex_session")?.value ||
+      request.cookies?.get?.("auth_token")?.value ||
+      request.cookies?.get?.("token")?.value ||
       request.headers?.get?.("x-session-token") ||
       "";
 
@@ -19,6 +21,10 @@ export async function POST(request) {
 
     const clearHeader = buildClearCookieHeader();
     const clearAdminHeader = buildClearAdminCookieHeader();
+    const isProd = process.env.NODE_ENV === "production";
+    const secureFlag = isProd ? "; Secure" : "";
+    const expireCookieOptions = `; Path=/; HttpOnly; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
+
     const response = NextResponse.json({
       success: true,
       message: "Admin logged out successfully.",
@@ -26,6 +32,8 @@ export async function POST(request) {
 
     response.headers.append("Set-Cookie", clearAdminHeader);
     response.headers.append("Set-Cookie", clearHeader);
+    response.headers.append("Set-Cookie", `token=${expireCookieOptions}`);
+    response.headers.append("Set-Cookie", `auth_token=${expireCookieOptions}`);
     return response;
   } catch (err) {
     return NextResponse.json(
