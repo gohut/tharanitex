@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Mail, ArrowRight, ShieldCheck } from "lucide-react";
+import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function AdminLoginPage() {
@@ -14,20 +14,28 @@ export default function AdminLoginPage() {
 
   // Check if admin is already logged in
   useEffect(() => {
-    fetch("/api/auth/session")
+    let active = true;
+    fetch("/api/auth/session", { credentials: "include", cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.success && data?.data?.user?.userType === "admin") {
-          router.replace("/admin");
+        if (active && data?.success && data?.data?.user?.userType === "admin") {
+          window.location.href = "/admin";
         }
       })
       .catch(() => {});
-  }, [router]);
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error("Please enter email and password.");
+    if (submitting) return;
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password) {
+      toast.error("Please enter both email and password.");
       return;
     }
 
@@ -42,7 +50,7 @@ export default function AdminLoginPage() {
         },
         credentials: "include",
         body: JSON.stringify({
-          email: email.trim(),
+          email: trimmedEmail,
           password,
         }),
       });
@@ -54,22 +62,23 @@ export default function AdminLoginPage() {
           "currentUser",
           JSON.stringify({
             name: json.data?.user?.name || "Super Admin",
-            email: json.data?.user?.email || email,
+            email: json.data?.user?.email || trimmedEmail,
             role: "admin",
           })
         );
         window.dispatchEvent(new Event("auth-change"));
         toast.success("Welcome back to Tharani Textiles Admin Panel!");
-        router.replace("/admin");
-        router.refresh();
+        
+        // Use hard navigation to guarantee server-side cookies are sent cleanly on first request
+        window.location.href = "/admin";
       } else {
         const errorMsg = json.message || json.error || "Invalid admin credentials";
         setError(errorMsg);
         toast.error(errorMsg);
       }
     } catch (err) {
-      console.error("Admin login error:", err);
-      const errorMsg = "Unable to connect to login server.";
+      console.error("Admin login network error:", err);
+      const errorMsg = "Unable to connect to login server. Please try again.";
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {
@@ -93,8 +102,9 @@ export default function AdminLoginPage() {
 
         {/* Error Alert */}
         {error && (
-          <div className="bg-red-900/60 border border-red-700 text-red-200 text-xs p-3.5 rounded-xl text-center">
-            {error}
+          <div className="bg-red-900/60 border border-red-700 text-red-200 text-xs p-3.5 rounded-xl flex items-center gap-2">
+            <AlertCircle size={16} className="shrink-0 text-red-400" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -109,10 +119,11 @@ export default function AdminLoginPage() {
               <input
                 type="email"
                 required
+                disabled={submitting}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@tharanitextiles.com"
-                className="w-full bg-green-950/70 border border-green-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-green-600 focus:outline-none focus:border-gold-500 transition"
+                className="w-full bg-green-950/70 border border-green-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-green-600 focus:outline-none focus:border-gold-500 transition disabled:opacity-50"
               />
             </div>
           </div>
@@ -126,10 +137,11 @@ export default function AdminLoginPage() {
               <input
                 type="password"
                 required
+                disabled={submitting}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full bg-green-950/70 border border-green-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-green-600 focus:outline-none focus:border-gold-500 transition"
+                className="w-full bg-green-950/70 border border-green-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-green-600 focus:outline-none focus:border-gold-500 transition disabled:opacity-50"
               />
             </div>
           </div>

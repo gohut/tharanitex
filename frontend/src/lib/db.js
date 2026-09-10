@@ -63,24 +63,41 @@ if (!globalThis[globalMockKvSymbol]) {
 }
 
 /**
+ * Helper to cache active Cloudflare runtime env globally across isolates
+ */
+export function cacheEnv(env) {
+  if (env && typeof globalThis !== 'undefined') {
+    globalThis.__CF_ENV__ = {
+      ...(globalThis.__CF_ENV__ || {}),
+      ...env,
+    };
+  }
+}
+
+/**
  * Retrieve Cloudflare KV binding or dev fallback
  */
 export async function getKV(requestEnv) {
   if (requestEnv && requestEnv.KV) {
+    cacheEnv(requestEnv);
     return requestEnv.KV;
+  }
+
+  if (globalThis.__CF_ENV__?.KV) {
+    return globalThis.__CF_ENV__.KV;
   }
 
   try {
     const { getCloudflareContext } = await import('@opennextjs/cloudflare');
-    const ctx = await getCloudflareContext();
+    const ctx = await getCloudflareContext({ async: true });
     if (ctx && ctx.env && ctx.env.KV) {
+      cacheEnv(ctx.env);
       return ctx.env.KV;
     }
-  } catch (e) {
-    // OpenNext context unavailable (e.g. static build time or dev fallback)
+  } catch {
+    // OpenNext context unavailable
   }
 
-  // Fallback to in-memory Mock KV Namespace for local next dev testing
   return globalThis[globalMockKvSymbol];
 }
 
@@ -88,18 +105,31 @@ export async function getKV(requestEnv) {
  * Retrieve Cloudflare D1 Database binding (env.DB)
  */
 export async function getDB(requestEnv) {
+  if (requestEnv && requestEnv.prepare) {
+    return requestEnv;
+  }
   if (requestEnv && requestEnv.DB) {
+    cacheEnv(requestEnv);
     return requestEnv.DB;
+  }
+
+  if (globalThis.__CF_ENV__?.DB) {
+    return globalThis.__CF_ENV__.DB;
   }
 
   try {
     const { getCloudflareContext } = await import('@opennextjs/cloudflare');
-    const ctx = await getCloudflareContext();
+    const ctx = await getCloudflareContext({ async: true });
     if (ctx && ctx.env && ctx.env.DB) {
-      return ctx.env.DB || null;
+      cacheEnv(ctx.env);
+      return ctx.env.DB;
     }
-  } catch (e) {
+  } catch {
     // OpenNext context unavailable
+  }
+
+  if (typeof process !== 'undefined' && process.env?.DB?.prepare) {
+    return process.env.DB;
   }
 
   return null;

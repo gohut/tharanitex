@@ -1,5 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-
+import { authenticateAdmin } from "@/middleware/auth";
 import {
   getAllProducts,
   createProduct,
@@ -7,9 +7,16 @@ import {
   createProductVariant,
 } from "@/lib/db/product";
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+    const admin = await authenticateAdmin(request, env);
+    if (!admin) {
+      return Response.json(
+        { success: false, error: "UNAUTHORIZED", message: "Admin access required." },
+        { status: 401 }
+      );
+    }
 
     const products = await getAllProducts(env.DB, {
       activeOnly: false,
@@ -30,7 +37,14 @@ export async function POST(request) {
   const uploadedImages = [];
 
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+    const admin = await authenticateAdmin(request, env);
+    if (!admin) {
+      return Response.json(
+        { success: false, error: "UNAUTHORIZED", message: "Admin access required." },
+        { status: 401 }
+      );
+    }
 
     const body = await request.json();
 
@@ -44,10 +58,7 @@ export async function POST(request) {
       );
     }
 
-    // -----------------------------------
     // Generate a unique product slug
-    // -----------------------------------
-
     const baseSlug =
       body.slug ||
       body.name
@@ -74,10 +85,7 @@ export async function POST(request) {
       suffix++;
     }
 
-    // -----------------------------------
     // Remember R2 images for cleanup
-    // -----------------------------------
-
     if (Array.isArray(body.images)) {
       for (const imageUrl of body.images) {
         if (
@@ -95,10 +103,7 @@ export async function POST(request) {
       }
     }
 
-    // -----------------------------------
     // Create product
-    // -----------------------------------
-
     const result = await createProduct(env.DB, {
       name: body.name,
       slug,
@@ -112,10 +117,7 @@ export async function POST(request) {
       isActive: body.isActive !== false,
     });
 
-    // -----------------------------------
     // Add product images
-    // -----------------------------------
-
     if (Array.isArray(body.images) && body.images.length > 0) {
       for (let i = 0; i < body.images.length; i++) {
         await addProductImage(
@@ -127,10 +129,7 @@ export async function POST(request) {
       }
     }
 
-        // -----------------------------------
     // Add product variants
-    // -----------------------------------
-
     if (Array.isArray(body.variants)) {
       for (const variant of body.variants) {
         if (!variant?.name?.trim()) {
@@ -159,30 +158,23 @@ export async function POST(request) {
   } catch (error) {
     console.error("Admin product POST error:", error);
 
-    // -----------------------------------
-    // Cleanup R2 images if product creation
-    // fails before they are attached
-    // -----------------------------------
-
+    // Cleanup R2 images if product creation fails
     try {
-      const { env } = getCloudflareContext();
-
-      for (const key of uploadedImages) {
-        await env.tharani_product_images.delete(key);
+      const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+      const r2 = env?.PRODUCT_IMAGES || env?.tharani_product_images;
+      if (r2) {
+        for (const key of uploadedImages) {
+          await r2.delete(key);
+        }
       }
     } catch (cleanupError) {
-      console.error(
-        "R2 cleanup error:",
-        cleanupError
-      );
+      console.error("R2 cleanup error:", cleanupError);
     }
 
     return Response.json(
       {
         success: false,
-        error:
-          error.message ||
-          "Failed to create product",
+        error: error.message || "Failed to create product",
       },
       { status: 500 }
     );

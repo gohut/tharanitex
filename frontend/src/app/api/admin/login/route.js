@@ -1,7 +1,6 @@
+import { NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { adminLogin, buildSessionCookieHeader, buildAdminCookieHeader } from "@/lib/auth";
-
-export const runtime = "edge";
 
 export async function POST(request) {
   try {
@@ -11,7 +10,7 @@ export async function POST(request) {
     try {
       body = await request.json();
     } catch {
-      return Response.json(
+      return NextResponse.json(
         {
           success: false,
           message: "Invalid JSON format in request body.",
@@ -22,7 +21,7 @@ export async function POST(request) {
     }
 
     if (!body || !body.email || !body.password) {
-      return Response.json(
+      return NextResponse.json(
         {
           success: false,
           message: "Email and password are required.",
@@ -48,7 +47,7 @@ export async function POST(request) {
     const sessionCookieHeader = buildSessionCookieHeader(result.sessionToken);
     const adminCookieHeader = buildAdminCookieHeader(result.sessionToken);
 
-    const response = Response.json({
+    const response = NextResponse.json({
       success: true,
       message: "Admin login successful.",
       data: {
@@ -57,18 +56,19 @@ export async function POST(request) {
       },
     });
 
-    response.headers.append("Set-Cookie", sessionCookieHeader);
     response.headers.append("Set-Cookie", adminCookieHeader);
+    response.headers.append("Set-Cookie", sessionCookieHeader);
 
     return response;
   } catch (err) {
-    return Response.json(
+    const isDeactivated = err?.message?.includes("deactivated");
+    return NextResponse.json(
       {
         success: false,
         message: err?.message || "Authentication failed.",
-        error: "AUTH_FAILED",
+        error: isDeactivated ? "ACCOUNT_DEACTIVATED" : "AUTH_FAILED",
       },
-      { status: 400 }
+      { status: isDeactivated ? 403 : 401 }
     );
   }
-}
+}

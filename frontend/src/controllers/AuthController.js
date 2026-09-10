@@ -2,23 +2,13 @@ import { AuthService } from "../services/AuthService";
 import { Validators } from "../validators/validators";
 import { ApiResponse } from "../utils/ApiResponse";
 import { authenticate } from "../middleware/auth";
-import { logoutSession } from "../lib/auth";
+import { adminLogin as canonicalAdminLogin, logoutSession, buildSessionCookieHeader, buildAdminCookieHeader } from "../lib/auth";
 
-const isProd =
-  process.env.NODE_ENV === "production";
+const isProd = process.env.NODE_ENV === "production";
+const secureFlag = isProd ? "; Secure" : "";
+const SESSION_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
 
-const secureFlag = isProd
-  ? "; Secure"
-  : "";
-
-// Durable 7-day session lifetime (604,800 seconds)
-const SESSION_MAX_AGE = 7 * 24 * 60 * 60;
-
-const cookieOptions =
-  `; Path=/; HttpOnly; Max-Age=${SESSION_MAX_AGE}; SameSite=Lax${secureFlag}`;
-
-const expireCookieOptions =
-  `; Path=/; HttpOnly; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
+const cookieOptions = `; Path=/; HttpOnly; Max-Age=${SESSION_MAX_AGE}; SameSite=Lax${secureFlag}`;
 
 export class AuthController {
   static async register(request, env) {
@@ -32,17 +22,9 @@ export class AuthController {
       const { user, token } = await AuthService.register(body, env);
 
       const response = ApiResponse.success(user, "User registered successfully", 201);
-      response.headers.append(
-        "Set-Cookie",
-        `token=${token}${cookieOptions}`
-      );
-      response.headers.append(
-        "Set-Cookie",
-        `auth_token=${token}${cookieOptions}`
-      );
-      if (process.env.NODE_ENV !== "production") {
-        console.info("AUTH LOGIN DEBUG", { status: 201, setCookie: true, cookieName: "token & auth_token", cookieAttributes: cookieOptions });
-      }
+      response.headers.append("Set-Cookie", `token=${token}${cookieOptions}`);
+      response.headers.append("Set-Cookie", `auth_token=${token}${cookieOptions}`);
+      response.headers.append("Set-Cookie", `tharanitex_session=${token}${cookieOptions}`);
       return response;
     } catch (error) {
       return ApiResponse.error(error.message, 400);
@@ -60,17 +42,9 @@ export class AuthController {
       const { user, token } = await AuthService.login(body.email, body.password, env);
 
       const response = ApiResponse.success(user, "Login successful");
-      response.headers.append(
-        "Set-Cookie",
-        `token=${token}${cookieOptions}`
-      );
-      response.headers.append(
-        "Set-Cookie",
-        `auth_token=${token}${cookieOptions}`
-      );
-      if (process.env.NODE_ENV !== "production") {
-        console.info("AUTH LOGIN DEBUG", { status: 200, setCookie: true, cookieName: "token & auth_token", cookieAttributes: cookieOptions });
-      }
+      response.headers.append("Set-Cookie", `token=${token}${cookieOptions}`);
+      response.headers.append("Set-Cookie", `auth_token=${token}${cookieOptions}`);
+      response.headers.append("Set-Cookie", `tharanitex_session=${token}${cookieOptions}`);
       return response;
     } catch (error) {
       return ApiResponse.error(error.message, 401);
@@ -85,17 +59,14 @@ export class AuthController {
         return ApiResponse.badRequest("Validation failed", valErrors);
       }
 
-      const { user, token } = await AuthService.adminLogin(body.email, body.password, env);
+      const userAgent = request.headers.get("user-agent");
+      const ipAddress = request.headers.get("x-forwarded-for") || request.headers.get("cf-connecting-ip");
 
-      const response = ApiResponse.success(user, "Admin login successful");
-      response.headers.append(
-        "Set-Cookie",
-        `admin_token=${token}${cookieOptions}`
-      );
-      response.headers.append(
-        "Set-Cookie",
-        `tharanitex_session=${token}${cookieOptions}`
-      );
+      const result = await canonicalAdminLogin(body.email, body.password, userAgent, ipAddress, env);
+
+      const response = ApiResponse.success(result.user, "Admin login successful");
+      response.headers.append("Set-Cookie", buildAdminCookieHeader(result.sessionToken));
+      response.headers.append("Set-Cookie", buildSessionCookieHeader(result.sessionToken));
       return response;
     } catch (error) {
       return ApiResponse.error(error.message, 401);
@@ -104,28 +75,20 @@ export class AuthController {
 
   static async logout(request, env) {
     try {
-      const response = ApiResponse.success(
-        null,
-        "Logged out successfully"
-      );
+      const response = ApiResponse.success(null, "Logged out successfully");
 
-      // Invalidate D1 session if active session cookie/header exists
       const sessionToken =
-        request.cookies?.get?.("tharanitex_session")?.value ||
         request.cookies?.get?.("admin_token")?.value ||
+        request.cookies?.get?.("tharanitex_session")?.value ||
+        request.cookies?.get?.("auth_token")?.value ||
+        request.cookies?.get?.("token")?.value ||
         request.headers?.get?.("x-session-token");
 
       if (sessionToken) {
         await logoutSession(sessionToken, env).catch(() => {});
       }
 
-      const cookiesToClear = [
-        "token",
-        "auth_token",
-        "tharanitex_session",
-        "admin_token",
-      ];
-
+      const cookiesToClear = ["token", "auth_token", "tharanitex_session", "admin_token"];
       for (const cookieName of cookiesToClear) {
         response.headers.append(
           "Set-Cookie",
@@ -190,36 +153,19 @@ export class AuthController {
   static async googleLogin(request, env) {
     try {
       const body = await request.json();
-
       if (!body.accessToken) {
         return ApiResponse.badRequest("Google access token is required");
       }
 
-      const { user, token } = await AuthService.googleLogin(
-        body.accessToken,
-        env
-      );
+      const { user, token } = await AuthService.googleLogin(body.accessToken, env);
 
-      const response = ApiResponse.success(
-        user,
-        "Google login successful"
-      );
-
-      response.headers.append(
-        "Set-Cookie",
-        `token=${token}${cookieOptions}`
-      );
-
-      response.headers.append(
-        "Set-Cookie",
-        `auth_token=${token}${cookieOptions}`
-      );
-
+      const response = ApiResponse.success(user, "Google login successful");
+      response.headers.append("Set-Cookie", `token=${token}${cookieOptions}`);
+      response.headers.append("Set-Cookie", `auth_token=${token}${cookieOptions}`);
+      response.headers.append("Set-Cookie", `tharanitex_session=${token}${cookieOptions}`);
       return response;
     } catch (error) {
-      console.error("Google login error:", error);
-      return ApiResponse.error(error.message, 401);
+      return ApiResponse.error(error.message, 400);
     }
   }
 }
-

@@ -3,12 +3,8 @@ import { cookies } from "next/headers";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 import AdminLayoutClient from "../AdminLayoutClient";
-import {
-  validateSession,
-} from "@/lib/auth";
-import {
-  SESSION_COOKIE_NAME,
-} from "@/types/auth";
+import { validateSession } from "@/lib/auth";
+import { SESSION_COOKIE_NAME } from "@/types/auth";
 import { verifyJWT } from "@/utils/jwt";
 import { getJwtSecret } from "@/utils/jwt-secret";
 
@@ -19,7 +15,7 @@ export default async function AdminDashboardLayout({ children }) {
   const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
 
   /*
-   * Check admin session tokens.
+   * Read admin session tokens
    */
   const sessionToken =
     cookieStore.get("admin_token")?.value ||
@@ -38,7 +34,7 @@ export default async function AdminDashboardLayout({ children }) {
     try {
       const secret = getJwtSecret(env);
       const payload = await verifyJWT(sessionToken, secret);
-      if (payload && (payload.role === "admin" || payload.userType === "admin" || payload.role === "Super Admin")) {
+      if (payload && (payload.role === "admin" || payload.userType === "admin" || payload.role === "Super Admin" || payload.role === "Manager")) {
         user = {
           id: payload.id,
           userId: payload.id,

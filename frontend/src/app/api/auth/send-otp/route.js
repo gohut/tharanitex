@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { requestOtp } from '../../../../lib/auth';
 
 export async function POST(request) {
   try {
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
     const body = await request.json();
 
     if (!body || !body.fullName || !body.phoneNumber) {
@@ -16,7 +18,7 @@ export async function POST(request) {
       );
     }
 
-    const result = await requestOtp(body.fullName, body.phoneNumber);
+    const result = await requestOtp(body.fullName, body.phoneNumber, env);
 
     return NextResponse.json({
       success: true,

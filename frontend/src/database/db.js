@@ -1,5 +1,8 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
+/**
+ * Retrieve Cloudflare D1 Database binding safely in both async and sync contexts.
+ */
 export function getDB(envOrDb) {
   if (envOrDb?.prepare) {
     return envOrDb;
@@ -8,21 +11,23 @@ export function getDB(envOrDb) {
     return envOrDb.DB;
   }
 
+  // Check global environment cache populated by route handlers
+  if (globalThis.__CF_ENV__?.DB?.prepare) {
+    return globalThis.__CF_ENV__.DB;
+  }
+
   try {
-    const { env } = getCloudflareContext();
-    if (env?.DB) {
-      return env.DB;
+    const ctx = getCloudflareContext();
+    if (ctx?.env?.DB?.prepare) {
+      return ctx.env.DB;
     }
-  } catch (error) {
-    // Fallback if context is unavailable
+  } catch {
+    // getCloudflareContext is not available synchronously in all worker phases
   }
 
-  const db = process.env.DB;
-  if (!db) {
-    throw new Error(
-      "D1 Database binding (DB) not found in process.env or getCloudflareContext()."
-    );
+  if (typeof process !== "undefined" && process.env?.DB?.prepare) {
+    return process.env.DB;
   }
-  return db;
+
+  return null;
 }
-

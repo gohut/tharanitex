@@ -4,7 +4,7 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 /**
  * POST /api/admin/auth/login
- * Authenticate staff account via email & password, issue session cookie
+ * Canonical admin authentication route
  */
 export async function POST(request) {
   try {
@@ -26,7 +26,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Validation error: email and password are required.',
+          message: 'Email and password are required.',
           error: 'BAD_REQUEST',
         },
         { status: 400 }
@@ -59,17 +59,18 @@ export async function POST(request) {
       },
     });
 
-    response.headers.append('Set-Cookie', sessionCookieHeader);
     response.headers.append('Set-Cookie', adminCookieHeader);
+    response.headers.append('Set-Cookie', sessionCookieHeader);
     return response;
   } catch (err) {
+    const isDeactivated = err?.message?.includes("deactivated");
     return NextResponse.json(
       {
         success: false,
         message: err.message || 'Authentication failed.',
-        error: 'AUTH_FAILED',
+        error: isDeactivated ? "ACCOUNT_DEACTIVATED" : "AUTH_FAILED",
       },
-      { status: 400 }
+      { status: isDeactivated ? 403 : 401 }
     );
   }
 }

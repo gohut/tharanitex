@@ -1,7 +1,7 @@
 import { AnalyticsController } from "@/controllers/AnalyticsController";
-
-export const runtime = "edge";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export async function GET(request) {
-  return await AnalyticsController.getDetailedAnalytics(request);
+  const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+  return await AnalyticsController.getDetailedAnalytics(request, env);
 }
