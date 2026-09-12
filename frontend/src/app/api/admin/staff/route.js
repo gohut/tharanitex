@@ -3,57 +3,8 @@ import {
   enforceAdminPermission,
   hashPassword,
   createNotification,
+  ensureSuperAdminAccount,
 } from '../../../../lib/auth';
-
-async function ensureStaffTables(db) {
-  if (!db) return;
-  try {
-    await db.prepare(`
-      CREATE TABLE IF NOT EXISTS roles (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE,
-        created_at TEXT DEFAULT (datetime('now'))
-      )
-    `).run();
-
-    await db.prepare(`
-      CREATE TABLE IF NOT EXISTS staff_users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL UNIQUE,
-        password_hash TEXT NOT NULL,
-        role_id INTEGER NOT NULL,
-        status TEXT NOT NULL DEFAULT 'Active',
-        last_login TEXT,
-        created_at TEXT DEFAULT (datetime('now'))
-      )
-    `).run();
-
-    await db.prepare(`
-      INSERT OR IGNORE INTO roles (id, name) VALUES 
-      (1, 'Super Admin'), 
-      (2, 'Manager'), 
-      (3, 'Support Staff')
-    `).run();
-
-    const existingAdmin = await db
-      .prepare(`SELECT id FROM staff_users WHERE id = 1 OR LOWER(email) = 'admin@tharanitex.com' OR LOWER(email) = 'admin@tharanitextiles.com'`)
-      .first();
-
-    if (!existingAdmin) {
-      const defaultAdminPass = await hashPassword('AdminPassword123!');
-      await db
-        .prepare(`
-          INSERT OR IGNORE INTO staff_users (id, name, email, password_hash, role_id, status, created_at)
-          VALUES (1, 'Super Admin', 'admin@tharanitex.com', ?, 1, 'Active', datetime('now'))
-        `)
-        .bind(defaultAdminPass)
-        .run();
-    }
-  } catch (e) {
-    // Non-blocking initialization
-  }
-}
 
 /**
  * GET /api/admin/staff
@@ -78,14 +29,14 @@ export async function GET(request) {
       });
     }
 
-    await ensureStaffTables(db);
+    await ensureSuperAdminAccount(db, {});
 
     const staffList = await db
       .prepare(
-        `SELECT u.id, u.name, u.email, u.role_id, COALESCE(r.name, 'Support Staff') as role_name, u.status, u.last_login, u.created_at
+        `SELECT u.id, u.name, u.email, u.role_id, COALESCE(r.name, CASE WHEN u.role_id = 1 THEN 'Super Admin' WHEN u.role_id = 2 THEN 'Manager' ELSE 'Support Staff' END) as role_name, u.status, u.last_login, u.created_at
          FROM staff_users u
          LEFT JOIN roles r ON u.role_id = r.id
-         ORDER BY u.id ASC`
+         ORDER BY u.role_id ASC, u.id ASC`
       )
       .all();
 
@@ -176,7 +127,7 @@ export async function POST(request) {
       );
     }
 
-    await ensureStaffTables(db);
+    await ensureSuperAdminAccount(db, {});
 
     // Check email uniqueness
     const existing = await db
@@ -204,7 +155,6 @@ export async function POST(request) {
       .first();
 
     if (!roleRow) {
-      // If role not found, insert standard roles and retry
       await db.prepare(`
         INSERT OR IGNORE INTO roles (id, name) VALUES 
         (1, 'Super Admin'), 

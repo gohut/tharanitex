@@ -130,6 +130,136 @@ export async function createNotification(
   }
 }
 
+// ==================== Super Admin Self-Healing Guarantee ====================
+
+/**
+ * Ensure Super Admin account and primary roles exist in the database.
+ * If secondary staff was mistakenly assigned id 1 or Super Admin row was lost,
+ * this function automatically repairs the staff_users table safely.
+ */
+export async function ensureSuperAdminAccount(db, env) {
+  if (!db) return;
+  try {
+    const adminConfig = getAdminConfig(env);
+    const superAdminPassHash = await hashPassword(adminConfig.password);
+
+    // 1. Ensure roles table & standard roles exist
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS roles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        created_at TEXT DEFAULT (datetime('now'))
+      )
+    `).run();
+
+    await db.prepare(`
+      INSERT OR IGNORE INTO roles (id, name) VALUES 
+      (1, 'Super Admin'), 
+      (2, 'Manager'), 
+      (3, 'Support Staff')
+    `).run();
+
+    // 2. Ensure staff_users table exists
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS staff_users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL,
+        role_id INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'Active',
+        last_login TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+      )
+    `).run();
+
+    // 3. Ensure role_permissions table exists
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS role_permissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        role_id INTEGER NOT NULL REFERENCES roles(id),
+        module TEXT NOT NULL,
+        can_view INTEGER DEFAULT 0,
+        can_create INTEGER DEFAULT 0,
+        can_edit INTEGER DEFAULT 0,
+        can_delete INTEGER DEFAULT 0,
+        UNIQUE(role_id, module)
+      )
+    `).run();
+
+    const modules = ['Products', 'Orders', 'Customers', 'Shipping', 'Reviews', 'CMS', 'Users & Roles', 'Settings'];
+    for (const mod of modules) {
+      await db.prepare(`
+        INSERT OR IGNORE INTO role_permissions (role_id, module, can_view, can_create, can_edit, can_delete)
+        VALUES (1, ?, 1, 1, 1, 1)
+      `).bind(mod).run();
+    }
+
+    const targetEmails = [
+      adminConfig.email.toLowerCase(),
+      'admin@tharanitextiles.com',
+      'admin@tharanitex.com'
+    ];
+
+    // Check if Super Admin exists in staff_users by email or role_id = 1
+    let superAdminRow = await db
+      .prepare(`SELECT * FROM staff_users WHERE LOWER(email) IN (?, ?, ?) LIMIT 1`)
+      .bind(targetEmails[0], targetEmails[1], targetEmails[2])
+      .first();
+
+    if (superAdminRow) {
+      await db.prepare(`
+        UPDATE staff_users 
+        SET role_id = 1, status = 'Active', name = 'Super Admin', password_hash = ?
+        WHERE id = ?
+      `).bind(superAdminPassHash, superAdminRow.id).run();
+    } else {
+      // Check if id = 1 is occupied by a non-super-admin user
+      const userAtId1 = await db.prepare(`SELECT * FROM staff_users WHERE id = 1 LIMIT 1`).first();
+
+      if (userAtId1) {
+        if (!targetEmails.includes(userAtId1.email?.toLowerCase())) {
+          // Move non-super-admin user at id = 1 to a new free ID
+          const maxRow = await db.prepare(`SELECT MAX(id) as max_id FROM staff_users`).first();
+          const nextId = (maxRow?.max_id || 1) + 1;
+
+          await db.prepare(`
+            INSERT INTO staff_users (id, name, email, password_hash, role_id, status, last_login, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(
+            nextId,
+            userAtId1.name,
+            userAtId1.email,
+            userAtId1.password_hash,
+            userAtId1.role_id,
+            userAtId1.status,
+            userAtId1.last_login,
+            userAtId1.created_at || new Date().toISOString()
+          ).run();
+
+          // Point any existing sessions for this user to their new ID
+          await db.prepare(`UPDATE sessions SET user_id = ? WHERE user_id = 1 AND user_type = 'admin'`).bind(nextId).run();
+
+          // Replace row at id = 1 with Super Admin
+          await db.prepare(`
+            UPDATE staff_users
+            SET name = 'Super Admin', email = ?, password_hash = ?, role_id = 1, status = 'Active'
+            WHERE id = 1
+          `).bind(adminConfig.email, superAdminPassHash).run();
+        }
+      } else {
+        // Insert Super Admin directly at id = 1
+        await db.prepare(`
+          INSERT OR REPLACE INTO staff_users (id, name, email, password_hash, role_id, status, created_at)
+          VALUES (1, 'Super Admin', ?, ?, 1, 'Active', datetime('now'))
+        `).bind(adminConfig.email, superAdminPassHash).run();
+      }
+    }
+  } catch (e) {
+    // Non-blocking self-healing
+  }
+}
+
 // ==================== D1 Session Management ====================
 
 /**
@@ -159,7 +289,7 @@ export async function createD1Session(
         .bind(sessionId, userId, userType, tokenHash, ipAddress, userAgent, expiresAt)
         .run();
     } catch {
-      // D1 session creation fallback if table initializing
+      // D1 session creation fallback
     }
   }
 
@@ -229,52 +359,33 @@ export async function validateSession(
             // Table lookup fallback
           }
 
-          if (staff && staff.status === 'Active') {
-            const roleName = staff.role_name || (staff.role_id === 1 ? 'Super Admin' : (staff.role_id === 2 ? 'Manager' : 'Support Staff'));
+          if (staff) {
+            const isSuperAdmin =
+              staff.role_id === 1 ||
+              ['admin@tharanitextiles.com', 'admin@tharanitex.com', adminConfig.email.toLowerCase()].includes(staff.email?.toLowerCase());
+
+            const roleName = isSuperAdmin
+              ? 'Super Admin'
+              : (staff.role_name || (staff.role_id === 2 ? 'Manager' : 'Support Staff'));
+
             return {
               id: staff.id,
               userId: staff.id,
               userType: 'admin',
-              name: staff.name,
-              fullName: staff.name,
+              name: isSuperAdmin ? 'Super Admin' : staff.name,
+              fullName: isSuperAdmin ? 'Super Admin' : staff.name,
               email: staff.email,
-              roleId: staff.role_id || 1,
+              roleId: isSuperAdmin ? 1 : (staff.role_id || 2),
               role: roleName,
               roleName: roleName,
-              status: staff.status,
+              status: staff.status || 'Active',
             };
           }
 
-          // Also check users table where role = 'admin'
-          let adminUser = null;
-          try {
-            adminUser = await db
-              .prepare(`SELECT id, first_name, last_name, email, role FROM users WHERE id = ? AND role = 'admin' LIMIT 1`)
-              .bind(session.user_id)
-              .first();
-          } catch {
-            // users lookup fallback
-          }
-
-          if (adminUser) {
-            const fullName = [adminUser.first_name, adminUser.last_name].filter(Boolean).join(' ') || 'Admin';
-            return {
-              id: adminUser.id,
-              userId: adminUser.id,
-              userType: 'admin',
-              name: fullName,
-              fullName,
-              email: adminUser.email || adminConfig.email,
-              roleId: 1,
-              role: 'Super Admin',
-              roleName: 'Super Admin',
-              status: 'Active',
-            };
-          }
-
+          // Fallback if not found in staff_users (treat as Super Admin)
           return {
-            id: session.user_id,
-            userId: session.user_id,
+            id: session.user_id || 1,
+            userId: session.user_id || 1,
             userType: 'admin',
             name: 'Super Admin',
             fullName: 'Super Admin',
@@ -497,7 +608,7 @@ export async function checkPermission(
     if (!perm) return false;
     return perm[col] === 1;
   } catch {
-    return true; // Graceful fallback if role_permissions initializing
+    return true; // Graceful fallback
   }
 }
 
@@ -557,6 +668,11 @@ export async function enforceAdminPermission(
 
   const db = await getDB(env);
 
+  // Super Admin is always fully authorized across all modules
+  if (user.roleId === 1 || user.role === 'Super Admin' || user.roleName === 'Super Admin') {
+    return { authorized: true, user, db };
+  }
+
   if (db && user.roleId && moduleName && action) {
     const allowed = await checkPermission(db, user.roleId, moduleName, action);
     if (!allowed) {
@@ -613,7 +729,11 @@ export async function adminLogin(
   const adminConfig = getAdminConfig(env);
   const db = await getDB(env);
 
-  // 1. Primary Check: Super Admin configured via Cloudflare Environment Variables or default
+  if (db) {
+    await ensureSuperAdminAccount(db, env);
+  }
+
+  // 1. Primary Check: Super Admin configured credentials
   const validAdminEmails = new Set([
     adminConfig.email,
     'admin@tharanitextiles.com',
@@ -621,32 +741,43 @@ export async function adminLogin(
   ]);
 
   if (validAdminEmails.has(email) && (password === adminConfig.password || password === 'AdminPassword123!')) {
+    let superAdminStaff = null;
+    if (db) {
+      try {
+        superAdminStaff = await db
+          .prepare(`SELECT * FROM staff_users WHERE role_id = 1 OR LOWER(email) = ? OR LOWER(email) = 'admin@tharanitextiles.com' OR LOWER(email) = 'admin@tharanitex.com' LIMIT 1`)
+          .bind(email)
+          .first();
+      } catch {}
+    }
+
+    const superAdminId = superAdminStaff ? superAdminStaff.id : 1;
+
     const { sessionToken, expiresAt } = await createD1Session(
       db,
-      1,
+      superAdminId,
       'admin',
       userAgent,
       ipAddress,
       env
     );
 
-    if (db) {
+    if (db && superAdminStaff) {
       try {
         await db
-          .prepare(`UPDATE staff_users SET last_login = datetime('now') WHERE id = 1`)
+          .prepare(`UPDATE staff_users SET last_login = datetime('now') WHERE id = ?`)
+          .bind(superAdminStaff.id)
           .run();
-      } catch {
-        // Non-blocking update
-      }
+      } catch {}
     }
 
     return {
       sessionToken,
       expiresAt,
       user: {
-        id: 1,
+        id: superAdminId,
         name: 'Super Admin',
-        email: adminConfig.email,
+        email: superAdminStaff?.email || adminConfig.email,
         roleId: 1,
         roleName: 'Super Admin',
         status: 'Active',
@@ -694,9 +825,7 @@ export async function adminLogin(
             .prepare(`UPDATE staff_users SET last_login = datetime('now') WHERE id = ?`)
             .bind(staff.id)
             .run();
-        } catch {
-          // Non-blocking
-        }
+        } catch {}
 
         const { sessionToken, expiresAt } = await createD1Session(
           db,
@@ -707,15 +836,20 @@ export async function adminLogin(
           env
         );
 
+        const isSuperAdmin = staff.role_id === 1;
+        const roleName = isSuperAdmin
+          ? 'Super Admin'
+          : (staff.role_name || (staff.role_id === 2 ? 'Manager' : 'Support Staff'));
+
         return {
           sessionToken,
           expiresAt,
           user: {
             id: staff.id,
-            name: staff.name,
+            name: isSuperAdmin ? 'Super Admin' : staff.name,
             email: staff.email,
-            roleId: staff.role_id || 1,
-            roleName: staff.role_name || 'Staff',
+            roleId: isSuperAdmin ? 1 : (staff.role_id || 2),
+            roleName: roleName,
             status: staff.status,
           },
         };
@@ -729,17 +863,13 @@ export async function adminLogin(
         .prepare(`SELECT * FROM users WHERE LOWER(email) = ? AND role = 'admin' LIMIT 1`)
         .bind(email)
         .first();
-    } catch {
-      // fallback
-    }
+    } catch {}
 
     if (userAdmin && userAdmin.password_hash) {
       let isMatch = false;
       try {
         isMatch = await bcrypt.compare(password, userAdmin.password_hash);
-      } catch {
-        // bcrypt error
-      }
+      } catch {}
 
       if (isMatch) {
         const { sessionToken, expiresAt } = await createD1Session(
@@ -799,164 +929,183 @@ export async function requestOtp(fullName, phoneInput, env) {
   }
 
   return {
+    otpId,
     phoneNumber,
+    expiresAt,
     expiresInMinutes: OTP_EXPIRY_MINUTES,
+    name: validName,
   };
 }
 
 /**
- * Verify OTP & login customer
+ * Verify customer OTP & generate durable customer session
  */
-export async function verifyOtpAndLogin(
-  fullName,
+export async function verifyOtp(
   phoneInput,
-  otpInput,
+  otpCodeInput,
+  fullNameInput,
   userAgent,
   ipAddress,
   env
 ) {
-  const validName = validateFullName(fullName);
   const phoneNumber = normalizePhoneNumber(phoneInput);
-  const cleanOtp = otpInput ? otpInput.trim() : '';
+  const otpCode = otpCodeInput ? otpCodeInput.trim() : '';
 
-  if (!cleanOtp || cleanOtp.length !== 6) {
-    throw new Error('OTP must be a 6-digit code.');
+  if (!otpCode || otpCode.length !== 6) {
+    throw new Error('OTP must be a valid 6-digit numeric code.');
   }
 
   const kv = await getKV(env);
-  let activeOtp = null;
-  if (kv) {
-    activeOtp = await getLatestActiveOtp(kv, phoneNumber);
+  if (!kv) {
+    throw new Error('Session storage service unavailable. Please try again.');
   }
 
-  if (!activeOtp) {
-    throw new Error('Expired or invalid OTP. Please request a new OTP.');
+  const otpRecord = await getLatestActiveOtp(kv, phoneNumber);
+  if (!otpRecord) {
+    throw new Error('OTP has expired or is invalid. Please request a new OTP.');
   }
 
-  if (activeOtp.attempts >= 5) {
-    await markOtpAsUsed(kv, activeOtp.id, phoneNumber);
-    throw new Error('Too many failed OTP attempts. Please request a new OTP.');
+  if (otpRecord.attempts >= 3) {
+    await markOtpAsUsed(kv, otpRecord.id, phoneNumber);
+    throw new Error('Too many invalid attempts. Please request a new OTP.');
   }
 
-  if (cleanOtp !== activeOtp.otpCode) {
-    await incrementOtpAttempts(kv, activeOtp.id, phoneNumber);
-    throw new Error('Invalid OTP code. Please check and try again.');
+  if (otpRecord.otpCode !== otpCode) {
+    await incrementOtpAttempts(kv, otpRecord.id, phoneNumber);
+    const remaining = 3 - (otpRecord.attempts + 1);
+    throw new Error(`Invalid OTP. ${remaining} attempt(s) remaining.`);
   }
 
-  await markOtpAsUsed(kv, activeOtp.id, phoneNumber);
-
-  let user = null;
-  if (kv) {
-    user = await findUserByPhone(kv, phoneNumber);
-    if (!user) {
-      const userId = crypto.randomUUID();
-      user = await createUser(kv, userId, validName, phoneNumber);
-    } else {
-      const updatedUser = await updateUserLastLogin(kv, user.id);
-      if (updatedUser) user = updatedUser;
-    }
-  }
+  await markOtpAsUsed(kv, otpRecord.id, phoneNumber);
 
   const db = await getDB(env);
-  let resolvedUserId = user?.id || 1;
+  let userId = null;
+  let user = null;
 
-  // Ensure OTP customer exists in D1 users table
   if (db) {
     try {
       const existingD1User = await db
-        .prepare(`SELECT id, first_name, last_name, email, phone FROM users WHERE phone = ? LIMIT 1`)
+        .prepare(`SELECT * FROM users WHERE phone = ? LIMIT 1`)
         .bind(phoneNumber)
         .first();
 
       if (existingD1User) {
-        resolvedUserId = existingD1User.id;
+        userId = existingD1User.id;
+        user = {
+          id: existingD1User.id,
+          customerId: `TXN${String(existingD1User.id).padStart(6, '0')}`,
+          fullName: [existingD1User.first_name, existingD1User.last_name].filter(Boolean).join(' ') || 'Customer',
+          phoneNumber: existingD1User.phone,
+          email: existingD1User.email || '',
+          role: existingD1User.role || 'customer',
+          phoneVerified: true,
+        };
       } else {
-        const dummyHash = await hashPassword(crypto.randomUUID());
+        const nameParts = (fullNameInput || 'Customer').trim().split(' ');
+        const firstName = nameParts[0] || 'Customer';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
         const insertRes = await db
           .prepare(
-            `INSERT INTO users (first_name, email, phone, password_hash, role, created_at)
-             VALUES (?, ?, ?, ?, 'customer', datetime('now'))`
+            `INSERT INTO users (first_name, last_name, phone, role, created_at)
+             VALUES (?, ?, ?, 'customer', datetime('now'))`
           )
-          .bind(
-            validName,
-            `${phoneNumber}@customer.tharanitex.com`,
-            phoneNumber,
-            dummyHash
-          )
+          .bind(firstName, lastName, phoneNumber)
           .run();
 
-        if (insertRes && insertRes.meta && insertRes.meta.last_row_id) {
-          resolvedUserId = insertRes.meta.last_row_id;
-        }
+        userId = insertRes.meta?.last_row_id || insertRes.lastRowId;
+        user = {
+          id: userId,
+          customerId: `TXN${String(userId).padStart(6, '0')}`,
+          fullName: (fullNameInput || 'Customer').trim(),
+          phoneNumber,
+          email: '',
+          role: 'customer',
+          phoneVerified: true,
+        };
       }
     } catch {
-      // Non-blocking D1 user sync fallback
+      // D1 customer registration fallback
     }
+  }
+
+  if (!userId) {
+    let kvUser = await findUserByPhone(kv, phoneNumber);
+    if (!kvUser) {
+      const fallbackId = Date.now();
+      kvUser = await createUser(kv, fallbackId, fullNameInput || 'Customer', phoneNumber);
+    } else {
+      await updateUserLastLogin(kv, kvUser.id);
+    }
+    userId = kvUser.id;
+    user = kvUser;
   }
 
   const { sessionToken, expiresAt } = await createD1Session(
     db,
-    resolvedUserId,
+    userId,
     'customer',
     userAgent,
     ipAddress,
     env
   );
 
-  const userData = {
-    id: resolvedUserId,
-    userId: resolvedUserId,
-    userType: 'customer',
-    customerId: user?.customerId || `TXN${String(resolvedUserId).padStart(6, '0')}`,
-    fullName: user?.fullName || validName,
-    phoneNumber: user?.phoneNumber || phoneNumber,
-    role: 'customer',
-    phoneVerified: true,
-  };
-
   return {
     sessionToken,
-    user: userData,
     expiresAt,
+    user,
   };
 }
 
-// ==================== Cookie Helpers ====================
-
 /**
- * Construct secure HttpOnly Cookie header string for session
+ * Generate standard HTTP Set-Cookie header strings with secure options
  */
-export function buildSessionCookieHeader(token) {
-  const maxAge = SESSION_DURATION_HOURS * 60 * 60;
-  const isProd = process.env.NODE_ENV === 'production';
-  const secureFlag = isProd ? 'Secure; ' : '';
-  return `${SESSION_COOKIE_NAME}=${token}; Path=/; HttpOnly; ${secureFlag}SameSite=Lax; Max-Age=${maxAge}`;
+export function createSessionCookieHeaders(sessionToken, expiresAt, userType = 'customer') {
+  const maxAge = userType === 'admin'
+    ? ADMIN_SESSION_DURATION_HOURS * 3600
+    : SESSION_DURATION_HOURS * 3600;
+
+  const cookieName = userType === 'admin' ? 'admin_token' : SESSION_COOKIE_NAME;
+  const isProd = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production';
+  const sameSite = isProd ? 'None' : 'Lax';
+  const secureFlag = isProd ? '; Secure' : '';
+
+  const mainCookie = `${cookieName}=${sessionToken}; Path=/; HttpOnly; SameSite=${sameSite}; Max-Age=${maxAge}${secureFlag}`;
+  const legacyCookie = `tharanitex_session=${sessionToken}; Path=/; HttpOnly; SameSite=${sameSite}; Max-Age=${maxAge}${secureFlag}`;
+
+  return [mainCookie, legacyCookie];
 }
 
 /**
- * Construct secure HttpOnly Cookie header string for admin_token (24-hour validity)
+ * Generate standard HTTP Set-Cookie header strings for logout clearing
  */
-export function buildAdminCookieHeader(token) {
-  const maxAge = ADMIN_SESSION_DURATION_HOURS * 60 * 60;
-  const isProd = process.env.NODE_ENV === 'production';
-  const secureFlag = isProd ? 'Secure; ' : '';
-  return `admin_token=${token}; Path=/; HttpOnly; ${secureFlag}SameSite=Lax; Max-Age=${maxAge}`;
+export function createLogoutCookieHeaders(userType = 'customer') {
+  const cookieName = userType === 'admin' ? 'admin_token' : SESSION_COOKIE_NAME;
+  const isProd = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production';
+  const sameSite = isProd ? 'None' : 'Lax';
+  const secureFlag = isProd ? '; Secure' : '';
+
+  return [
+    `${cookieName}=; Path=/; HttpOnly; SameSite=${sameSite}; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT${secureFlag}`,
+    `tharanitex_session=; Path=/; HttpOnly; SameSite=${sameSite}; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT${secureFlag}`,
+  ];
 }
 
-/**
- * Construct expire cookie header string for session logout
- */
+export function buildSessionCookieHeader(sessionToken) {
+  const maxAge = SESSION_DURATION_HOURS * 3600;
+  return `${SESSION_COOKIE_NAME}=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
+}
+
+export function buildAdminCookieHeader(sessionToken) {
+  const maxAge = ADMIN_SESSION_DURATION_HOURS * 3600;
+  return `admin_token=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
+}
+
 export function buildClearCookieHeader() {
-  const isProd = process.env.NODE_ENV === 'production';
-  const secureFlag = isProd ? 'Secure; ' : '';
-  return `${SESSION_COOKIE_NAME}=; Path=/; HttpOnly; ${secureFlag}SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  return `${SESSION_COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 }
 
-/**
- * Construct expire cookie header string for admin_token logout
- */
 export function buildClearAdminCookieHeader() {
-  const isProd = process.env.NODE_ENV === 'production';
-  const secureFlag = isProd ? 'Secure; ' : '';
-  return `admin_token=; Path=/; HttpOnly; ${secureFlag}SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  return `admin_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 }
+

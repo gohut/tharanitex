@@ -9,7 +9,6 @@ import {
 /**
  * PUT /api/admin/staff/:id
  * Update staff account details (Requires module 'Users & Roles', action 'edit')
- * Automatically revokes active sessions if password, role, or status changes (Part 4).
  */
 export async function PUT(request, { params }) {
   try {
@@ -144,16 +143,16 @@ export async function PUT(request, { params }) {
       .bind(newName, newEmail, newPassHash, newRoleId, newStatus, staffId)
       .run();
 
-    // Revoke sessions if sensitive security properties changed (Part 4)
+    // Revoke sessions if sensitive security properties changed
     if (passwordChanged || roleChanged || statusChanged || newStatus === 'Inactive') {
       await revokeSessionsForUser(staffId, 'admin');
     }
 
     const updatedStaff = await db
       .prepare(
-        `SELECT u.id, u.name, u.email, u.role_id, r.name as role_name, u.status, u.last_login, u.created_at
+        `SELECT u.id, u.name, u.email, u.role_id, COALESCE(r.name, 'Support Staff') as role_name, u.status, u.last_login, u.created_at
          FROM staff_users u
-         JOIN roles r ON u.role_id = r.id
+         LEFT JOIN roles r ON u.role_id = r.id
          WHERE u.id = ?`
       )
       .bind(staffId)
@@ -179,7 +178,6 @@ export async function PUT(request, { params }) {
 /**
  * DELETE /api/admin/staff/:id
  * Delete staff account (Requires module 'Users & Roles', action 'delete')
- * Automatically revokes all active sessions for this account (Part 4).
  */
 export async function DELETE(request, { params }) {
   try {
@@ -200,7 +198,43 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Prevent deleting self
+    const { db } = auth;
+    if (!db) {
+      return NextResponse.json(
+        { success: false, message: 'Database service unavailable.', error: 'INTERNAL_ERROR' },
+        { status: 500 }
+      );
+    }
+
+    const existing = await db
+      .prepare(`SELECT id, name, email, role_id FROM staff_users WHERE id = ?`)
+      .bind(staffId)
+      .first();
+
+    if (!existing) {
+      return NextResponse.json(
+        { success: false, message: `Staff account ID ${staffId} not found.`, error: 'NOT_FOUND' },
+        { status: 404 }
+      );
+    }
+
+    // Protect Super Admin from deletion
+    const isSuperAdminAccount =
+      existing.role_id === 1 ||
+      ['admin@tharanitextiles.com', 'admin@tharanitex.com'].includes(existing.email?.toLowerCase());
+
+    if (isSuperAdminAccount) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Action forbidden: Primary Super Admin account cannot be deleted.',
+          error: 'FORBIDDEN',
+        },
+        { status: 403 }
+      );
+    }
+
+    // Prevent deleting own logged in account
     if (auth.user.id === staffId) {
       return NextResponse.json(
         {
@@ -212,39 +246,19 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    const { db } = auth;
-    if (!db) {
-      return NextResponse.json(
-        { success: false, message: 'Database service unavailable.', error: 'INTERNAL_ERROR' },
-        { status: 500 }
-      );
-    }
-
-    const existing = await db
-      .prepare(`SELECT name, email FROM staff_users WHERE id = ?`)
-      .bind(staffId)
-      .first();
-
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, message: `Staff account ID ${staffId} not found.`, error: 'NOT_FOUND' },
-        { status: 404 }
-      );
-    }
-
     // Revoke sessions first
     await revokeSessionsForUser(staffId, 'admin');
 
     // Delete staff account
     await db.prepare(`DELETE FROM staff_users WHERE id = ?`).bind(staffId).run();
 
-    // Create Notification (Part 3)
+    // Create Notification
     await createNotification(db, {
       recipient_role: null,
       title: 'Staff Account Deleted',
-      message: `Staff account ${existing.name} (${existing.email}) ID ${staffId} was deleted.`,
+      message: `Staff account ${existing.name} (${existing.email}) was deleted.`,
       type: 'user',
-    });
+    }).catch(() => {});
 
     return NextResponse.json({
       success: true,
