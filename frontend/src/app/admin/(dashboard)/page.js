@@ -72,101 +72,101 @@ export default function AdminDashboardPage() {
   }, [fetchDashboardData]);
 
   const quickNav = [
-    { title: "Orders", count: `${totalOrders} total`, href: "/admin/orders", icon: ShoppingCart, color: "text-blue-400" },
-    { title: "Customers", count: "Directory & History", href: "/admin/customers", icon: Users, color: "text-purple-400" },
-    { title: "Products", count: "Inventory Catalog", href: "/admin/products", icon: Package, color: "text-emerald-400" },
-    { title: "Reviews", count: "Moderation", href: "/admin/reviews", icon: Star, color: "text-amber-400" },
-    { title: "Store Content", count: "Banners & Sections", href: "/admin/content", icon: FileText, color: "text-pink-400" },
-    { title: "Users & Roles", count: "Permissions", href: "/admin/users", icon: Shield, color: "text-indigo-400" },
-    { title: "Settings", count: "Configuration", href: "/admin/settings", icon: Settings, color: "text-gray-400" },
+    { title: "Orders", count: `${totalOrders} total`, href: "/admin/orders", icon: ShoppingCart, color: "text-[#1E5F8A]", bg: "bg-[#EBF3FB] border-[#BDD9F0]" },
+    { title: "Customers", count: "Directory & History", href: "/admin/customers", icon: Users, color: "text-[#7A3E8A]", bg: "bg-[#F3EBF7] border-[#DFC4EB]" },
+    { title: "Products", count: "Inventory Catalog", href: "/admin/products", icon: Package, color: "text-[#1E7E34]", bg: "bg-[#EAF6ED] border-[#BCE1C8]" },
+    { title: "Reviews", count: "Moderation", href: "/admin/reviews", icon: Star, color: "text-[#B8860B]", bg: "bg-[#FAF3E0] border-[#E8D4A2]" },
+    { title: "Store Content", count: "Banners & Sections", href: "/admin/content", icon: FileText, color: "text-[#C05621]", bg: "bg-[#FDF0EB] border-[#F8D2C2]" },
+    { title: "Users & Roles", count: "Permissions", href: "/admin/users", icon: Shield, color: "text-[#5A1F2F]", bg: "bg-[#F5E6EB] border-[#E2BAC7]" },
+    { title: "Settings", count: "Configuration", href: "/admin/settings", icon: Settings, color: "text-[#5F6368]", bg: "bg-[#F1F3F4] border-[#DADCE0]" },
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-          <p className="text-sm text-green-400 mt-0.5">
+          <h1 className="text-2xl font-bold text-[#2F2B27] font-sans tracking-tight">Admin Dashboard</h1>
+          <p className="text-sm text-[#7C7267] mt-0.5 font-sans">
             Welcome back to Tharani Textiles Store Administration
           </p>
         </div>
         <button
           onClick={fetchDashboardData}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-3.5 py-2 bg-green-800 hover:bg-green-700 text-green-200 hover:text-white text-xs font-semibold rounded-xl transition w-fit"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-[#FAF6F0] text-[#5A1F2F] border border-[#E8DCC8] hover:border-[#D4AF37] text-xs font-bold rounded-xl transition shadow-xs w-fit cursor-pointer disabled:opacity-60"
         >
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+          <RefreshCw size={14} className={loading ? "animate-spin text-[#D4AF37]" : "text-[#D4AF37]"} />
           <span>Refresh Data</span>
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-900/60 border border-red-700 text-red-200 text-sm p-4 rounded-xl">
+        <div className="bg-[#FCE8E6] border border-[#FAD2CF] text-[#C5221F] text-sm p-4 rounded-xl font-medium">
           {error}
         </div>
       )}
 
       {/* Metrics Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="bg-green-900 border border-green-800 rounded-2xl p-5 shadow-card">
+        <div className="bg-white border border-[#E8DCC8] rounded-2xl p-5 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-green-400 uppercase tracking-wider">Total Revenue</span>
-            <span className="p-2 bg-gold-600/20 text-gold-400 rounded-xl"><TrendingUp size={18} /></span>
+            <span className="text-xs font-bold text-[#7C7267] uppercase tracking-wider font-sans">Total Revenue</span>
+            <span className="p-2.5 bg-[#FAF3E0] border border-[#E8D4A2] text-[#B8860B] rounded-xl"><TrendingUp size={18} /></span>
           </div>
-          <p className="text-2xl font-bold text-white mt-3">Rs. {totalRevenue.toLocaleString()}</p>
-          <p className="text-xs text-green-500 mt-1">Excludes cancelled orders</p>
+          <p className="text-2xl font-bold text-[#2F2B27] mt-3 font-sans">Rs. {totalRevenue.toLocaleString()}</p>
+          <p className="text-xs text-[#7C7267] mt-1 font-sans">Excludes cancelled orders</p>
         </div>
 
-        <div className="bg-green-900 border border-green-800 rounded-2xl p-5 shadow-card">
+        <div className="bg-white border border-[#E8DCC8] rounded-2xl p-5 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-green-400 uppercase tracking-wider">Total Orders</span>
-            <span className="p-2 bg-blue-600/20 text-blue-400 rounded-xl"><ShoppingCart size={18} /></span>
+            <span className="text-xs font-bold text-[#7C7267] uppercase tracking-wider font-sans">Total Orders</span>
+            <span className="p-2.5 bg-[#EBF3FB] border border-[#BDD9F0] text-[#1E5F8A] rounded-xl"><ShoppingCart size={18} /></span>
           </div>
-          <p className="text-2xl font-bold text-white mt-3">{totalOrders}</p>
-          <p className="text-xs text-green-500 mt-1">{pendingOrders} active processing</p>
+          <p className="text-2xl font-bold text-[#2F2B27] mt-3 font-sans">{totalOrders}</p>
+          <p className="text-xs text-[#7C7267] mt-1 font-sans">{pendingOrders} active processing</p>
         </div>
 
-        <div className="bg-green-900 border border-green-800 rounded-2xl p-5 shadow-card">
+        <div className="bg-white border border-[#E8DCC8] rounded-2xl p-5 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-green-400 uppercase tracking-wider">Active Processing</span>
-            <span className="p-2 bg-amber-600/20 text-amber-400 rounded-xl"><Clock size={18} /></span>
+            <span className="text-xs font-bold text-[#7C7267] uppercase tracking-wider font-sans">Active Processing</span>
+            <span className="p-2.5 bg-[#FFF6E5] border border-[#FDE1A9] text-[#B26B00] rounded-xl"><Clock size={18} /></span>
           </div>
-          <p className="text-2xl font-bold text-white mt-3">{pendingOrders}</p>
-          <p className="text-xs text-green-500 mt-1">Placed or confirmed state</p>
+          <p className="text-2xl font-bold text-[#2F2B27] mt-3 font-sans">{pendingOrders}</p>
+          <p className="text-xs text-[#7C7267] mt-1 font-sans">Placed or confirmed state</p>
         </div>
 
-        <div className="bg-green-900 border border-green-800 rounded-2xl p-5 shadow-card">
+        <div className="bg-white border border-[#E8DCC8] rounded-2xl p-5 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-green-400 uppercase tracking-wider">Cancellation Requests</span>
-            <span className="p-2 bg-red-600/20 text-red-400 rounded-xl"><AlertTriangle size={18} /></span>
+            <span className="text-xs font-bold text-[#7C7267] uppercase tracking-wider font-sans">Cancellation Requests</span>
+            <span className="p-2.5 bg-[#FDEEEC] border border-[#F8BDB8] text-[#C5221F] rounded-xl"><AlertTriangle size={18} /></span>
           </div>
-          <p className="text-2xl font-bold text-white mt-3">{pendingCancellations}</p>
-          <p className="text-xs text-red-300 mt-1">
+          <p className="text-2xl font-bold text-[#2F2B27] mt-3 font-sans">{pendingCancellations}</p>
+          <p className="text-xs text-[#C5221F] mt-1 font-sans font-medium">
             {pendingCancellations > 0 ? "Requires admin review" : "No pending requests"}
           </p>
         </div>
       </div>
 
       {/* Navigation Quick Access */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-white">Management Sections</h2>
+      <section className="space-y-3 font-sans">
+        <h2 className="text-lg font-bold text-[#2F2B27] font-sans">Management Sections</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {quickNav.map(({ title, count, href, icon: Icon, color }) => (
+          {quickNav.map(({ title, count, href, icon: Icon, color, bg }) => (
             <Link
               key={href}
               href={href}
-              className="bg-green-900 border border-green-800 hover:border-gold-600/50 rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 group flex flex-col justify-between"
+              className="bg-white border border-[#E8DCC8] hover:border-[#D4AF37] rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md group flex flex-col justify-between"
             >
               <div className="flex items-center justify-between">
-                <span className={`p-2.5 rounded-xl bg-green-950/60 ${color}`}>
+                <span className={`p-2.5 rounded-xl border ${bg} ${color}`}>
                   <Icon size={20} />
                 </span>
-                <ArrowRight size={16} className="text-green-600 group-hover:text-gold-400 transition-colors" />
+                <ArrowRight size={16} className="text-[#7C7267] group-hover:text-[#5A1F2F] transition-colors" />
               </div>
               <div className="mt-4">
-                <h3 className="text-sm font-semibold text-white group-hover:text-gold-300 transition-colors">{title}</h3>
-                <p className="text-xs text-green-400 mt-0.5">{count}</p>
+                <h3 className="text-sm font-bold text-[#2F2B27] group-hover:text-[#5A1F2F] transition-colors font-sans">{title}</h3>
+                <p className="text-xs text-[#7C7267] mt-0.5 font-sans">{count}</p>
               </div>
             </Link>
           ))}
@@ -174,56 +174,56 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* Recent Orders Overview */}
-      <section className="bg-green-900 border border-green-800 rounded-2xl p-5 shadow-card space-y-4">
+      <section className="bg-white border border-[#E8DCC8] rounded-2xl p-5 shadow-xs space-y-4 font-sans">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-white">Recent Customer Orders</h2>
-            <p className="text-xs text-green-400 mt-0.5">Latest transactions requiring review</p>
+            <h2 className="text-base font-bold text-[#2F2B27] font-sans">Recent Customer Orders</h2>
+            <p className="text-xs text-[#7C7267] mt-0.5 font-sans">Latest transactions requiring review</p>
           </div>
           <Link
             href="/admin/orders"
-            className="text-xs font-semibold text-gold-400 hover:text-gold-300 inline-flex items-center gap-1"
+            className="text-xs font-bold text-[#8C6D1F] hover:text-[#5A1F2F] inline-flex items-center gap-1 font-sans"
           >
             <span>View All Orders</span>
             <ArrowRight size={14} />
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left">
+        <div className="overflow-x-auto rounded-xl border border-[#E8DCC8]">
+          <table className="w-full text-xs text-left font-sans">
             <thead>
-              <tr className="border-b border-green-800 text-green-400 uppercase">
-                <th className="py-2.5 px-3">Order ID</th>
-                <th className="py-2.5 px-3">Customer</th>
-                <th className="py-2.5 px-3">Amount</th>
-                <th className="py-2.5 px-3">Status</th>
-                <th className="py-2.5 px-3 text-right">Action</th>
+              <tr className="bg-[#FAF3E0] text-[#5A1F2F] border-b border-[#E8DCC8] uppercase font-bold tracking-wider">
+                <th className="py-3 px-4 font-sans">Order ID</th>
+                <th className="py-3 px-4 font-sans">Customer</th>
+                <th className="py-3 px-4 font-sans">Amount</th>
+                <th className="py-3 px-4 font-sans">Status</th>
+                <th className="py-3 px-4 text-right font-sans">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-green-800/50">
+            <tbody className="divide-y divide-[#E8DCC8]/60 bg-white">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-green-400 animate-pulse">
+                  <td colSpan={5} className="py-8 text-center text-[#7C7267] animate-pulse font-sans">
                     Loading dashboard orders...
                   </td>
                 </tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-green-500">
+                  <td colSpan={5} className="py-8 text-center text-[#7C7267] font-sans">
                     No orders found.
                   </td>
                 </tr>
               ) : (
                 orders.slice(0, 5).map((order) => (
-                  <tr key={order.id} className="hover:bg-green-800/30 transition">
-                    <td className="py-3 px-3 text-gold-400 font-semibold">#{order.id}</td>
-                    <td className="py-3 px-3 text-white font-medium">{order.full_name || order.customer_name || "Customer"}</td>
-                    <td className="py-3 px-3 text-white font-semibold">Rs. {Number(order.total_amount).toLocaleString()}</td>
-                    <td className="py-3 px-3"><StatusBadge status={order.order_status} /></td>
-                    <td className="py-3 px-3 text-right">
+                  <tr key={order.id} className="hover:bg-[#FDFBF7] transition">
+                    <td className="py-3 px-4 text-[#8C6D1F] font-bold font-sans">#{order.id}</td>
+                    <td className="py-3 px-4 text-[#2F2B27] font-medium font-sans">{order.full_name || order.customer_name || "Customer"}</td>
+                    <td className="py-3 px-4 text-[#2F2B27] font-bold font-sans">Rs. {Number(order.total_amount).toLocaleString()}</td>
+                    <td className="py-3 px-4"><StatusBadge status={order.order_status} /></td>
+                    <td className="py-3 px-4 text-right">
                       <Link
                         href={`/admin/orders/${order.id}`}
-                        className="text-gold-400 hover:underline font-semibold"
+                        className="text-[#8C6D1F] hover:text-[#5A1F2F] font-bold hover:underline font-sans"
                       >
                         Inspect
                       </Link>

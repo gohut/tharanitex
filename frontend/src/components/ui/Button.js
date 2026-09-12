@@ -34,12 +34,13 @@ export default function Button({
   const isBusy = disabled || loading || internalLoading;
 
   const variants = {
-    primary: "bg-[#5A1F2F] hover:bg-[#471825] text-white font-semibold shadow-sm hover:shadow-md",
-    secondary: "bg-white hover:bg-[#F8F2E8] text-[#2F2B27] border border-[#E8DCC8] font-medium shadow-sm",
-    danger: "bg-[#C5221F] hover:bg-[#A51B18] text-white font-semibold shadow-sm",
-    ghost: "bg-transparent hover:bg-[#F4ECE1] text-[#7C7267] hover:text-[#2F2B27]",
-    outline: "bg-transparent border border-[#5A1F2F] text-[#5A1F2F] hover:bg-[#5A1F2F]/10 font-semibold",
-    gold: "bg-[#D4AF37] hover:bg-[#C49B24] text-[#2F2B27] font-semibold shadow-sm",
+    primary: "bg-[#D4AF37] hover:bg-[#C49B24] text-[#2F2B27] font-bold shadow-sm active:scale-[0.99] transition-all",
+    burgundy: "bg-[#5A1F2F] hover:bg-[#471825] text-white font-bold shadow-sm active:scale-[0.99] transition-all",
+    secondary: "bg-white hover:bg-[#FAF6F0] text-[#2F2B27] border border-[#E8DCC8] font-semibold shadow-xs transition-all",
+    danger: "bg-[#C5221F] hover:bg-[#A51B18] text-white font-semibold shadow-sm transition-all",
+    ghost: "bg-transparent hover:bg-[#FAF6F0] text-[#7C7267] hover:text-[#2F2B27] transition-all",
+    outline: "bg-transparent border border-[#D4AF37] text-[#8C6D1F] hover:bg-[#D4AF37]/10 font-bold transition-all",
+    gold: "bg-[#D4AF37] hover:bg-[#C49B24] text-[#2F2B27] font-bold shadow-sm transition-all",
   };
 
   const sizes = {

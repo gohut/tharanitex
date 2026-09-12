@@ -43,7 +43,21 @@ export default function AdminLayoutClient({ children, user }) {
   const [searchVal, setSearchVal] = useState("");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [liveUser, setLiveUser] = useState(user || null);
   const profileRef = useRef(null);
+
+  useEffect(() => {
+    if (!liveUser) {
+      fetch("/api/auth/session")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((json) => {
+          if (json?.success && json?.data?.user) {
+            setLiveUser(json.data.user);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [liveUser]);
 
   useEffect(() => {
     if (!profileOpen) return;
@@ -101,16 +115,17 @@ export default function AdminLayoutClient({ children, user }) {
     router.refresh();
   };
 
-  const initials = (user?.name || user?.fullName || "SA")
+  const activeUser = liveUser || user;
+  const initials = (activeUser?.name || activeUser?.fullName || "SA")
     .split(" ")
     .filter(Boolean)
     .map((n) => n[0])
     .join("")
     .slice(0, 2)
     .toUpperCase() || "SA";
-  const displayName = user?.name || user?.fullName || "Super Admin";
-  const displayEmail = user?.email || "admin@tharanitextiles.com";
-  const displayRole = user?.roleName || user?.role || "Super Admin";
+  const displayName = activeUser?.name || activeUser?.fullName || "Admin";
+  const displayEmail = activeUser?.email || "admin@tharanitex.com";
+  const displayRole = activeUser?.roleName || activeUser?.role || "Staff";
 
   return (
     <div className="flex h-screen bg-[#FAF6F0] overflow-hidden font-sans">
@@ -122,8 +137,8 @@ export default function AdminLayoutClient({ children, user }) {
             <span className="text-[#5A1F2F] font-bold text-xs tracking-wider">TT</span>
           </div>
           <div>
-            <p className="text-white font-bold text-sm leading-tight">Tharani Textiles</p>
-            <p className="text-[#D4AF37] text-[10px] font-medium tracking-wider uppercase">Admin Portal</p>
+            <p className="text-white font-bold text-sm leading-tight font-sans">Tharani Textiles</p>
+            <p className="text-[#D4AF37] text-[10px] font-semibold tracking-wider uppercase font-sans">Admin Portal</p>
           </div>
         </div>
 
@@ -133,23 +148,23 @@ export default function AdminLayoutClient({ children, user }) {
             <Link
               key={path}
               href={path}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group font-sans ${
                 isActive(path)
-                  ? "bg-[#471825] text-[#D4AF37] shadow-sm font-semibold"
-                  : "text-[#E8DCC8] hover:bg-[#471825]/60 hover:text-white"
+                  ? "bg-[#D4AF37] text-[#2F2B27] shadow-sm font-bold"
+                  : "text-[#FAF6F0]/80 hover:bg-[#471825] hover:text-white"
               }`}
             >
               <Icon
                 size={18}
                 className={
                   isActive(path)
-                    ? "text-[#D4AF37]"
-                    : "text-[#E8DCC8] group-hover:text-[#D4AF37]"
+                    ? "text-[#5A1F2F]"
+                    : "text-[#FAF6F0]/70 group-hover:text-[#D4AF37]"
                 }
               />
               <span>{name}</span>
               {isActive(path) && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#5A1F2F]" />
               )}
             </Link>
           ))}
@@ -159,18 +174,18 @@ export default function AdminLayoutClient({ children, user }) {
         <div className="px-3 py-4 border-t border-[#471825]">
           <button
             onClick={() => setShowLogoutModal(true)}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#471825]/60 cursor-pointer group text-left transition"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#471825]/40 hover:bg-[#471825] border border-[#D4AF37]/20 cursor-pointer group text-left transition"
           >
-            <div className="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#5A1F2F] font-bold text-xs shrink-0">
+            <div className="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#2F2B27] font-bold text-xs shrink-0 shadow-xs">
               {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white text-xs font-medium truncate">{displayName}</p>
-              <p className="text-[#E8DCC8] text-[11px] truncate">{displayRole}</p>
+              <p className="text-white text-xs font-semibold truncate font-sans">{displayName}</p>
+              <p className="text-[#D4AF37] text-[11px] font-medium truncate font-sans">{displayRole}</p>
             </div>
             <LogOut
               size={15}
-              className="text-[#E8DCC8] group-hover:text-[#D4AF37] transition-colors shrink-0"
+              className="text-[#FAF6F0]/70 group-hover:text-[#D4AF37] transition-colors shrink-0"
             />
           </button>
         </div>
@@ -262,14 +277,19 @@ export default function AdminLayoutClient({ children, user }) {
             <div ref={profileRef} className="relative">
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-[#FAF6F0] transition-colors border border-transparent hover:border-[#E8DCC8]"
+                className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl hover:bg-[#FAF6F0] transition-colors border border-transparent hover:border-[#E8DCC8]"
               >
-                <div className="w-8 h-8 rounded-full bg-[#5A1F2F] flex items-center justify-center text-white font-bold text-xs">
+                <div className="w-8 h-8 rounded-full bg-[#5A1F2F] text-[#D4AF37] border border-[#D4AF37]/40 flex items-center justify-center font-bold text-xs shadow-xs font-sans">
                   {initials}
                 </div>
-                <span className="hidden sm:block text-[#2F2B27] text-xs font-semibold">
-                  {displayName.split(" ")[0]}
-                </span>
+                <div className="hidden sm:flex flex-col text-left">
+                  <span className="text-[#2F2B27] text-xs font-bold leading-tight font-sans">
+                    {displayName}
+                  </span>
+                  <span className="text-[#8C6D1F] text-[10px] font-semibold leading-tight uppercase font-sans">
+                    {displayRole}
+                  </span>
+                </div>
                 <ChevronDown size={13} className="text-[#7C7267]" />
               </button>
 

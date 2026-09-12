@@ -214,21 +214,6 @@ export async function validateSession(
         if (session.user_type === 'admin') {
           const adminConfig = getAdminConfig(env);
 
-          if (Number(session.user_id) === 1) {
-            return {
-              id: 1,
-              userId: 1,
-              userType: 'admin',
-              name: 'Super Admin',
-              fullName: 'Super Admin',
-              email: adminConfig.email,
-              roleId: 1,
-              role: 'Super Admin',
-              roleName: 'Super Admin',
-              status: 'Active',
-            };
-          }
-
           let staff = null;
           try {
             staff = await db
@@ -245,6 +230,7 @@ export async function validateSession(
           }
 
           if (staff && staff.status === 'Active') {
+            const roleName = staff.role_name || (staff.role_id === 1 ? 'Super Admin' : (staff.role_id === 2 ? 'Manager' : 'Support Staff'));
             return {
               id: staff.id,
               userId: staff.id,
@@ -253,8 +239,8 @@ export async function validateSession(
               fullName: staff.name,
               email: staff.email,
               roleId: staff.role_id || 1,
-              role: staff.role_name || 'Super Admin',
-              roleName: staff.role_name || 'Super Admin',
+              role: roleName,
+              roleName: roleName,
               status: staff.status,
             };
           }

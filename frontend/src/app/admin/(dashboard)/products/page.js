@@ -29,24 +29,24 @@ function CategoryBlock({ category, products, openEditCat, openDeleteCat }) {
     : filteredProducts.slice((page - 1) * BLOCK_PAGE_SIZE, page * BLOCK_PAGE_SIZE);
 
   return (
-    <div className="w-full mb-8">
+    <div className="w-full mb-8 font-sans">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
         <div className="flex items-center gap-3">
-          <h2 className="text-white text-lg font-bold">{category.name}</h2>
-          <button onClick={() => openEditCat(category)} className="p-1.5 rounded-lg bg-green-800 hover:bg-green-700 text-green-300 transition-colors">
+          <h2 className="text-[#2F2B27] text-lg font-bold font-sans">{category.name}</h2>
+          <button onClick={() => openEditCat(category)} className="p-2 rounded-xl bg-[#FAF6F0] hover:bg-[#FAF3E0] text-[#5A1F2F] border border-[#E8DCC8] hover:border-[#D4AF37] transition-colors cursor-pointer">
             <Edit2 size={13} />
           </button>
-          <button onClick={() => openDeleteCat(category)} className="p-1.5 rounded-lg bg-red-900/50 hover:bg-red-800 text-red-400 transition-colors">
+          <button onClick={() => openDeleteCat(category)} className="p-2 rounded-xl bg-[#FDEEEC] hover:bg-[#F8BDB8] text-[#C5221F] border border-[#F8BDB8] transition-colors cursor-pointer">
             <Trash2 size={13} />
           </button>
         </div>
         <div className="relative w-full sm:w-64 shrink-0">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500" />
+          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7C7267]" />
           <input
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder={`Search in ${category.name}...`}
-            className="w-full bg-green-950 border border-green-800 text-white placeholder-green-500 text-sm rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-gold-500"
+            className="w-full bg-white border border-[#E8DCC8] text-[#2F2B27] placeholder-[#8A8175] text-sm rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] font-sans"
           />
         </div>
       </div>
@@ -54,31 +54,31 @@ function CategoryBlock({ category, products, openEditCat, openDeleteCat }) {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {paginated.length > 0 ? (
           paginated.map((p) => (
-            <div key={p.id} className="bg-green-950/50 border border-green-800 rounded-xl overflow-hidden hover:border-gold-500/50 transition-colors group">
-              <div className="aspect-square bg-green-900 relative">
-                <img src={p.image || "/assets/saree.png"} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={(e) => { e.target.src = "https://placehold.co/400x400/145C3E/D4AF37?text=Img" }} />
-                <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded flex items-center gap-1">
-                  <Star size={10} className="text-gold-500 fill-gold-500" />
-                  <span className="text-white text-[10px] font-medium">{p.rating}</span>
+            <div key={p.id} className="bg-white border border-[#E8DCC8] rounded-2xl overflow-hidden hover:border-[#D4AF37] transition-all shadow-xs group">
+              <div className="aspect-square bg-[#FAF6F0] relative overflow-hidden">
+                <img src={p.image || "/assets/saree.png"} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={(e) => { e.target.src = "https://placehold.co/400x400/5A1F2F/D4AF37?text=Img"; }} />
+                <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded-md flex items-center gap-1">
+                  <Star size={10} className="text-[#D4AF37] fill-[#D4AF37]" />
+                  <span className="text-white text-[10px] font-bold">{p.rating}</span>
                 </div>
               </div>
-              <div className="p-3">
-                <p className="text-white text-sm font-medium font-sans truncate mb-1">{p.name}</p>
-                <p className="text-gold-500 font-semibold text-sm font-sans">₹{p.price.toLocaleString()}</p>
+              <div className="p-3 bg-white">
+                <p className="text-[#2F2B27] text-sm font-bold font-sans truncate mb-1">{p.name}</p>
+                <p className="text-[#8C6D1F] font-bold text-sm font-sans">₹{p.price.toLocaleString()}</p>
               </div>
             </div>
           ))
         ) : (
-          <div className="col-span-full py-8 text-center text-green-500 text-sm">
-            <Package size={24} className="mx-auto mb-2 opacity-50" />
+          <div className="col-span-full py-8 text-center text-[#7C7267] text-sm font-sans">
+            <Package size={24} className="mx-auto mb-2 opacity-50 text-[#8C6D1F]" />
             No products found in this category.
           </div>
         )}
       </div>
 
       {filteredProducts.length > BLOCK_PAGE_SIZE && (
-        <div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-green-800 pt-4">
-          <p className="text-green-500 text-xs">
+        <div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#E8DCC8] pt-4 font-sans">
+          <p className="text-[#7C7267] text-xs">
             Showing {viewAll ? filteredProducts.length : paginated.length} of {filteredProducts.length} products
           </p>
           <div className="flex items-center gap-3">
@@ -369,22 +369,22 @@ export default function ProductsPage() {
   const uniqueCategories = ["All", ...categories.map((category) => category.name)];
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-5 animate-fade-in font-sans">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-white text-2xl font-bold">Products</h1>
-          <p className="text-green-400 text-sm mt-0.5">Manage your product catalog</p>
+          <h1 className="text-[#2F2B27] text-2xl font-bold font-sans tracking-tight">Products</h1>
+          <p className="text-[#7C7267] text-sm mt-0.5 font-sans">Manage your product catalog</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-green-900 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-white border border-[#E8DCC8] p-1 rounded-xl w-fit shadow-xs">
         {["products", "categories"].map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
-              tab === t ? "bg-gold-600 text-green-950" : "text-green-400 hover:text-white"
+            className={`px-4 py-2 rounded-lg text-sm font-bold capitalize transition-all font-sans cursor-pointer ${
+              tab === t ? "bg-[#D4AF37] text-[#2F2B27] shadow-xs" : "text-[#7C7267] hover:text-[#2F2B27] hover:bg-[#FAF6F0]"
             }`}
           >
             {t}
@@ -397,75 +397,75 @@ export default function ProductsPage() {
           {/* Filters */}
           <div className="flex flex-wrap gap-3 items-center">
             <div className="relative flex-1 min-w-[200px] max-w-sm">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500" />
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7C7267]" />
               <input
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                 placeholder="Search products..."
-                className="w-full bg-green-900 border border-green-700 text-white placeholder-green-500 text-sm rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-gold-500"
+                className="w-full bg-white border border-[#E8DCC8] text-[#2F2B27] placeholder-[#8A8175] text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] font-sans"
               />
             </div>
             <select
               value={filterStatus}
               onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-              className="bg-green-900 border border-green-700 text-green-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-gold-500"
+              className="bg-white border border-[#E8DCC8] text-[#2F2B27] text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#D4AF37] font-sans cursor-pointer"
             >
               {["All", "Active", "Low Stock", "Out of Stock", "Inactive"].map((s) => <option key={s}>{s}</option>)}
             </select>
             <select
               value={filterCategory}
               onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }}
-              className="bg-green-900 border border-green-700 text-green-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-gold-500"
+              className="bg-white border border-[#E8DCC8] text-[#2F2B27] text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#D4AF37] font-sans cursor-pointer"
             >
               {uniqueCategories.map((c) => <option key={c}>{c}</option>)}
             </select>
-            <Button onClick={() => router.push("/admin/products/add")} className="ml-auto">
+            <Button onClick={() => router.push("/admin/products/add")} variant="primary" className="ml-auto">
               <Plus size={14} /> Add Product
             </Button>
           </div>
 
           {/* Products Table */}
-          <div className="bg-green-900 border border-green-800 rounded-2xl shadow-card overflow-hidden">
+          <div className="bg-white border border-[#E8DCC8] rounded-2xl shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm font-sans">
                 <thead>
-                  <tr className="border-b border-green-800">
-                    <th className="text-left px-5 py-3 text-green-400 text-xs font-medium uppercase tracking-wider">Product</th>
-                    <th className="text-left px-5 py-3 text-green-400 text-xs font-medium uppercase tracking-wider hidden sm:table-cell">Category</th>
-                    <th className="text-left px-5 py-3 text-green-400 text-xs font-medium uppercase tracking-wider">Price</th>
-                    <th className="text-left px-5 py-3 text-green-400 text-xs font-medium uppercase tracking-wider">Stock</th>
-                    <th className="text-left px-5 py-3 text-green-400 text-xs font-medium uppercase tracking-wider">Status</th>
-                    <th className="text-left px-5 py-3 text-green-400 text-xs font-medium uppercase tracking-wider">Rating</th>
+                  <tr className="bg-[#FAF3E0] border-b border-[#E8DCC8]">
+                    <th className="text-left px-5 py-3.5 text-[#5A1F2F] text-xs font-bold uppercase tracking-wider font-sans">Product</th>
+                    <th className="text-left px-5 py-3.5 text-[#5A1F2F] text-xs font-bold uppercase tracking-wider hidden sm:table-cell font-sans">Category</th>
+                    <th className="text-left px-5 py-3.5 text-[#5A1F2F] text-xs font-bold uppercase tracking-wider font-sans">Price</th>
+                    <th className="text-left px-5 py-3.5 text-[#5A1F2F] text-xs font-bold uppercase tracking-wider font-sans">Stock</th>
+                    <th className="text-left px-5 py-3.5 text-[#5A1F2F] text-xs font-bold uppercase tracking-wider font-sans">Status</th>
+                    <th className="text-left px-5 py-3.5 text-[#5A1F2F] text-xs font-bold uppercase tracking-wider font-sans">Rating</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-[#E8DCC8]/60 bg-white">
                   {paginated.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-5 py-12 text-center text-green-500">
-                        <Package size={32} className="mx-auto mb-2 opacity-40" />
+                      <td colSpan={6} className="px-5 py-12 text-center text-[#7C7267] font-sans">
+                        <Package size={32} className="mx-auto mb-2 opacity-40 text-[#8C6D1F]" />
                         No products found
                       </td>
                     </tr>
                   ) : paginated.map((p) => (
-                    <tr key={p.id} onClick={() => router.push(`/admin/products/add?id=${p.id}`)} className="border-b border-green-800/50 hover:bg-green-800/30 transition-colors cursor-pointer">
-                      <td className="px-5 py-3">
+                    <tr key={p.id} onClick={() => router.push(`/admin/products/add?id=${p.id}`)} className="hover:bg-[#FDFBF7] transition-colors cursor-pointer font-sans">
+                      <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <img src={p.image || "/assets/saree.png"} alt={p.name} className="w-16 h-16 sm:w-9 sm:h-9 rounded-lg object-cover shrink-0" onError={(e) => { e.target.src = p.image; }} />
+                          <img src={p.image || "/assets/saree.png"} alt={p.name} className="w-12 h-12 rounded-xl object-cover shrink-0 border border-[#E8DCC8]" onError={(e) => { e.target.src = p.image; }} />
                           <div className="min-w-0">
-                            <p className="text-white text-xs sm:text-sm font-medium truncate">{p.name}</p>
-                            <p className="text-green-500 text-[10px] sm:text-xs truncate">{p.id}</p>
-                            <p className="text-green-300 text-[10px] sm:hidden truncate mt-0.5">{p.category}</p>
+                            <p className="text-[#2F2B27] text-sm font-bold truncate font-sans">{p.name}</p>
+                            <p className="text-[#8C6D1F] text-xs truncate font-sans">ID: {p.id}</p>
+                            <p className="text-[#7C7267] text-xs sm:hidden truncate mt-0.5 font-sans">{p.category}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-3 text-green-300 text-xs hidden sm:table-cell">{p.category}</td>
-                      <td className="px-5 py-3 text-white text-xs font-semibold font-sans">₹{p.price.toLocaleString()}</td>
-                      <td className="px-5 py-3 text-green-300 text-xs font-sans">{p.stock}</td>
-                      <td className="px-5 py-3"><StatusBadge status={p.status} /></td>
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-3.5 text-[#5C544B] text-xs hidden sm:table-cell font-sans">{p.category}</td>
+                      <td className="px-5 py-3.5 text-[#2F2B27] text-xs font-bold font-sans">₹{p.price.toLocaleString()}</td>
+                      <td className="px-5 py-3.5 text-[#5C544B] text-xs font-sans">{p.stock}</td>
+                      <td className="px-5 py-3.5"><StatusBadge status={p.status} /></td>
+                      <td className="px-5 py-3.5">
                         <div className="flex items-center gap-1">
-                          <Star size={12} className="text-gold-500 fill-gold-500" />
-                          <span className="text-green-300 text-xs font-sans">{p.rating} ({p.reviews})</span>
+                          <Star size={12} className="text-[#D4AF37] fill-[#D4AF37]" />
+                          <span className="text-[#7C7267] text-xs font-semibold font-sans">{p.rating} ({p.reviews})</span>
                         </div>
                       </td>
                     </tr>
@@ -473,8 +473,8 @@ export default function ProductsPage() {
                 </tbody>
               </table>
             </div>
-            <div className="px-5 py-3 border-t border-green-800 flex items-center justify-between">
-              <p className="text-green-500 text-xs font-sans">{filtered.length} product{filtered.length !== 1 ? "s" : ""}</p>
+            <div className="px-5 py-3.5 border-t border-[#E8DCC8] bg-[#FDFBF7] flex items-center justify-between font-sans">
+              <p className="text-[#7C7267] text-xs font-sans">{filtered.length} product{filtered.length !== 1 ? "s" : ""}</p>
               <Pagination page={page} totalPages={totalPages} onPage={setPage} />
             </div>
           </div>
@@ -530,9 +530,9 @@ export default function ProductsPage() {
 
       {/* Delete Product */}
       <Modal open={modal === "delete"} onClose={() => setModal(null)} title="Delete Product" size="sm">
-        <p className="text-green-300 text-sm mb-2">Are you sure you want to delete</p>
-        <p className="text-white font-semibold mb-5">{selected?.name}?</p>
-        <p className="text-green-500 text-xs mb-5">This action cannot be undone.</p>
+        <p className="text-[#5C544B] text-sm mb-2 font-sans">Are you sure you want to delete</p>
+        <p className="text-[#2F2B27] font-bold text-base mb-2 font-sans">{selected?.name}?</p>
+        <p className="text-[#7C7267] text-xs mb-5 font-sans">This action cannot be undone.</p>
         <div className="flex justify-end gap-3">
           <Button variant="secondary" onClick={() => setModal(null)}>Cancel</Button>
           <Button variant="danger" onClick={deleteProduct}>Delete</Button>
@@ -541,58 +541,58 @@ export default function ProductsPage() {
 
       {/* Reviews Modal */}
       <Modal open={modal === "reviews"} onClose={() => setModal(null)} title={`Reviews — ${selected?.name}`} size="lg">
-        <div className="space-y-3">
+        <div className="space-y-3 font-sans">
           {selected?.reviews > 0 ? (
-            <p className="text-green-400 text-sm">
+            <p className="text-[#5C544B] text-sm font-sans">
               {selected.reviews} reviews · Avg {selected.rating}★
             </p>
           ) : (
-            <p className="text-green-500 text-sm">
+            <p className="text-[#7C7267] text-sm font-sans">
               No reviews yet for this product.
             </p>
           )}
-          <div className="flex items-center gap-2 py-4">
-            {[1,2,3,4,5].map((s) => <Star key={s} size={20} className={s <= Math.round(selected?.rating || 0) ? "text-gold-500 fill-gold-500" : "text-green-700"} />)}
-            <span className="text-white font-semibold ml-1">{selected?.rating}</span>
+          <div className="flex items-center gap-2 py-4 font-sans">
+            {[1,2,3,4,5].map((s) => <Star key={s} size={20} className={s <= Math.round(selected?.rating || 0) ? "text-[#D4AF37] fill-[#D4AF37]" : "text-[#E8DCC8]"} />)}
+            <span className="text-[#2F2B27] font-bold ml-1 font-sans">{selected?.rating}</span>
           </div>
         </div>
       </Modal>
 
       {/* Add/Edit Category */}
       <Modal open={modal === "addCat" || modal === "editCat"} onClose={() => setModal(null)} title={modal === "addCat" ? "Add Category" : "Edit Category"} size="md">
-        <div className="space-y-4">
+        <div className="space-y-4 font-sans">
           <FormInput label="Category Name" id="catname" value={catForm.name || ""} onChange={(e) => setCatForm({ ...catForm, name: e.target.value })} placeholder="e.g. Sarees" required />
           <FormInput label="Slug" id="catslug" value={catForm.slug || ""} onChange={(e) => setCatForm({ ...catForm, slug: e.target.value })} placeholder="Generated from name if blank" />
           <FormInput label="Subtitle" id="catsubtitle" value={catForm.subtitle || ""} onChange={(e) => setCatForm({ ...catForm, subtitle: e.target.value })} placeholder="e.g. SILKS" />
           <FormInput label="Description" id="catdesc" type="textarea" value={catForm.description || ""} onChange={(e) => setCatForm({ ...catForm, description: e.target.value })} rows={3} placeholder="Category description..." />
           <div>
-            <label className="text-green-300 text-xs font-medium">Category Image</label>
-            <div className="mt-2 flex items-center gap-3">
+            <label className="text-[#2F2B27] text-xs font-semibold font-sans">Category Image</label>
+            <div className="mt-2 flex items-center gap-3 font-sans">
               {catForm.image && (
-                <img src={catForm.image} alt={catForm.name || "Category"} className="h-20 w-20 rounded-lg object-cover border border-green-700" />
+                <img src={catForm.image} alt={catForm.name || "Category"} className="h-20 w-20 rounded-xl object-cover border border-[#E8DCC8]" />
               )}
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-green-700 bg-green-800 px-3 py-2 text-sm text-white hover:bg-green-700">
-                <Upload size={14} />
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#E8DCC8] bg-[#FAF6F0] px-3.5 py-2 text-sm font-semibold text-[#5A1F2F] hover:bg-[#FAF3E0] hover:border-[#D4AF37] transition shadow-xs">
+                <Upload size={14} className="text-[#8C6D1F]" />
                 {catUploading ? "Uploading..." : "Upload Image"}
                 <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleCategoryImage} className="hidden" disabled={catUploading} />
               </label>
             </div>
           </div>
           <Toggle checked={!!catForm.isActive} onChange={(value) => setCatForm({ ...catForm, isActive: value })} label="Active" />
-          {catError && <p className="text-sm text-red-400">{catError}</p>}
+          {catError && <p className="text-sm text-[#C5221F] font-medium font-sans">{catError}</p>}
         </div>
-        <div className="flex justify-end gap-3 mt-5">
+        <div className="flex justify-end gap-3 mt-5 pt-3 border-t border-[#E8DCC8]">
           <Button variant="secondary" onClick={() => setModal(null)}>Cancel</Button>
-          <Button onClick={saveCat}>{modal === "addCat" ? "Add Category" : "Save Changes"}</Button>
+          <Button variant="primary" onClick={saveCat}>{modal === "addCat" ? "Add Category" : "Save Changes"}</Button>
         </div>
       </Modal>
 
       {/* Delete Category */}
       <Modal open={modal === "deleteCat"} onClose={() => setModal(null)} title="Delete Category" size="sm">
-        <p className="text-green-300 text-sm mb-2">Delete category <span className="text-white font-semibold">{selected?.name}</span>?</p>
-        <p className="text-green-500 text-xs">Categories with assigned products cannot be deleted.</p>
-        {catError && <p className="mt-3 text-sm text-red-400">{catError}</p>}
-        <div className="flex justify-end gap-3 mt-5">
+        <p className="text-[#5C544B] text-sm mb-2 font-sans">Delete category <span className="text-[#2F2B27] font-bold">{selected?.name}</span>?</p>
+        <p className="text-[#7C7267] text-xs font-sans">Categories with assigned products cannot be deleted.</p>
+        {catError && <p className="mt-3 text-sm text-[#C5221F] font-medium font-sans">{catError}</p>}
+        <div className="flex justify-end gap-3 mt-5 pt-3 border-t border-[#E8DCC8]">
           <Button variant="secondary" onClick={() => setModal(null)}>Cancel</Button>
           <Button variant="danger" onClick={deleteCat}>Delete</Button>
         </div>

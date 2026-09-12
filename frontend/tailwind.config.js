@@ -8,17 +8,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        green: {
-          950: "#0B3D2E",
-          900: "#0D4733",
-          850: "#0F5038",
-          800: "#145C3E",
-          750: "#186848",
-          700: "#1E7D50",
-          600: "#25955F",
-          500: "#2DAD6E",
-          400: "#4EC48A",
-          300: "#72D4A4",
+        brand: {
+          burgundy: "#5A1F2F",
+          "burgundy-dark": "#471825",
+          cream: "#FAF6F0",
+          "cream-light": "#FDFBF7",
+          border: "#E8DCC8",
+          text: "#2F2B27",
+          muted: "#7C7267",
         },
         gold: {
           900: "#7A5E10",
@@ -30,16 +27,11 @@ module.exports = {
           300: "#F5D870",
           200: "#FAE89A",
           100: "#FDF5CC",
-        },
-        dark: {
-          900: "#060E09",
-          800: "#0C1A10",
-          700: "#112216",
-          600: "#162C1C",
+          50: "#FAF3E0",
         },
       },
-       fontFamily: {
-        sans: ["var(--font-montserrat)"],
+      fontFamily: {
+        sans: ["var(--font-montserrat)", "Inter", "system-ui", "sans-serif"],
         klaristha: ["var(--font-klaristha)"],
         cormorant: ["var(--font-cormorant)"],
         romance: ["var(--font-modern-romance)"],
@@ -48,10 +40,8 @@ module.exports = {
         "gold-sm": "0 1px 3px rgba(212,175,55,0.15)",
         "gold-md": "0 4px 12px rgba(212,175,55,0.2)",
         "gold-lg": "0 8px 24px rgba(212,175,55,0.25)",
-        "green-sm": "0 1px 3px rgba(11,61,46,0.3)",
-        "green-md": "0 4px 12px rgba(11,61,46,0.4)",
-        card: "0 2px 8px rgba(0,0,0,0.35)",
-        "card-hover": "0 6px 20px rgba(0,0,0,0.45)",
+        card: "0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)",
+        "card-hover": "0 4px 12px rgba(0,0,0,0.08)",
       },
       animation: {
         "fade-in": "fadeIn 0.2s ease-out",

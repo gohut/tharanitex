@@ -213,17 +213,17 @@ export default function UsersPage() {
   return (
     <div className="space-y-5 animate-fade-in font-sans">
       <div>
-        <h1 className="text-white text-2xl font-bold font-sans tracking-tight">Users & Roles</h1>
-        <p className="text-green-400 text-sm mt-0.5 font-sans">Manage admin accounts and role permissions</p>
+        <h1 className="text-[#2F2B27] text-2xl font-bold font-sans tracking-tight">Users & Roles</h1>
+        <p className="text-[#7C7267] text-sm mt-0.5 font-sans">Manage admin accounts and role permissions</p>
       </div>
 
-      <div className="flex gap-1 bg-green-900 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-white border border-[#E8DCC8] p-1 rounded-xl w-fit shadow-xs">
         {["users", "permissions"].map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all font-sans ${
-              tab === t ? "bg-gold-600 text-green-950" : "text-green-400 hover:text-white"
+            className={`px-4 py-2 rounded-lg text-sm font-bold capitalize transition-all font-sans cursor-pointer ${
+              tab === t ? "bg-[#D4AF37] text-[#2F2B27] shadow-xs" : "text-[#7C7267] hover:text-[#2F2B27] hover:bg-[#FAF6F0]"
             }`}
           >
             {t === "users" ? "Staff Accounts" : "Role Permissions"}
@@ -234,55 +234,55 @@ export default function UsersPage() {
       {tab === "users" ? (
         <div className="space-y-4">
           <div className="flex justify-end">
-            <Button onClick={openAdd}>
+            <Button onClick={openAdd} variant="primary">
               <Plus size={14} /> Add Staff
             </Button>
           </div>
-          <div className="bg-green-900 border border-green-800 rounded-2xl shadow-card overflow-hidden">
+          <div className="bg-white border border-[#E8DCC8] rounded-2xl shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm font-sans">
                 <thead>
-                  <tr className="border-b border-green-800">
+                  <tr className="bg-[#FAF3E0] border-b border-[#E8DCC8]">
                     {["Staff Member", "Email", "Role", "Last Login", "Status", "Actions"].map((h) => (
                       <th
                         key={h}
-                        className="text-left px-4 py-3 text-green-400 text-xs font-medium uppercase tracking-wider font-sans"
+                        className="text-left px-5 py-3.5 text-[#5A1F2F] text-xs font-bold uppercase tracking-wider font-sans"
                       >
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-[#E8DCC8]/60 bg-white">
                   {loading ? (
                     [1, 2, 3].map((i) => (
-                      <tr key={i} className="border-b border-green-800/50 animate-pulse">
-                        <td className="px-4 py-3">
+                      <tr key={i} className="animate-pulse">
+                        <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-green-800/60" />
-                            <div className="h-3 w-28 bg-green-800/60 rounded" />
+                            <div className="w-9 h-9 rounded-full bg-[#FAF6F0]" />
+                            <div className="h-3 w-28 bg-[#FAF6F0] rounded" />
                           </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="h-3 w-36 bg-green-800/60 rounded" />
+                        <td className="px-5 py-4">
+                          <div className="h-3 w-36 bg-[#FAF6F0] rounded" />
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="h-4 w-20 bg-green-800/60 rounded-full" />
+                        <td className="px-5 py-4">
+                          <div className="h-4 w-20 bg-[#FAF6F0] rounded-full" />
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="h-3 w-24 bg-green-800/60 rounded" />
+                        <td className="px-5 py-4">
+                          <div className="h-3 w-24 bg-[#FAF6F0] rounded" />
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="h-4 w-14 bg-green-800/60 rounded-full" />
+                        <td className="px-5 py-4">
+                          <div className="h-4 w-14 bg-[#FAF6F0] rounded-full" />
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="h-6 w-14 bg-green-800/60 rounded-lg" />
+                        <td className="px-5 py-4">
+                          <div className="h-6 w-14 bg-[#FAF6F0] rounded-lg" />
                         </td>
                       </tr>
                     ))
                   ) : users.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-green-400 text-xs font-sans">
+                      <td colSpan={6} className="px-5 py-8 text-center text-[#7C7267] text-xs font-sans">
                         No staff accounts found. Click &quot;Add Staff&quot; to create one.
                       </td>
                     </tr>
@@ -290,42 +290,42 @@ export default function UsersPage() {
                     users.map((u) => (
                       <tr
                         key={u.id}
-                        className="border-b border-green-800/50 hover:bg-green-800/30 transition-colors font-sans"
+                        className="hover:bg-[#FDFBF7] transition-colors font-sans"
                       >
-                        <td className="px-4 py-3">
+                        <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gold-600/20 border border-gold-800/40 flex items-center justify-center">
-                              <span className="text-gold-400 text-xs font-bold font-sans">{u.avatar}</span>
+                            <div className="w-9 h-9 rounded-full bg-[#FAF3E0] border border-[#D4AF37]/40 flex items-center justify-center">
+                              <span className="text-[#8C6D1F] text-xs font-bold font-sans">{u.avatar}</span>
                             </div>
-                            <p className="text-white text-xs font-medium font-sans">{u.name}</p>
+                            <p className="text-[#2F2B27] text-sm font-bold font-sans">{u.name}</p>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-green-300 text-xs font-sans">{u.email}</td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-gold-800/40 bg-gold-600/10 text-gold-400 font-sans">
-                            <Shield size={10} /> {u.role}
+                        <td className="px-5 py-4 text-[#7C7267] text-xs font-sans">{u.email}</td>
+                        <td className="px-5 py-4">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border border-[#D4AF37]/40 bg-[#FAF3E0] text-[#8C6D1F] font-sans">
+                            <Shield size={11} /> {u.role}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-green-500 text-xs font-sans">{u.lastLogin}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-5 py-4 text-[#7C7267] text-xs font-sans">{u.lastLogin}</td>
+                        <td className="px-5 py-4">
                           <StatusBadge status={u.status} />
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-1.5">
+                        <td className="px-5 py-4">
+                          <div className="flex gap-2">
                             <button
                               onClick={() => openEdit(u)}
-                              className="p-1.5 rounded-lg bg-green-800 hover:bg-green-700 text-green-300 transition-colors"
+                              className="p-2 rounded-xl bg-[#FAF6F0] hover:bg-[#FAF3E0] text-[#5A1F2F] border border-[#E8DCC8] hover:border-[#D4AF37] transition cursor-pointer"
                               title="Edit Staff Member"
                             >
-                              <Edit2 size={13} />
+                              <Edit2 size={14} />
                             </button>
                             <button
                               onClick={() => deleteUser(u.id)}
                               disabled={u.role === "Super Admin"}
-                              className="p-1.5 rounded-lg bg-red-900/50 hover:bg-red-800 text-red-400 disabled:opacity-30 transition-colors"
+                              className="p-2 rounded-xl bg-[#FDEEEC] hover:bg-[#F8BDB8] text-[#C5221F] border border-[#F8BDB8] disabled:opacity-30 transition cursor-pointer"
                               title={u.role === "Super Admin" ? "Super Admin cannot be deleted" : "Delete Staff Member"}
                             >
-                              <Trash2 size={13} />
+                              <Trash2 size={14} />
                             </button>
                           </div>
                         </td>
@@ -343,48 +343,48 @@ export default function UsersPage() {
           {availableRoles.map((role) => (
             <div
               key={role}
-              className="bg-green-900 border border-green-800 rounded-2xl shadow-card overflow-hidden"
+              className="bg-white border border-[#E8DCC8] rounded-2xl shadow-xs overflow-hidden font-sans"
             >
-              <div className="px-5 py-3 border-b border-green-800 flex items-center gap-2">
-                <Shield size={15} className="text-gold-400" />
-                <p className="text-white font-semibold text-sm font-sans">{role}</p>
+              <div className="px-5 py-3.5 border-b border-[#E8DCC8] bg-[#FDFBF7] flex items-center gap-2">
+                <Shield size={16} className="text-[#8C6D1F]" />
+                <p className="text-[#2F2B27] font-bold text-sm font-sans">{role}</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm font-sans">
                   <thead>
-                    <tr className="border-b border-green-800">
-                      <th className="text-left px-4 py-2 text-green-400 text-xs font-medium font-sans">
+                    <tr className="bg-[#FAF3E0] border-b border-[#E8DCC8]">
+                      <th className="text-left px-5 py-2.5 text-[#5A1F2F] text-xs font-bold uppercase font-sans">
                         Module
                       </th>
                       {actions.map((a) => (
                         <th
                           key={a}
-                          className="text-center px-3 py-2 text-green-400 text-xs font-medium capitalize font-sans"
+                          className="text-center px-3 py-2.5 text-[#5A1F2F] text-xs font-bold uppercase font-sans"
                         >
                           {a}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-[#E8DCC8]/60 bg-white">
                     {permissions.categories.map((cat) => (
                       <tr
                         key={cat}
-                        className="border-b border-green-800/50 hover:bg-green-800/20"
+                        className="hover:bg-[#FDFBF7] transition-colors"
                       >
-                        <td className="px-4 py-2 text-green-300 text-xs font-medium font-sans">{cat}</td>
+                        <td className="px-5 py-3 text-[#2F2B27] text-xs font-semibold font-sans">{cat}</td>
                         {actions.map((action) => (
-                          <td key={action} className="px-3 py-2 text-center">
+                          <td key={action} className="px-3 py-3 text-center">
                             <button
                               onClick={() => togglePerm(role, cat, action)}
-                              className={`w-5 h-5 rounded border transition-all flex items-center justify-center mx-auto ${
+                              className={`w-5 h-5 rounded-md border transition-all flex items-center justify-center mx-auto cursor-pointer ${
                                 perms[role]?.[cat]?.[action]
-                                  ? "bg-gold-600 border-gold-500"
-                                  : "bg-transparent border-green-700 hover:border-gold-700"
+                                  ? "bg-[#D4AF37] border-[#D4AF37]"
+                                  : "bg-white border-[#E8DCC8] hover:border-[#D4AF37]"
                               }`}
                             >
                               {perms[role]?.[cat]?.[action] && (
-                                <Check size={11} className="text-green-950" />
+                                <Check size={12} className="text-[#2F2B27] font-bold stroke-[3]" />
                               )}
                             </button>
                           </td>
@@ -427,11 +427,11 @@ export default function UsersPage() {
           />
 
           {/* Password field */}
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="fpassword" className="text-green-300 text-xs font-medium font-sans">
+          <div className="flex flex-col gap-1.5 font-sans">
+            <label htmlFor="fpassword" className="text-[#2F2B27] text-xs font-semibold font-sans">
               {modal === "add" ? (
                 <>
-                  Login Password<span className="text-gold-500 ml-0.5">*</span>
+                  Login Password<span className="text-[#C5221F] ml-0.5">*</span>
                 </>
               ) : (
                 "New Login Password (Optional)"
@@ -449,18 +449,18 @@ export default function UsersPage() {
                     : "Leave blank to keep existing password"
                 }
                 required={modal === "add"}
-                className="w-full bg-green-800 border border-green-700 text-white placeholder-green-500 rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors font-sans"
+                className="w-full bg-white border border-[#E8DCC8] text-[#2F2B27] placeholder-[#8A8175] rounded-xl pl-3.5 pr-10 py-2.5 text-sm focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-colors font-sans"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-green-400 hover:text-gold-400 transition"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7C7267] hover:text-[#2F2B27] transition cursor-pointer"
               >
-                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
             {modal === "edit" && (
-              <span className="text-[11px] text-green-400 font-sans">
+              <span className="text-[11px] text-[#7C7267] font-sans">
                 Leave blank if you do not want to change this staff member's password.
               </span>
             )}
@@ -484,11 +484,11 @@ export default function UsersPage() {
             options={["Active", "Inactive"]}
           />
 
-          <div className="flex justify-end gap-3 mt-5 pt-2 border-t border-green-800">
+          <div className="flex justify-end gap-3 mt-5 pt-3 border-t border-[#E8DCC8]">
             <Button type="button" variant="secondary" onClick={() => setModal(null)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={submitting}>
+            <Button type="submit" variant="primary" disabled={submitting}>
               {submitting
                 ? "Saving..."
                 : modal === "add"

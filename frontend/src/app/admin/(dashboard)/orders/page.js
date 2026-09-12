@@ -94,22 +94,22 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-5 animate-fade-in font-sans">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-white text-2xl font-bold">Orders</h1>
-          <p className="text-green-400 text-sm mt-0.5">Manage and track all customer orders</p>
+          <h1 className="text-[#2F2B27] text-2xl font-bold font-sans tracking-tight">Orders</h1>
+          <p className="text-[#7C7267] text-sm mt-0.5 font-sans">Manage and track all customer orders</p>
         </div>
         <button
           onClick={fetchOrders}
           disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-green-800 text-green-200 hover:text-white rounded-lg text-xs font-medium transition"
+          className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-[#FAF6F0] text-[#5A1F2F] border border-[#E8DCC8] hover:border-[#D4AF37] text-xs font-bold rounded-xl transition shadow-xs cursor-pointer disabled:opacity-60"
         >
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
+          <RefreshCw size={14} className={loading ? "animate-spin text-[#D4AF37]" : "text-[#D4AF37]"} /> Refresh
         </button>
       </div>
 
-      <div className="flex gap-1 flex-wrap bg-green-900 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 flex-wrap bg-white border border-[#E8DCC8] p-1 rounded-xl w-fit shadow-xs">
         {TABS.map((tabName) => (
           <button
             key={tabName}
@@ -117,12 +117,12 @@ export default function OrdersPage() {
               setTab(tabName);
               setPage(1);
             }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              tab === tabName ? "bg-gold-600 text-green-950" : "text-green-400 hover:text-white"
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all font-sans cursor-pointer ${
+              tab === tabName ? "bg-[#D4AF37] text-[#2F2B27] shadow-xs" : "text-[#7C7267] hover:text-[#2F2B27] hover:bg-[#FAF6F0]"
             }`}
           >
             {tabName}
-            <span className="ml-1.5 text-[10px] opacity-70">
+            <span className="ml-1.5 text-[11px] opacity-70">
               ({tabName === "All" ? normalizedOrders.length : normalizedOrders.filter((o) => o.status.toLowerCase() === tabName.toLowerCase()).length})
             </span>
           </button>
@@ -130,7 +130,7 @@ export default function OrdersPage() {
       </div>
 
       <div className="relative max-w-sm">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500" />
+        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7C7267]" />
         <input
           value={search}
           onChange={(event) => {
@@ -138,41 +138,41 @@ export default function OrdersPage() {
             setPage(1);
           }}
           placeholder="Search by order ID or customer..."
-          className="w-full bg-green-900 border border-green-700 text-white placeholder-green-500 text-sm rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-gold-500"
+          className="w-full bg-white border border-[#E8DCC8] text-[#2F2B27] placeholder-[#8A8175] text-sm rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] font-sans"
         />
       </div>
 
       {error && (
-        <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-xl text-sm">
+        <div className="bg-[#FCE8E6] border border-[#FAD2CF] text-[#C5221F] px-4 py-3 rounded-xl text-sm font-medium">
           {error}
         </div>
       )}
 
-      <div className="bg-green-900 border border-green-800 rounded-2xl shadow-card overflow-hidden">
+      <div className="bg-white border border-[#E8DCC8] rounded-2xl shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm font-sans">
             <thead>
-              <tr className="border-b border-green-800">
+              <tr className="bg-[#FAF3E0] border-b border-[#E8DCC8]">
                 {["Order ID", "Customer", "Date", "Items", "Total", "Status", "Payment", ""].map((heading) => (
                   <th
                     key={heading || "open"}
-                    className="text-left px-4 py-3 text-green-400 text-xs font-medium uppercase tracking-wider"
+                    className="text-left px-5 py-3.5 text-[#5A1F2F] text-xs font-bold uppercase tracking-wider font-sans"
                   >
                     {heading}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[#E8DCC8]/60 bg-white">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-12 text-center text-green-400 animate-pulse">
+                  <td colSpan={8} className="px-5 py-12 text-center text-[#7C7267] animate-pulse font-sans">
                     Loading orders...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-12 text-center text-green-500">
+                  <td colSpan={8} className="px-5 py-12 text-center text-[#7C7267] font-sans">
                     No orders found
                   </td>
                 </tr>
@@ -188,23 +188,23 @@ export default function OrdersPage() {
                         openOrder(order.id);
                       }
                     }}
-                    className="border-b border-green-800/50 hover:bg-green-800/30 transition-colors cursor-pointer focus-visible:bg-green-800/40"
+                    className="hover:bg-[#FDFBF7] transition-colors cursor-pointer font-sans"
                   >
-                    <td className="px-4 py-3 text-gold-400 font-medium text-xs whitespace-nowrap">#{order.id}</td>
-                    <td className="px-4 py-3 min-w-44">
-                      <p className="text-white text-xs font-medium">{order.customer}</p>
-                      <p className="text-green-500 text-xs">{order.email}</p>
+                    <td className="px-5 py-3.5 text-[#8C6D1F] font-bold text-xs whitespace-nowrap font-sans">#{order.id}</td>
+                    <td className="px-5 py-3.5 min-w-44">
+                      <p className="text-[#2F2B27] text-xs font-bold font-sans">{order.customer}</p>
+                      <p className="text-[#7C7267] text-xs font-sans">{order.email}</p>
                     </td>
-                    <td className="px-4 py-3 text-green-400 text-xs whitespace-nowrap">{order.date}</td>
-                    <td className="px-4 py-3 text-green-300 text-xs whitespace-nowrap">
+                    <td className="px-5 py-3.5 text-[#7C7267] text-xs whitespace-nowrap font-sans">{order.date}</td>
+                    <td className="px-5 py-3.5 text-[#5C544B] text-xs whitespace-nowrap font-sans">
                       {order.items.length} item{order.items.length > 1 ? "s" : ""}
                     </td>
-                    <td className="px-4 py-3 text-white text-xs font-semibold whitespace-nowrap">
+                    <td className="px-5 py-3.5 text-[#2F2B27] text-xs font-bold whitespace-nowrap font-sans">
                       Rs. {order.total.toLocaleString()}
                     </td>
-                    <td className="px-4 py-3"><StatusBadge status={order.status} /></td>
-                    <td className="px-4 py-3"><StatusBadge status={order.payment} /></td>
-                    <td className="px-4 py-3 text-right text-green-500">
+                    <td className="px-5 py-3.5"><StatusBadge status={order.status} /></td>
+                    <td className="px-5 py-3.5"><StatusBadge status={order.payment} /></td>
+                    <td className="px-5 py-3.5 text-right text-[#7C7267]">
                       <ChevronRight size={16} className="ml-auto" />
                     </td>
                   </tr>
@@ -213,8 +213,8 @@ export default function OrdersPage() {
             </tbody>
           </table>
         </div>
-        <div className="px-5 py-3 border-t border-green-800 flex items-center justify-between">
-          <p className="text-green-500 text-xs">{filtered.length} order{filtered.length !== 1 ? "s" : ""}</p>
+        <div className="px-5 py-3.5 border-t border-[#E8DCC8] bg-[#FDFBF7] flex items-center justify-between font-sans">
+          <p className="text-[#7C7267] text-xs font-sans">{filtered.length} order{filtered.length !== 1 ? "s" : ""}</p>
           <Pagination page={page} totalPages={totalPages} onPage={setPage} />
         </div>
       </div>
