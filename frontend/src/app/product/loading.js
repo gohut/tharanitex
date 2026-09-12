@@ -1,5 +1,5 @@
-﻿import { ProductDetailSkeleton } from "@/components/ui/PageSkeleton";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 
 export default function Loading() {
-  return <ProductDetailSkeleton />;
+  return <LoadingScreen />;
 }

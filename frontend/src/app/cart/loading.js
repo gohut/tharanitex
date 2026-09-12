@@ -1,5 +1,5 @@
-﻿import { CartSkeleton } from "@/components/ui/PageSkeleton";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 
 export default function Loading() {
-  return <CartSkeleton />;
+  return <LoadingScreen />;
 }

@@ -1,15 +1,11 @@
-"use client";
-
-import { useEffect } from "react";
-
-export default function LoadingScreen({ children }) {
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "instant",
-    });
-  }, []);
-
-  return children;
+export default function LoadingScreen() {
+  return (
+    <div className="home-loading">
+      <img
+        src="/assets/logo.png"
+        alt="Tharani Textiles"
+        className="home-loading-logo"
+      />
+    </div>
+  );
 }

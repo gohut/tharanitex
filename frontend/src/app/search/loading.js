@@ -1,5 +1,5 @@
-﻿import { SearchSkeleton } from "@/components/ui/PageSkeleton";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 
 export default function Loading() {
-  return <SearchSkeleton />;
+  return <LoadingScreen />;
 }
