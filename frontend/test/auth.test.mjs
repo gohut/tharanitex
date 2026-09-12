@@ -164,7 +164,7 @@ class MockD1Database {
     const s = sql.trim().toUpperCase();
 
     if (s.startsWith('INSERT INTO SESSIONS')) {
-      const [id, user_id, user_type, token_hash, ip_address, user_agent] = params;
+      const [id, user_id, user_type, token_hash, ip_address, user_agent, expires_at] = params;
       const session = {
         id,
         user_id,
@@ -174,7 +174,7 @@ class MockD1Database {
         user_agent,
         is_revoked: 0,
         created_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: expires_at || new Date(Date.now() + (user_type === 'admin' ? 24 : 7 * 24) * 60 * 60 * 1000).toISOString(),
       };
       this.tables.sessions.push(session);
       return { meta: { last_row_id: session.id, changes: 1 } };
@@ -385,16 +385,18 @@ async function runTests() {
   console.log('✓ Session invalidation verified.');
 
   // 9. Cookie Header Verification
-  console.log('[TEST 9] Testing Cookie header formats...');
+  console.log('[TEST 9] Testing Cookie header formats & Max-Age...');
   const testCookieToken = 'test_token_123';
   const sessionHeader = buildSessionCookieHeader(testCookieToken);
   assert.ok(sessionHeader.includes('tharanitex_session=test_token_123'));
   assert.ok(sessionHeader.includes('HttpOnly'));
   assert.ok(sessionHeader.includes('Path=/'));
+  assert.ok(sessionHeader.includes('Max-Age=604800'), 'Customer session must be 7 days (604800s)');
 
   const adminHeader = buildAdminCookieHeader(testCookieToken);
   assert.ok(adminHeader.includes('admin_token=test_token_123'));
   assert.ok(adminHeader.includes('HttpOnly'));
+  assert.ok(adminHeader.includes('Max-Age=86400'), 'Admin session must be 24 hours (86400s)');
 
   const clearSessionHeader = buildClearCookieHeader();
   assert.ok(clearSessionHeader.includes('Max-Age=0'));
@@ -449,8 +451,26 @@ async function runTests() {
   assert.equal(permCheck.status, 403, 'Must return 403 Forbidden');
   console.log('✓ Customer token strictly denied admin privileges (403 Forbidden).');
 
+  // 13. Session Expiration Verification
+  console.log('[TEST 13] Testing expired session rejection...');
+  const expiredRawToken = 'expired_raw_token_abc';
+  const expiredHash = await hashToken(expiredRawToken);
+  const pastDate = new Date(Date.now() - 3600000).toISOString(); // 1 hour in the past
+  mockDb.execute('INSERT INTO SESSIONS', [
+    'sess_expired_1',
+    1,
+    'admin',
+    expiredHash,
+    '127.0.0.1',
+    'test-agent',
+    pastDate
+  ]);
+  const expiredCheck = await validateSession(expiredRawToken, testEnv);
+  assert.equal(expiredCheck, null, 'Expired session must return null');
+  console.log('✓ Expired session correctly rejected.');
+
   console.log('\n====================================================');
-  console.log('ALL 12 AUTOMATED SECURITY & AUTH TEST SUITES PASSED!');
+  console.log('ALL 13 AUTOMATED SECURITY & AUTH TEST SUITES PASSED!');
   console.log('====================================================');
 }
 

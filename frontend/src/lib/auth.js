@@ -2,6 +2,7 @@ import {
   OTP_EXPIRY_MINUTES,
   SESSION_COOKIE_NAME,
   SESSION_DURATION_HOURS,
+  ADMIN_SESSION_DURATION_HOURS,
 } from '../types/auth.js';
 import {
   getKV,
@@ -145,16 +146,17 @@ export async function createD1Session(
   const rawToken = generateSessionToken();
   const tokenHash = await hashToken(rawToken);
   const sessionId = crypto.randomUUID();
-  const expiresAt = new Date(Date.now() + SESSION_DURATION_HOURS * 60 * 60 * 1000).toISOString();
+  const durationHours = userType === 'admin' ? ADMIN_SESSION_DURATION_HOURS : SESSION_DURATION_HOURS;
+  const expiresAt = new Date(Date.now() + durationHours * 60 * 60 * 1000).toISOString();
 
   if (db) {
     try {
       await db
         .prepare(
           `INSERT INTO sessions (id, user_id, user_type, token_hash, ip_address, user_agent, is_revoked, created_at, expires_at)
-           VALUES (?, ?, ?, ?, ?, ?, 0, datetime('now'), datetime('now', '+7 days'))`
+           VALUES (?, ?, ?, ?, ?, ?, 0, datetime('now'), ?)`
         )
-        .bind(sessionId, userId, userType, tokenHash, ipAddress, userAgent)
+        .bind(sessionId, userId, userType, tokenHash, ipAddress, userAgent, expiresAt)
         .run();
     } catch {
       // D1 session creation fallback if table initializing
@@ -205,6 +207,10 @@ export async function validateSession(
       }
 
       if (session) {
+        if (session.expires_at && new Date(session.expires_at).getTime() <= Date.now()) {
+          return null;
+        }
+
         if (session.user_type === 'admin') {
           const adminConfig = getAdminConfig(env);
 
@@ -942,10 +948,10 @@ export function buildSessionCookieHeader(token) {
 }
 
 /**
- * Construct secure HttpOnly Cookie header string for admin_token
+ * Construct secure HttpOnly Cookie header string for admin_token (24-hour validity)
  */
 export function buildAdminCookieHeader(token) {
-  const maxAge = SESSION_DURATION_HOURS * 60 * 60;
+  const maxAge = ADMIN_SESSION_DURATION_HOURS * 60 * 60;
   const isProd = process.env.NODE_ENV === 'production';
   const secureFlag = isProd ? 'Secure; ' : '';
   return `admin_token=${token}; Path=/; HttpOnly; ${secureFlag}SameSite=Lax; Max-Age=${maxAge}`;

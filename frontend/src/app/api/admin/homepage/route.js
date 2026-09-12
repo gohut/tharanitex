@@ -1,4 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { authenticateAdmin } from "@/middleware/auth";
 import {
   createHeroSlide,
   createPromoBanner,
@@ -9,9 +10,17 @@ import {
   updateHomepageSettings,
 } from "@/lib/db/homepage";
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+    const admin = await authenticateAdmin(request, env);
+    if (!admin) {
+      return Response.json(
+        { success: false, error: "UNAUTHORIZED", message: "Admin access required." },
+        { status: 401 }
+      );
+    }
+
     const [heroSlides, promoBanners, settings] = await Promise.all([
       getHeroSlides(env.DB),
       getPromoBanners(env.DB),
@@ -42,7 +51,15 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+    const admin = await authenticateAdmin(request, env);
+    if (!admin) {
+      return Response.json(
+        { success: false, error: "UNAUTHORIZED", message: "Admin access required." },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
 
     if (body.type === "hero") {

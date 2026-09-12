@@ -73,7 +73,7 @@ export default function AdminDashboardPage() {
 
   const quickNav = [
     { title: "Orders", count: `${totalOrders} total`, href: "/admin/orders", icon: ShoppingCart, color: "text-blue-400" },
-    { title: "Customers", count: "Directory & History", href: "/admin/customerSection", icon: Users, color: "text-purple-400" },
+    { title: "Customers", count: "Directory & History", href: "/admin/customers", icon: Users, color: "text-purple-400" },
     { title: "Products", count: "Inventory Catalog", href: "/admin/products", icon: Package, color: "text-emerald-400" },
     { title: "Reviews", count: "Moderation", href: "/admin/reviews", icon: Star, color: "text-amber-400" },
     { title: "Store Content", count: "Banners & Sections", href: "/admin/content", icon: FileText, color: "text-pink-400" },

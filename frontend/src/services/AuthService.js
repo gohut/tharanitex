@@ -2,6 +2,7 @@ import { UserRepository } from "../repositories/UserRepository";
 import { Hash } from "../utils/hash";
 import { signJWT } from "../utils/jwt";
 import { getJwtSecret } from "../utils/jwt-secret";
+import { SESSION_DURATION_HOURS, ADMIN_SESSION_DURATION_HOURS } from "../types/auth.js";
 
 export class AuthService {
   static async register(
@@ -156,13 +157,19 @@ export class AuthService {
     const secret =
       getJwtSecret(env);
 
+    const expiresInSeconds =
+      user.role === "admin" || user.userType === "admin"
+        ? ADMIN_SESSION_DURATION_HOURS * 60 * 60
+        : SESSION_DURATION_HOURS * 60 * 60;
+
     return await signJWT(
       {
         id: user.id,
         email: user.email,
         role: user.role,
       },
-      secret
+      secret,
+      expiresInSeconds
     );
   }
 

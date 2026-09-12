@@ -18,11 +18,18 @@ export default function AdminLoginPage() {
     fetch("/api/auth/session", { credentials: "include", cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (active && data?.success && data?.data?.user?.userType === "admin") {
+        if (!active) return;
+        if (data?.success && data?.data?.user?.userType === "admin") {
           window.location.href = "/admin";
+        } else {
+          localStorage.removeItem("currentUser");
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (active) {
+          localStorage.removeItem("currentUser");
+        }
+      });
 
     return () => {
       active = false;

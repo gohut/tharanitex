@@ -1,4 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { authenticateAdmin } from "@/middleware/auth";
 
 import {
   updateHomepageSection,
@@ -9,7 +10,14 @@ import { getProductsByIds } from "@/lib/db/product";
 
 export async function PATCH(request, { params }) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+    const admin = await authenticateAdmin(request, env);
+    if (!admin) {
+      return Response.json(
+        { success: false, error: "UNAUTHORIZED", message: "Admin access required." },
+        { status: 401 }
+      );
+    }
 
     const { id } = await params;
     const body = await request.json();
@@ -51,7 +59,14 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+    const admin = await authenticateAdmin(request, env);
+    if (!admin) {
+      return Response.json(
+        { success: false, error: "UNAUTHORIZED", message: "Admin access required." },
+        { status: 401 }
+      );
+    }
 
     const { id } = await params;
 

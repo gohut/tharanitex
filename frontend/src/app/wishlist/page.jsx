@@ -1,5 +1,6 @@
 import Navbar from "@/components/home/Navbar/Navbar";
 import ProductCard from "@/components/home/ProductSection/ProductCard";
+import AuthRequiredPage from "@/components/auth/AuthRequiredPage";
 import Link from "next/link";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getWishlist } from "@/lib/db/wishlist";
@@ -19,10 +20,14 @@ export default async function WishlistPage() {
   // 1. Try JWT authentication (auth_token or token)
   const jwtToken = cookieStore.get("auth_token")?.value || cookieStore.get("token")?.value;
   if (jwtToken) {
-    const secret = getJwtSecret(env);
-    const payload = await verifyJWT(jwtToken, secret);
-    if (payload && (payload.role === "customer" || !payload.role) && payload.id) {
-      userId = String(payload.id);
+    try {
+      const secret = getJwtSecret(env);
+      const payload = await verifyJWT(jwtToken, secret);
+      if (payload && (payload.role === "customer" || !payload.role) && payload.id) {
+        userId = String(payload.id);
+      }
+    } catch {
+      // JWT verify fallback
     }
   }
 
@@ -30,14 +35,30 @@ export default async function WishlistPage() {
   if (!userId) {
     const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value || "";
     if (sessionToken) {
-      const user = await validateSession(sessionToken, env);
-      if (user && user.userType === "customer" && user.userId) {
-        userId = String(user.userId);
+      try {
+        const user = await validateSession(sessionToken, env);
+        if (user && user.userType === "customer" && user.userId) {
+          userId = String(user.userId);
+        }
+      } catch {
+        // Session verify fallback
       }
     }
   }
 
-  const wishlistItems = userId ? await getWishlist(env.DB, userId) : [];
+  if (!userId) {
+    return (
+      <>
+        <Navbar />
+        <AuthRequiredPage
+          title="Sign In to View Your Wishlist"
+          message="Please sign in to view and manage your saved silk saree collection."
+        />
+      </>
+    );
+  }
+
+  const wishlistItems = await getWishlist(env.DB, userId);
 
   return (
     <>

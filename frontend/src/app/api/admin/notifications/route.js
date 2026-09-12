@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { validateSession, getDB } from '../../../../lib/auth';
-import { SESSION_COOKIE_NAME } from '../../../../types/auth';
+import { getDB } from '../../../../lib/auth';
+import { authenticateAdmin } from '../../../../middleware/auth';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 /**
  * GET /api/admin/notifications
@@ -8,22 +9,8 @@ import { SESSION_COOKIE_NAME } from '../../../../types/auth';
  */
 export async function GET(request) {
   try {
-    const sessionToken =
-      request.cookies.get(SESSION_COOKIE_NAME)?.value ||
-      request.headers.get('x-session-token');
-
-    if (!sessionToken) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Session expired, please log in again.',
-          error: 'UNAUTHORIZED',
-        },
-        { status: 401 }
-      );
-    }
-
-    const userData = await validateSession(sessionToken);
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+    const userData = await authenticateAdmin(request, env);
 
     if (!userData || userData.userType !== 'admin') {
       return NextResponse.json(
@@ -36,7 +23,7 @@ export async function GET(request) {
       );
     }
 
-    const db = await getDB();
+    const db = await getDB(env);
 
     if (!db) {
       return NextResponse.json({

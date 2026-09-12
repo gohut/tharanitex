@@ -1,8 +1,16 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { authenticateAdmin } from "@/middleware/auth";
 
 export async function POST(request) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+    const admin = await authenticateAdmin(request, env);
+    if (!admin) {
+      return Response.json(
+        { success: false, error: "UNAUTHORIZED", message: "Admin access required." },
+        { status: 401 }
+      );
+    }
 
     const formData = await request.formData();
     const file = formData.get("file");

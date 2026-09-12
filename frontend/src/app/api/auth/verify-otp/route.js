@@ -3,6 +3,7 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { verifyOtpAndLogin, buildSessionCookieHeader } from '../../../../lib/auth';
 import { signJWT } from '../../../../utils/jwt';
 import { getJwtSecret } from '../../../../utils/jwt-secret';
+import { SESSION_DURATION_HOURS } from '../../../../types/auth';
 
 export async function POST(request) {
   try {
@@ -38,7 +39,11 @@ export async function POST(request) {
     let jwtToken = null;
     try {
       const secret = getJwtSecret(env);
-      jwtToken = await signJWT({ id: authResult.user.id, email: `${body.phoneNumber}@customer.tharanitex.com`, role: 'customer' }, secret);
+      jwtToken = await signJWT(
+        { id: authResult.user.id, email: `${body.phoneNumber}@customer.tharanitex.com`, role: 'customer' },
+        secret,
+        SESSION_DURATION_HOURS * 60 * 60
+      );
     } catch {
       // JWT fallback optional
     }

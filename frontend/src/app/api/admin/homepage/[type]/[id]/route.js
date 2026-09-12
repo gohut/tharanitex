@@ -1,4 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { authenticateAdmin } from "@/middleware/auth";
 import {
   deleteHeroSlide,
   deletePromoBanner,
@@ -21,7 +22,15 @@ async function getExisting(db, type, id) {
 
 export async function PATCH(request, { params }) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+    const admin = await authenticateAdmin(request, env);
+    if (!admin) {
+      return Response.json(
+        { success: false, error: "UNAUTHORIZED", message: "Admin access required." },
+        { status: 401 }
+      );
+    }
+
     const { type, id } = await params;
     const body = await request.json();
     const existing = await getExisting(env.DB, type, id);
@@ -64,7 +73,15 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+    const admin = await authenticateAdmin(request, env);
+    if (!admin) {
+      return Response.json(
+        { success: false, error: "UNAUTHORIZED", message: "Admin access required." },
+        { status: 401 }
+      );
+    }
+
     const { type, id } = await params;
     const existing = await getExisting(env.DB, type, id);
 
