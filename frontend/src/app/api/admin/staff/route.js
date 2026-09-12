@@ -35,6 +35,21 @@ async function ensureStaffTables(db) {
       (2, 'Manager'), 
       (3, 'Support Staff')
     `).run();
+
+    const existingAdmin = await db
+      .prepare(`SELECT id FROM staff_users WHERE id = 1 OR LOWER(email) = 'admin@tharanitex.com' OR LOWER(email) = 'admin@tharanitextiles.com'`)
+      .first();
+
+    if (!existingAdmin) {
+      const defaultAdminPass = await hashPassword('AdminPassword123!');
+      await db
+        .prepare(`
+          INSERT OR IGNORE INTO staff_users (id, name, email, password_hash, role_id, status, created_at)
+          VALUES (1, 'Super Admin', 'admin@tharanitex.com', ?, 1, 'Active', datetime('now'))
+        `)
+        .bind(defaultAdminPass)
+        .run();
+    }
   } catch (e) {
     // Non-blocking initialization
   }

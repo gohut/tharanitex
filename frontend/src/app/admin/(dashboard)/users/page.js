@@ -5,7 +5,7 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import FormInput from "@/components/ui/FormInput";
-import { adminUsers as initUsers, roles as staticRoles, permissions } from "@/data/users";
+import { roles as staticRoles, permissions } from "@/data/users";
 import toast from "react-hot-toast";
 
 const roleIdMap = {
@@ -21,7 +21,8 @@ const roleNameMap = {
 };
 
 export default function UsersPage() {
-  const [users, setUsers] = useState(initUsers);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [availableRoles, setAvailableRoles] = useState(staticRoles);
   const [perms, setPerms] = useState(permissions.matrix);
   const [tab, setTab] = useState("users");
@@ -40,7 +41,7 @@ export default function UsersPage() {
 
       if (staffRes.ok) {
         const staffJson = await staffRes.json();
-        if (staffJson?.success && Array.isArray(staffJson.data) && staffJson.data.length > 0) {
+        if (staffJson?.success && Array.isArray(staffJson.data)) {
           const mapped = staffJson.data.map((u) => ({
             id: u.id,
             name: u.name,
@@ -72,6 +73,8 @@ export default function UsersPage() {
       }
     } catch {
       // Non-blocking
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -251,48 +254,84 @@ export default function UsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((u) => (
-                    <tr
-                      key={u.id}
-                      className="border-b border-green-800/50 hover:bg-green-800/30 transition-colors font-sans"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gold-600/20 border border-gold-800/40 flex items-center justify-center">
-                            <span className="text-gold-400 text-xs font-bold font-sans">{u.avatar}</span>
+                  {loading ? (
+                    [1, 2, 3].map((i) => (
+                      <tr key={i} className="border-b border-green-800/50 animate-pulse">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-green-800/60" />
+                            <div className="h-3 w-28 bg-green-800/60 rounded" />
                           </div>
-                          <p className="text-white text-xs font-medium font-sans">{u.name}</p>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-green-300 text-xs font-sans">{u.email}</td>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-gold-800/40 bg-gold-600/10 text-gold-400 font-sans">
-                          <Shield size={10} /> {u.role}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-green-500 text-xs font-sans">{u.lastLogin}</td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={u.status} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-1.5">
-                          <button
-                            onClick={() => openEdit(u)}
-                            className="p-1.5 rounded-lg bg-green-800 hover:bg-green-700 text-green-300 transition-colors"
-                          >
-                            <Edit2 size={13} />
-                          </button>
-                          <button
-                            onClick={() => deleteUser(u.id)}
-                            disabled={u.role === "Super Admin"}
-                            className="p-1.5 rounded-lg bg-red-900/50 hover:bg-red-800 text-red-400 disabled:opacity-30 transition-colors"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="h-3 w-36 bg-green-800/60 rounded" />
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="h-4 w-20 bg-green-800/60 rounded-full" />
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="h-3 w-24 bg-green-800/60 rounded" />
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="h-4 w-14 bg-green-800/60 rounded-full" />
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="h-6 w-14 bg-green-800/60 rounded-lg" />
+                        </td>
+                      </tr>
+                    ))
+                  ) : users.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center text-green-400 text-xs font-sans">
+                        No staff accounts found. Click &quot;Add Staff&quot; to create one.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    users.map((u) => (
+                      <tr
+                        key={u.id}
+                        className="border-b border-green-800/50 hover:bg-green-800/30 transition-colors font-sans"
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gold-600/20 border border-gold-800/40 flex items-center justify-center">
+                              <span className="text-gold-400 text-xs font-bold font-sans">{u.avatar}</span>
+                            </div>
+                            <p className="text-white text-xs font-medium font-sans">{u.name}</p>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-green-300 text-xs font-sans">{u.email}</td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-gold-800/40 bg-gold-600/10 text-gold-400 font-sans">
+                            <Shield size={10} /> {u.role}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-green-500 text-xs font-sans">{u.lastLogin}</td>
+                        <td className="px-4 py-3">
+                          <StatusBadge status={u.status} />
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => openEdit(u)}
+                              className="p-1.5 rounded-lg bg-green-800 hover:bg-green-700 text-green-300 transition-colors"
+                              title="Edit Staff Member"
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                            <button
+                              onClick={() => deleteUser(u.id)}
+                              disabled={u.role === "Super Admin"}
+                              className="p-1.5 rounded-lg bg-red-900/50 hover:bg-red-800 text-red-400 disabled:opacity-30 transition-colors"
+                              title={u.role === "Super Admin" ? "Super Admin cannot be deleted" : "Delete Staff Member"}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

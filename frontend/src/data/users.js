@@ -1,25 +1,4 @@
-export const adminUsers = [
-  {
-    id: "U001", name: "Gowtham Raj", email: "gowtham@aeux.com", role: "Super Admin",
-    status: "Active", avatar: "GR", lastLogin: "2025-07-17 09:00",
-  },
-  {
-    id: "U002", name: "Anitha Krishnan", email: "anitha@aeux.com", role: "Manager",
-    status: "Active", avatar: "AK", lastLogin: "2025-07-17 08:30",
-  },
-  {
-    id: "U003", name: "Ramesh Kumar", email: "ramesh@aeux.com", role: "Support Staff",
-    status: "Active", avatar: "RK", lastLogin: "2025-07-16 17:45",
-  },
-  {
-    id: "U004", name: "Suma Devi", email: "suma@aeux.com", role: "Manager",
-    status: "Inactive", avatar: "SD", lastLogin: "2025-07-10 11:20",
-  },
-  {
-    id: "U005", name: "Vikram Nair", email: "vikram@aeux.com", role: "Support Staff",
-    status: "Active", avatar: "VN", lastLogin: "2025-07-17 10:15",
-  },
-];
+export const adminUsers = [];
 
 export const roles = ["Super Admin", "Manager", "Support Staff"];
 
