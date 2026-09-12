@@ -940,6 +940,17 @@ export async function requestOtp(fullName, phoneInput, env) {
 /**
  * Verify customer OTP & generate durable customer session
  */
+export async function verifyOtpAndLogin(
+  fullName,
+  phoneInput,
+  otpCodeInput,
+  userAgent,
+  ipAddress,
+  env
+) {
+  return verifyOtp(phoneInput, otpCodeInput, fullName, userAgent, ipAddress, env);
+}
+
 export async function verifyOtp(
   phoneInput,
   otpCodeInput,
@@ -950,6 +961,7 @@ export async function verifyOtp(
 ) {
   const phoneNumber = normalizePhoneNumber(phoneInput);
   const otpCode = otpCodeInput ? otpCodeInput.trim() : '';
+
 
   if (!otpCode || otpCode.length !== 6) {
     throw new Error('OTP must be a valid 6-digit numeric code.');
