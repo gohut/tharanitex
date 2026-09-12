@@ -5,7 +5,6 @@ const VALID_MODULES = [
   'Products',
   'Orders',
   'Customers',
-  'Shipping',
   'Reviews',
   'CMS',
   'Users & Roles',

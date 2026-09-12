@@ -71,7 +71,7 @@ class MockD1Database {
     ];
 
     // Seed Role Permissions
-    const modules = ['Products', 'Orders', 'Customers', 'Shipping', 'Reviews', 'CMS', 'Users & Roles', 'Settings'];
+    const modules = ['Products', 'Orders', 'Customers', 'Reviews', 'CMS', 'Users & Roles', 'Settings'];
     this.tables.role_permissions = [];
 
     // Super Admin: full access
