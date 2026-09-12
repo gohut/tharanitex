@@ -1,11 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Shield, Check, Lock, Eye, EyeOff } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Plus, Edit2, Trash2, Shield, Check, Eye, EyeOff } from "lucide-react";
 import StatusBadge from "@/components/ui/StatusBadge";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import FormInput from "@/components/ui/FormInput";
-import { adminUsers as initUsers, roles, permissions } from "@/data/users";
+import { adminUsers as initUsers, roles as staticRoles, permissions } from "@/data/users";
 import toast from "react-hot-toast";
 
 const roleIdMap = {
@@ -22,6 +22,7 @@ const roleNameMap = {
 
 export default function UsersPage() {
   const [users, setUsers] = useState(initUsers);
+  const [availableRoles, setAvailableRoles] = useState(staticRoles);
   const [perms, setPerms] = useState(permissions.matrix);
   const [tab, setTab] = useState("users");
   const [modal, setModal] = useState(null);
@@ -30,13 +31,17 @@ export default function UsersPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Fetch real staff accounts and roles from backend if available
-  useEffect(() => {
-    fetch("/api/admin/staff")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((json) => {
-        if (json?.success && Array.isArray(json.data) && json.data.length > 0) {
-          const mapped = json.data.map((u) => ({
+  const fetchStaffAndRoles = useCallback(async () => {
+    try {
+      const [staffRes, rolesRes] = await Promise.all([
+        fetch("/api/admin/staff"),
+        fetch("/api/admin/roles"),
+      ]);
+
+      if (staffRes.ok) {
+        const staffJson = await staffRes.json();
+        if (staffJson?.success && Array.isArray(staffJson.data) && staffJson.data.length > 0) {
+          const mapped = staffJson.data.map((u) => ({
             id: u.id,
             name: u.name,
             email: u.email,
@@ -56,9 +61,23 @@ export default function UsersPage() {
           }));
           setUsers(mapped);
         }
-      })
-      .catch(() => {});
+      }
+
+      if (rolesRes.ok) {
+        const rolesJson = await rolesRes.json();
+        if (rolesJson?.success && Array.isArray(rolesJson.data) && rolesJson.data.length > 0) {
+          const names = rolesJson.data.map((r) => r.name);
+          setAvailableRoles(names);
+        }
+      }
+    } catch {
+      // Non-blocking
+    }
   }, []);
+
+  useEffect(() => {
+    fetchStaffAndRoles();
+  }, [fetchStaffAndRoles]);
 
   const openAdd = () => {
     setForm({ name: "", email: "", password: "", role: "Support Staff", status: "Active" });
@@ -113,54 +132,11 @@ export default function UsersPage() {
         const json = await res.json().catch(() => ({}));
 
         if (res.ok && json.success) {
-          const newAccount = json.data;
-          setUsers((prev) => [
-            ...prev,
-            {
-              id: newAccount.id,
-              name: newAccount.name,
-              email: newAccount.email,
-              role: newAccount.role_name || form.role,
-              role_id: newAccount.role_id,
-              status: newAccount.status,
-              avatar: newAccount.name
-                .split(" ")
-                .filter(Boolean)
-                .map((n) => n[0])
-                .join("")
-                .slice(0, 2)
-                .toUpperCase(),
-              lastLogin: "Never",
-            },
-          ]);
           toast.success("Staff account created successfully!");
+          await fetchStaffAndRoles();
+          setModal(null);
         } else {
-          // Fallback to local state if offline / demo mode
-          const newId = `U${Date.now()}`;
-          setUsers((prev) => [
-            ...prev,
-            {
-              id: newId,
-              name: form.name.trim(),
-              email: form.email.trim(),
-              role: form.role,
-              role_id: roleId,
-              status: form.status,
-              avatar: form.name
-                .split(" ")
-                .filter(Boolean)
-                .map((n) => n[0])
-                .join("")
-                .slice(0, 2)
-                .toUpperCase(),
-              lastLogin: "Never",
-            },
-          ]);
-          if (json?.message) {
-            toast.error(json.message);
-          } else {
-            toast.success("Staff account added!");
-          }
+          toast.error(json.message || "Failed to create staff account.");
         }
       } else {
         // Edit existing staff
@@ -182,35 +158,14 @@ export default function UsersPage() {
 
         const json = await res.json().catch(() => ({}));
 
-        setUsers((prev) =>
-          prev.map((u) =>
-            u.id === selected.id
-              ? {
-                  ...u,
-                  name: form.name.trim(),
-                  email: form.email.trim(),
-                  role: form.role,
-                  role_id: roleId,
-                  status: form.status,
-                  avatar: form.name
-                    .split(" ")
-                    .filter(Boolean)
-                    .map((n) => n[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase(),
-                }
-              : u
-          )
-        );
-
         if (res.ok && json.success) {
           toast.success("Staff account updated successfully!");
+          await fetchStaffAndRoles();
+          setModal(null);
         } else {
-          toast.success("Staff changes saved!");
+          toast.error(json.message || "Failed to update staff account.");
         }
       }
-      setModal(null);
     } catch (err) {
       console.error("Save staff error:", err);
       toast.error("An error occurred while saving staff account.");
@@ -223,13 +178,18 @@ export default function UsersPage() {
     if (!confirm("Are you sure you want to delete this staff member?")) return;
 
     try {
-      await fetch(`/api/admin/staff/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/staff/${id}`, { method: "DELETE" });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.success) {
+        toast.success("Staff account deleted.");
+        setUsers((prev) => prev.filter((u) => u.id !== id));
+      } else {
+        toast.error(json.message || "Failed to delete staff account.");
+      }
     } catch (err) {
       console.error("Delete staff error:", err);
+      toast.error("An error occurred while deleting staff account.");
     }
-
-    setUsers((prev) => prev.filter((u) => u.id !== id));
-    toast.success("Staff account deleted.");
   };
 
   const togglePerm = (role, cat, action) => {
@@ -248,10 +208,10 @@ export default function UsersPage() {
   const actions = ["view", "create", "edit", "delete"];
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-5 animate-fade-in font-sans">
       <div>
-        <h1 className="text-white text-2xl font-bold">Users & Roles</h1>
-        <p className="text-green-400 text-sm mt-0.5">Manage admin accounts and role permissions</p>
+        <h1 className="text-white text-2xl font-bold font-sans tracking-tight">Users & Roles</h1>
+        <p className="text-green-400 text-sm mt-0.5 font-sans">Manage admin accounts and role permissions</p>
       </div>
 
       <div className="flex gap-1 bg-green-900 p-1 rounded-xl w-fit">
@@ -259,7 +219,7 @@ export default function UsersPage() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all font-sans ${
               tab === t ? "bg-gold-600 text-green-950" : "text-green-400 hover:text-white"
             }`}
           >
@@ -277,13 +237,13 @@ export default function UsersPage() {
           </div>
           <div className="bg-green-900 border border-green-800 rounded-2xl shadow-card overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm font-sans">
                 <thead>
                   <tr className="border-b border-green-800">
                     {["Staff Member", "Email", "Role", "Last Login", "Status", "Actions"].map((h) => (
                       <th
                         key={h}
-                        className="text-left px-4 py-3 text-green-400 text-xs font-medium uppercase tracking-wider"
+                        className="text-left px-4 py-3 text-green-400 text-xs font-medium uppercase tracking-wider font-sans"
                       >
                         {h}
                       </th>
@@ -294,23 +254,23 @@ export default function UsersPage() {
                   {users.map((u) => (
                     <tr
                       key={u.id}
-                      className="border-b border-green-800/50 hover:bg-green-800/30 transition-colors"
+                      className="border-b border-green-800/50 hover:bg-green-800/30 transition-colors font-sans"
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-gold-600/20 border border-gold-800/40 flex items-center justify-center">
-                            <span className="text-gold-400 text-xs font-bold">{u.avatar}</span>
+                            <span className="text-gold-400 text-xs font-bold font-sans">{u.avatar}</span>
                           </div>
-                          <p className="text-white text-xs font-medium">{u.name}</p>
+                          <p className="text-white text-xs font-medium font-sans">{u.name}</p>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-green-300 text-xs">{u.email}</td>
+                      <td className="px-4 py-3 text-green-300 text-xs font-sans">{u.email}</td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-gold-800/40 bg-gold-600/10 text-gold-400">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-gold-800/40 bg-gold-600/10 text-gold-400 font-sans">
                           <Shield size={10} /> {u.role}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-green-500 text-xs">{u.lastLogin}</td>
+                      <td className="px-4 py-3 text-green-500 text-xs font-sans">{u.lastLogin}</td>
                       <td className="px-4 py-3">
                         <StatusBadge status={u.status} />
                       </td>
@@ -341,26 +301,26 @@ export default function UsersPage() {
       ) : (
         /* Permission Matrix */
         <div className="space-y-4">
-          {roles.map((role) => (
+          {availableRoles.map((role) => (
             <div
               key={role}
               className="bg-green-900 border border-green-800 rounded-2xl shadow-card overflow-hidden"
             >
               <div className="px-5 py-3 border-b border-green-800 flex items-center gap-2">
                 <Shield size={15} className="text-gold-400" />
-                <p className="text-white font-semibold text-sm">{role}</p>
+                <p className="text-white font-semibold text-sm font-sans">{role}</p>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm font-sans">
                   <thead>
                     <tr className="border-b border-green-800">
-                      <th className="text-left px-4 py-2 text-green-400 text-xs font-medium">
+                      <th className="text-left px-4 py-2 text-green-400 text-xs font-medium font-sans">
                         Module
                       </th>
                       {actions.map((a) => (
                         <th
                           key={a}
-                          className="text-center px-3 py-2 text-green-400 text-xs font-medium capitalize"
+                          className="text-center px-3 py-2 text-green-400 text-xs font-medium capitalize font-sans"
                         >
                           {a}
                         </th>
@@ -373,7 +333,7 @@ export default function UsersPage() {
                         key={cat}
                         className="border-b border-green-800/50 hover:bg-green-800/20"
                       >
-                        <td className="px-4 py-2 text-green-300 text-xs font-medium">{cat}</td>
+                        <td className="px-4 py-2 text-green-300 text-xs font-medium font-sans">{cat}</td>
                         {actions.map((action) => (
                           <td key={action} className="px-3 py-2 text-center">
                             <button
@@ -407,7 +367,7 @@ export default function UsersPage() {
         title={modal === "add" ? "Add Staff Member" : "Edit Staff Member"}
         size="sm"
       >
-        <form onSubmit={saveUser} className="space-y-4">
+        <form onSubmit={saveUser} className="space-y-4 font-sans">
           <FormInput
             label="Full Name"
             id="fname"
@@ -429,7 +389,7 @@ export default function UsersPage() {
 
           {/* Password field */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="fpassword" className="text-green-300 text-xs font-medium">
+            <label htmlFor="fpassword" className="text-green-300 text-xs font-medium font-sans">
               {modal === "add" ? (
                 <>
                   Login Password<span className="text-gold-500 ml-0.5">*</span>
@@ -450,7 +410,7 @@ export default function UsersPage() {
                     : "Leave blank to keep existing password"
                 }
                 required={modal === "add"}
-                className="w-full bg-green-800 border border-green-700 text-white placeholder-green-500 rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors"
+                className="w-full bg-green-800 border border-green-700 text-white placeholder-green-500 rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors font-sans"
               />
               <button
                 type="button"
@@ -461,7 +421,7 @@ export default function UsersPage() {
               </button>
             </div>
             {modal === "edit" && (
-              <span className="text-[11px] text-green-400">
+              <span className="text-[11px] text-green-400 font-sans">
                 Leave blank if you do not want to change this staff member's password.
               </span>
             )}
@@ -473,7 +433,7 @@ export default function UsersPage() {
             type="select"
             value={form.role || "Support Staff"}
             onChange={(e) => setForm({ ...form, role: e.target.value })}
-            options={roles}
+            options={availableRoles}
           />
 
           <FormInput

@@ -1,9 +1,44 @@
 import { NextResponse } from 'next/server';
 import { enforceAdminPermission } from '../../../../lib/auth';
 
+async function ensureRolesTables(db) {
+  if (!db) return;
+  try {
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS roles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        created_at TEXT DEFAULT (datetime('now'))
+      )
+    `).run();
+
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS role_permissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        role_id INTEGER NOT NULL REFERENCES roles(id),
+        module TEXT NOT NULL,
+        can_view INTEGER DEFAULT 0,
+        can_create INTEGER DEFAULT 0,
+        can_edit INTEGER DEFAULT 0,
+        can_delete INTEGER DEFAULT 0,
+        UNIQUE(role_id, module)
+      )
+    `).run();
+
+    await db.prepare(`
+      INSERT OR IGNORE INTO roles (id, name) VALUES 
+      (1, 'Super Admin'), 
+      (2, 'Manager'), 
+      (3, 'Support Staff')
+    `).run();
+  } catch {
+    // Non-blocking
+  }
+}
+
 /**
  * GET /api/admin/roles
- * List all roles and their full permission matrix across all 8 modules (Requires module 'Users & Roles', action 'view')
+ * List all roles and their full permission matrix across all modules (Requires module 'Users & Roles', action 'view')
  */
 export async function GET(request) {
   try {
@@ -23,6 +58,8 @@ export async function GET(request) {
         data: [],
       });
     }
+
+    await ensureRolesTables(db);
 
     // Fetch all roles
     const rolesResult = await db

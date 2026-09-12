@@ -16,8 +16,8 @@ import {
   GlobalSkeleton,
 } from "./PageSkeleton";
 
-const LOGO_SCREEN_TIME = 1400;
-const SKELETON_MIN_TIME = 500;
+const LOGO_SCREEN_TIME = 800;
+const SKELETON_MIN_TIME = 250;
 
 function getSkeleton(pathname) {
   if (pathname === "/" || pathname === "/home") {
@@ -62,24 +62,30 @@ function getSkeleton(pathname) {
 export default function InitialLoadingShell() {
   const pathname = usePathname();
 
-  const [stage, setStage] = useState("logo");
+  const [stage, setStage] = useState(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("app_initial_loaded")) {
+      return "done";
+    }
+    return "logo";
+  });
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    const startTimer = setTimeout(() => {
-      setStage("logo");
-      setFadeOut(false);
-    }, 0);
+    // Only run on the very first cold load, never block subsequent SPA route transitions
+    if (stage === "done") return;
+    if (typeof window !== "undefined" && sessionStorage.getItem("app_initial_loaded")) {
+      setStage("done");
+      return;
+    }
 
     const logoTimer = setTimeout(() => {
       setStage("skeleton");
     }, LOGO_SCREEN_TIME);
 
     return () => {
-      clearTimeout(startTimer);
       clearTimeout(logoTimer);
     };
-  }, [pathname]);
+  }, []);
 
   useEffect(() => {
     if (stage !== "skeleton") return;
@@ -98,7 +104,10 @@ export default function InitialLoadingShell() {
 
       setTimeout(() => {
         setStage("done");
-      }, 350);
+        try {
+          sessionStorage.setItem("app_initial_loaded", "true");
+        } catch {}
+      }, 300);
     };
 
     const handleLoad = () => {
@@ -153,7 +162,7 @@ export default function InitialLoadingShell() {
         fixed inset-0 z-[99999]
         overflow-y-auto
         bg-[#FBF5EA]
-        transition-opacity duration-350
+        transition-opacity duration-300
         ${fadeOut ? "pointer-events-none opacity-0" : "opacity-100"}
       `}
     >

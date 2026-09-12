@@ -41,6 +41,8 @@ export default function AdminLayoutClient({ children, user }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchVal, setSearchVal] = useState("");
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const profileRef = useRef(null);
 
   useEffect(() => {
@@ -80,6 +82,7 @@ export default function AdminLayoutClient({ children, user }) {
   };
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
       await fetch("/api/admin/logout", {
         method: "POST",
@@ -92,6 +95,8 @@ export default function AdminLayoutClient({ children, user }) {
     localStorage.removeItem("currentUser");
     window.dispatchEvent(new Event("auth-change"));
 
+    setShowLogoutModal(false);
+    setIsLoggingOut(false);
     router.replace("/admin/login");
     router.refresh();
   };
@@ -153,7 +158,7 @@ export default function AdminLayoutClient({ children, user }) {
         {/* Sidebar User Footer */}
         <div className="px-3 py-4 border-t border-green-800">
           <button
-            onClick={handleLogout}
+            onClick={() => setShowLogoutModal(true)}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-800 cursor-pointer group text-left transition"
           >
             <div className="w-8 h-8 rounded-full bg-gold-600 flex items-center justify-center text-green-950 font-bold text-xs">
@@ -290,7 +295,7 @@ export default function AdminLayoutClient({ children, user }) {
                     className="w-full flex items-center gap-2 px-4 py-2.5 text-red-400 hover:bg-green-700 text-sm text-left"
                     onClick={() => {
                       setProfileOpen(false);
-                      handleLogout();
+                      setShowLogoutModal(true);
                     }}
                   >
                     <LogOut size={14} />
@@ -307,6 +312,46 @@ export default function AdminLayoutClient({ children, user }) {
           {children}
         </main>
       </div>
+
+      {/* ── Confirm Logout Modal ── */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+          <div className="bg-green-900 border border-green-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-900/40 border border-red-700/50 flex items-center justify-center text-red-400">
+                <LogOut size={20} />
+              </div>
+              <div>
+                <h3 className="text-white font-bold text-base">Confirm Sign Out</h3>
+                <p className="text-green-400 text-xs">Are you sure you want to log out?</p>
+              </div>
+            </div>
+
+            <p className="text-green-300 text-sm leading-relaxed">
+              You will need to sign in again with your credentials to access the admin portal.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isLoggingOut}
+                onClick={() => setShowLogoutModal(false)}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-green-300 hover:bg-green-800 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isLoggingOut}
+                onClick={handleLogout}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-500 transition disabled:opacity-50 flex items-center gap-2"
+              >
+                {isLoggingOut ? "Signing out..." : "Sign Out"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

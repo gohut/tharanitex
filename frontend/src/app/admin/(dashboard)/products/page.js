@@ -63,8 +63,8 @@ function CategoryBlock({ category, products, openEditCat, openDeleteCat }) {
                 </div>
               </div>
               <div className="p-3">
-                <p className="text-white text-sm font-medium truncate mb-1">{p.name}</p>
-                <p className="text-gold-500 font-semibold text-sm">â‚¹{p.price.toLocaleString()}</p>
+                <p className="text-white text-sm font-medium font-sans truncate mb-1">{p.name}</p>
+                <p className="text-gold-500 font-semibold text-sm font-sans">₹{p.price.toLocaleString()}</p>
               </div>
             </div>
           ))
@@ -459,13 +459,13 @@ export default function ProductsPage() {
                         </div>
                       </td>
                       <td className="px-5 py-3 text-green-300 text-xs hidden sm:table-cell">{p.category}</td>
-                      <td className="px-5 py-3 text-white text-xs font-semibold">â‚¹{p.price.toLocaleString()}</td>
-                      <td className="px-5 py-3 text-green-300 text-xs">{p.stock}</td>
+                      <td className="px-5 py-3 text-white text-xs font-semibold font-sans">₹{p.price.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-green-300 text-xs font-sans">{p.stock}</td>
                       <td className="px-5 py-3"><StatusBadge status={p.status} /></td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-1">
                           <Star size={12} className="text-gold-500 fill-gold-500" />
-                          <span className="text-green-300 text-xs">{p.rating} ({p.reviews})</span>
+                          <span className="text-green-300 text-xs font-sans">{p.rating} ({p.reviews})</span>
                         </div>
                       </td>
                     </tr>
@@ -474,7 +474,7 @@ export default function ProductsPage() {
               </table>
             </div>
             <div className="px-5 py-3 border-t border-green-800 flex items-center justify-between">
-              <p className="text-green-500 text-xs">{filtered.length} product{filtered.length !== 1 ? "s" : ""}</p>
+              <p className="text-green-500 text-xs font-sans">{filtered.length} product{filtered.length !== 1 ? "s" : ""}</p>
               <Pagination page={page} totalPages={totalPages} onPage={setPage} />
             </div>
           </div>
@@ -499,7 +499,7 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* â”€â”€ Modals â”€â”€ */}
+      {/* ── Modals ── */}
 
       {/* Add/Edit Product */}
       <Modal open={modal === "add" || modal === "edit"} onClose={() => setModal(null)} title={modal === "add" ? "Add Product" : "Edit Product"} size="lg">
@@ -507,7 +507,7 @@ export default function ProductsPage() {
           <FormInput label="Product Name" id="name" value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Enter product name" required />
           <FormInput label="Category" id="category" type="select" value={form.category || ""} onChange={(e) => setForm({ ...form, category: e.target.value })} options={categories.map((c) => c.name)} />
           <FormInput label="Subcategory" id="subcategory" value={form.subcategory || ""} onChange={(e) => setForm({ ...form, subcategory: e.target.value })} placeholder="e.g. Silk, Bridal" />
-          <FormInput label="Price (â‚¹)" id="price" type="number" value={form.price || ""} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0" required />
+          <FormInput label="Price (₹)" id="price" type="number" value={form.price || ""} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0" required />
           <FormInput label="Stock Quantity" id="stock" type="number" value={form.stock || ""} onChange={(e) => setForm({ ...form, stock: e.target.value })} placeholder="0" required />
           <FormInput label="Status" id="status" type="select" value={form.status || "Active"} onChange={(e) => setForm({ ...form, status: e.target.value })} options={["Active", "Low Stock", "Out of Stock"]} />
           <div className="sm:col-span-2">
@@ -540,11 +540,11 @@ export default function ProductsPage() {
       </Modal>
 
       {/* Reviews Modal */}
-      <Modal open={modal === "reviews"} onClose={() => setModal(null)} title={`Reviews â€” ${selected?.name}`} size="lg">
+      <Modal open={modal === "reviews"} onClose={() => setModal(null)} title={`Reviews — ${selected?.name}`} size="lg">
         <div className="space-y-3">
           {selected?.reviews > 0 ? (
             <p className="text-green-400 text-sm">
-              {selected.reviews} reviews Â· Avg {selected.rating}â˜…
+              {selected.reviews} reviews · Avg {selected.rating}★
             </p>
           ) : (
             <p className="text-green-500 text-sm">
