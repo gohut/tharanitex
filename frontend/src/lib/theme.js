@@ -1,33 +1,33 @@
 export const BRANDING_STORAGE_KEY = "tharani-branding-settings";
 
 export const DEFAULT_BRANDING_THEME = {
-  primaryColor: "#0B3D2E",
-  secondaryColor: "#0D4733",
-  surfaceColor: "#145C3E",
-  surfaceHoverColor: "#1E7D50",
-  pageBackgroundColor: "#0C1A10",
-  elevatedBackgroundColor: "#060E09",
-  borderColor: "#145C3E",
-  strongBorderColor: "#1E7D50",
+  primaryColor: "#5A1F2F",
+  secondaryColor: "#471825",
+  surfaceColor: "#FFFFFF",
+  surfaceHoverColor: "#F4ECE1",
+  pageBackgroundColor: "#FAF6F0",
+  elevatedBackgroundColor: "#FFFFFF",
+  borderColor: "#E8DCC8",
+  strongBorderColor: "#D4AF37",
   accentColor: "#D4AF37",
-  accentHoverColor: "#E0C050",
-  accentTextColor: "#0B3D2E",
-  majorTextColor: "#FFFFFF",
-  minorTextColor: "#4EC48A",
-  softTextColor: "#72D4A4",
-  mutedTextColor: "#2DAD6E",
-  successColor: "#2DAD6E",
-  infoColor: "#60A5FA",
-  warningColor: "#FACC15",
-  dangerColor: "#F87171",
-  purpleColor: "#C084FC",
-  orangeColor: "#FB923C",
-  neutralColor: "#9CA3AF",
+  accentHoverColor: "#C49B24",
+  accentTextColor: "#FFFFFF",
+  majorTextColor: "#2F2B27",
+  minorTextColor: "#7C7267",
+  softTextColor: "#5C544B",
+  mutedTextColor: "#8A8175",
+  successColor: "#1E7E34",
+  infoColor: "#1A73E8",
+  warningColor: "#B06000",
+  dangerColor: "#C5221F",
+  purpleColor: "#8430CE",
+  orangeColor: "#C05621",
+  neutralColor: "#5F6368",
   logoUrl: "",
   faviconUrl: "",
-  socialFacebook: "https://facebook.com/aeux",
-  socialInstagram: "https://instagram.com/aeux",
-  socialTwitter: "https://twitter.com/aeux",
+  socialFacebook: "https://facebook.com/tharanitex",
+  socialInstagram: "https://instagram.com/tharanitex",
+  socialTwitter: "https://twitter.com/tharanitex",
 };
 
 const CSS_VARIABLES = {
@@ -62,7 +62,7 @@ const hexToRgb = (hex) => {
     : normalized;
 
   const value = Number.parseInt(full, 16);
-  if (Number.isNaN(value)) return "255 255 255";
+  if (Number.isNaN(value)) return "47 43 39";
 
   return `${(value >> 16) & 255} ${(value >> 8) & 255} ${value & 255}`;
 };
@@ -79,12 +79,5 @@ export const applyBrandingTheme = (branding = DEFAULT_BRANDING_THEME) => {
 };
 
 export const getSavedBrandingTheme = () => {
-  if (typeof window === "undefined") return DEFAULT_BRANDING_THEME;
-
-  try {
-    const saved = JSON.parse(localStorage.getItem(BRANDING_STORAGE_KEY) || "null");
-    return saved ? { ...DEFAULT_BRANDING_THEME, ...saved } : DEFAULT_BRANDING_THEME;
-  } catch {
-    return DEFAULT_BRANDING_THEME;
-  }
+  return DEFAULT_BRANDING_THEME;
 };

@@ -349,28 +349,18 @@ export default function Navbar() {
                   className="h-8 w-full border-none bg-transparent pl-0 pr-14 text-xs font-medium text-[#2F2B27] outline-none shadow-none placeholder:text-gray-400 focus:border-none focus:outline-none focus:ring-0 md:h-9 md:text-sm"
                 />
 
-                <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1">
-                  {navbarSearch ? (
-                    <button
-                      type="button"
-                      aria-label="Clear search text"
-                      onClick={() => {
-                        setNavbarSearch("");
-                        setDebouncedSearch("");
-                        setSelectedIndex(-1);
-
-                        searchInputRef.current?.focus();
-                      }}
-                      className="flex h-6 w-6 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-200/60 hover:text-gray-600"
-                    >
-                      <X size={14} />
-                    </button>
-                  ) : null}
-
+                <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center">
                   <button
                     type="button"
                     aria-label="Close search"
-                    onClick={deactivateSearch}
+                    onClick={() => {
+                      if (navbarSearch) {
+                        setNavbarSearch("");
+                        setDebouncedSearch("");
+                        setSelectedIndex(-1);
+                      }
+                      deactivateSearch();
+                    }}
                     className="flex h-7 w-7 items-center justify-center text-[#2F2B27] transition hover:text-[#C79A2B]"
                   >
                     <X size={18} strokeWidth={1.8} />

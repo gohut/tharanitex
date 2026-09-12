@@ -8,7 +8,7 @@ const initialDetails = {
   name: "",
   phone: "",
   address: "",
-  paymentMethod: "COD",
+  paymentMethod: "UPI",
 };
 
 const inputClass =
@@ -789,13 +789,8 @@ export default function CheckoutModal({
               Payment method
             </legend>
 
-            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {[
-                [
-                  "COD",
-                  "Cash on Delivery",
-                  "Testing only · Pay when your order arrives",
-                ],
                 [
                   "UPI",
                   "UPI",
@@ -803,7 +798,7 @@ export default function CheckoutModal({
                 ],
                 [
                   "CARD",
-                  "Card",
+                  "Card / Netbanking",
                   "Pay securely with Razorpay",
                 ],
               ].map(
