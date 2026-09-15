@@ -16,6 +16,8 @@ import {
 import Button from "@/components/ui/Button";
 import FormInput from "@/components/ui/FormInput";
 import Toggle from "@/components/ui/Toggle";
+import toast from "react-hot-toast";
+import { getFriendlyErrorMessage } from "@/lib/utils/errorHandler";
 
 function AddProductContent() {
   const router = useRouter();
@@ -164,7 +166,7 @@ function AddProductContent() {
         setImageFiles([]);
       } catch (error) {
         console.error("Product load error:", error);
-        alert("Failed to load product.");
+        toast.error("Failed to load product details.");
       }
     }
 
@@ -232,7 +234,7 @@ function AddProductContent() {
 
     const validFiles = files.filter((file) => file.type.startsWith("image/"));
     if (validFiles.length === 0) {
-      alert("Please select valid image files (PNG, JPG, WEBP, etc.).");
+      toast.error("Please select valid image files (PNG, JPG, WEBP, etc.).");
       return;
     }
 
@@ -396,9 +398,10 @@ function AddProductContent() {
 
       router.push("/admin/products");
       router.refresh();
+      toast.success(data.archived ? "Product archived successfully." : "Product deleted successfully.");
     } catch (error) {
       console.error("Delete product error:", error);
-      alert(error.message || "Failed to delete product");
+      toast.error(getFriendlyErrorMessage(error, "Failed to delete product."));
     } finally {
       setIsDeleting(false);
     }
@@ -427,18 +430,18 @@ function AddProductContent() {
   const handleSave = async () => {
     try {
       if (!name.trim()) {
-        alert("Product name is required.");
+        toast.error("Product name is required.");
         return;
       }
 
       if (!sellingPrice || Number(sellingPrice) <= 0) {
-        alert("Valid selling price is required.");
+        toast.error("Valid selling price is required.");
         return;
       }
 
       const selectedCategory = categories.find((c) => c.name === category);
       if (!selectedCategory) {
-        alert("Please select a category.");
+        toast.error("Please select a category.");
         return;
       }
 
@@ -553,11 +556,12 @@ function AddProductContent() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save product");
 
+      toast.success(isEditing ? "Product updated successfully!" : "Product created successfully!");
       router.push("/admin/products");
       router.refresh();
     } catch (error) {
       console.error("Save product error:", error);
-      alert(error.message || "Failed to save product");
+      toast.error(getFriendlyErrorMessage(error, "Failed to save product. Please try again."));
     } finally {
       setIsUploading(false);
     }

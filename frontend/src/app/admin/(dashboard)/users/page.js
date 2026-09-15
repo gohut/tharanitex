@@ -7,6 +7,8 @@ import Button from "@/components/ui/Button";
 import FormInput from "@/components/ui/FormInput";
 import { roles as staticRoles, permissions } from "@/data/users";
 import toast from "react-hot-toast";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import { getFriendlyErrorMessage } from "@/lib/utils/errorHandler";
 
 const roleIdMap = {
   "Super Admin": 1,
@@ -32,6 +34,8 @@ export default function UsersPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [savingPerms, setSavingPerms] = useState(false);
+  const [deleteModalTarget, setDeleteModalTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchStaffAndRoles = useCallback(async () => {
     try {
@@ -189,32 +193,40 @@ export default function UsersPage() {
       }
     } catch (err) {
       console.error("Save staff error:", err);
-      toast.error("An error occurred while saving staff account.");
+      toast.error(getFriendlyErrorMessage(err, "An error occurred while saving staff account."));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const deleteUser = async (id, roleName) => {
-    if (roleName === "Super Admin") {
+  const openDeleteModal = (u) => {
+    if (u.role === "Super Admin" || u.role_id === 1) {
       toast.error("The primary Super Admin account cannot be deleted.");
       return;
     }
+    setDeleteModalTarget(u);
+  };
 
-    if (!confirm("Are you sure you want to delete this staff member?")) return;
+  const handleConfirmDelete = async () => {
+    if (!deleteModalTarget) return;
+    const { id } = deleteModalTarget;
 
+    setDeleting(true);
     try {
       const res = await fetch(`/api/admin/staff/${id}`, { method: "DELETE" });
       const json = await res.json().catch(() => ({}));
       if (res.ok && json.success) {
-        toast.success("Staff account deleted.");
+        toast.success("Staff account deleted successfully.");
         setUsers((prev) => prev.filter((u) => u.id !== id));
+        setDeleteModalTarget(null);
       } else {
         toast.error(json.message || "Failed to delete staff account.");
       }
     } catch (err) {
       console.error("Delete staff error:", err);
-      toast.error("An error occurred while deleting staff account.");
+      toast.error(getFriendlyErrorMessage(err, "An error occurred while deleting staff account."));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -403,7 +415,7 @@ export default function UsersPage() {
                                 <Edit2 size={14} />
                               </button>
                               <button
-                                onClick={() => deleteUser(u.id, u.role)}
+                                onClick={() => openDeleteModal(u)}
                                 disabled={isSuperAdmin}
                                 className={`p-2 rounded-xl border transition cursor-pointer ${
                                   isSuperAdmin
@@ -612,6 +624,19 @@ export default function UsersPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Delete Staff Confirmation Modal */}
+      <ConfirmationModal
+        open={!!deleteModalTarget}
+        onClose={() => setDeleteModalTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title={`Delete Staff Member "${deleteModalTarget?.name || ""}"?`}
+        message={`Are you sure you want to delete ${deleteModalTarget?.name || "this staff member"} (${deleteModalTarget?.email || ""})? They will immediately lose administrative access to the Tharani Textiles portal.`}
+        confirmText="Delete Staff Member"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={deleting}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { Phone, Save, Store } from "lucide-react";
 import Button from "@/components/ui/Button";
 import FormInput from "@/components/ui/FormInput";
 import Toggle from "@/components/ui/Toggle";
+import toast from "react-hot-toast";
 
 export default function SettingsPage() {
   const [tab, setTab] = useState("general");
@@ -27,6 +28,7 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     setSaved(true);
+    toast.success("Settings saved successfully.");
     setTimeout(() => setSaved(false), 3000);
   };
 

@@ -5,9 +5,10 @@ import { Plus, Search, Edit2, Trash2, Star, Package, Upload } from "lucide-react
 import StatusBadge from "@/components/ui/StatusBadge";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
-import FormInput from "@/components/ui/FormInput";
 import Toggle from "@/components/ui/Toggle";
 import Pagination from "@/components/ui/Pagination";
+import toast from "react-hot-toast";
+import { getFriendlyErrorMessage } from "@/lib/utils/errorHandler";
 
 const PAGE_SIZE = 6;
 
@@ -323,13 +324,13 @@ export default function ProductsPage() {
     try {
       setCatError("");
 
-      const endpoint =
-        modal === "editCat"
-          ? `/api/admin/categories/${selected.id}`
-          : "/api/admin/categories";
+      const isEditing = modal === "editCat";
+      const endpoint = isEditing
+        ? `/api/admin/categories/${selected.id}`
+        : "/api/admin/categories";
 
       const res = await fetch(endpoint, {
-        method: modal === "editCat" ? "PATCH" : "POST",
+        method: isEditing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(catForm),
       });
@@ -339,10 +340,13 @@ export default function ProductsPage() {
         throw new Error(data.error || "Failed to save category");
       }
 
+      toast.success(isEditing ? "Category updated successfully!" : "Category created successfully!");
       await loadData();
       setModal(null);
     } catch (error) {
-      setCatError(error.message || "Failed to save category");
+      const msg = getFriendlyErrorMessage(error, "Failed to save category");
+      setCatError(msg);
+      toast.error(msg);
     }
   };
 
@@ -359,10 +363,13 @@ export default function ProductsPage() {
         throw new Error(data.error || "Failed to delete category");
       }
 
+      toast.success("Category deleted successfully.");
       await loadData();
       setModal(null);
     } catch (error) {
-      setCatError(error.message || "Failed to delete category");
+      const msg = getFriendlyErrorMessage(error, "Failed to delete category");
+      setCatError(msg);
+      toast.error(msg);
     }
   };
 

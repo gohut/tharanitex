@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, Star, Flag, Trash2, Image as ImageIcon, X } from "lucide-react";
 import Pagination from "@/components/ui/Pagination";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import InputModal from "@/components/ui/InputModal";
+import toast from "react-hot-toast";
+import { getFriendlyErrorMessage } from "@/lib/utils/errorHandler";
 
 const PAGE_SIZE = 8;
 
@@ -49,7 +53,10 @@ export default function ReviewsPage() {
   const [filterRating, setFilterRating] = useState(0);
   const [page, setPage] = useState(1);
   const [selectedReview, setSelectedReview] = useState(null);
-  const [deletingId, setDeletingId] = useState(null);
+  const [flagModalTarget, setFlagModalTarget] = useState(null);
+  const [flagging, setFlagging] = useState(false);
+  const [deleteModalTarget, setDeleteModalTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadReviews = useCallback(async () => {
     try {
@@ -93,41 +100,39 @@ export default function ReviewsPage() {
     loadReviews();
   }, [loadReviews]);
 
-  const flagReview = async (review) => {
-    const reason = window.prompt(
-      "Reason for flagging this review:",
-      "Requires administrative review"
-    );
-    if (reason === null) return;
+  const handleConfirmFlag = async (reason) => {
+    if (!flagModalTarget) return;
 
     try {
-      const response = await fetch(`/api/admin/reviews/${review.id}/flag`, {
+      setFlagging(true);
+      const response = await fetch(`/api/admin/reviews/${flagModalTarget.id}/flag`, {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: reason.trim() || null }),
+        body: JSON.stringify({ reason: reason || null }),
       });
 
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data?.message || "Unable to flag review.");
       }
+      toast.success(`Review #${flagModalTarget.id} flagged successfully.`);
+      setFlagModalTarget(null);
       await loadReviews();
     } catch (err) {
       console.error("Failed to flag review:", err);
-      window.alert(err?.message || "Unable to flag review.");
+      toast.error(getFriendlyErrorMessage(err, "Unable to flag review."));
+    } finally {
+      setFlagging(false);
     }
   };
 
-  const deleteReview = async (review) => {
-    const confirmed = window.confirm(
-      `Delete review #${review.id}? This will also remove its uploaded review images.`
-    );
-    if (!confirmed) return;
+  const handleConfirmDelete = async () => {
+    if (!deleteModalTarget) return;
 
     try {
-      setDeletingId(review.id);
-      const response = await fetch(`/api/admin/reviews/${review.id}`, {
+      setDeleting(true);
+      const response = await fetch(`/api/admin/reviews/${deleteModalTarget.id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -136,13 +141,15 @@ export default function ReviewsPage() {
       if (!response.ok) {
         throw new Error(data?.message || "Unable to delete review.");
       }
+      toast.success(`Review #${deleteModalTarget.id} deleted successfully.`);
+      setDeleteModalTarget(null);
       setSelectedReview(null);
       await loadReviews();
     } catch (err) {
       console.error("Failed to delete review:", err);
-      window.alert(err?.message || "Unable to delete review.");
+      toast.error(getFriendlyErrorMessage(err, "Unable to delete review."));
     } finally {
-      setDeletingId(null);
+      setDeleting(false);
     }
   };
 
@@ -369,7 +376,7 @@ export default function ReviewsPage() {
                             type="button"
                             onClick={(event) => {
                               event.stopPropagation();
-                              flagReview(review);
+                              setFlagModalTarget(review);
                             }}
                             disabled={isFlagged}
                             className="p-1.5 rounded-lg border border-[#E8DCC8] bg-white hover:bg-orange-50 text-orange-600 disabled:opacity-40 transition-colors"
@@ -382,9 +389,8 @@ export default function ReviewsPage() {
                             type="button"
                             onClick={(event) => {
                               event.stopPropagation();
-                              deleteReview(review);
+                              setDeleteModalTarget(review);
                             }}
-                            disabled={deletingId === review.id}
                             className="p-1.5 rounded-lg border border-[#E8DCC8] bg-white hover:bg-red-50 text-red-600 disabled:opacity-40 transition-colors"
                             title="Delete review"
                           >
@@ -464,6 +470,34 @@ export default function ReviewsPage() {
           </div>
         </div>
       )}
+
+      {/* Flag Review Modal */}
+      <InputModal
+        open={!!flagModalTarget}
+        onClose={() => setFlagModalTarget(null)}
+        onSubmit={handleConfirmFlag}
+        title={`Flag Review #${flagModalTarget?.id || ""}`}
+        description="Provide a reason for placing this review in flagged status for administrative review."
+        label="Flagging Reason"
+        placeholder="e.g. Inappropriate language, spam, or misleading content..."
+        defaultValue="Requires administrative review"
+        submitText="Flag Review"
+        required={true}
+        isLoading={flagging}
+      />
+
+      {/* Delete Review Confirmation Modal */}
+      <ConfirmationModal
+        open={!!deleteModalTarget}
+        onClose={() => setDeleteModalTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title={`Delete Review #${deleteModalTarget?.id || ""} ?`}
+        message="Are you sure you want to permanently delete this customer review? This will also remove any uploaded review images. This action cannot be undone."
+        confirmText="Delete Review"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={deleting}
+      />
     </div>
   );
 }
