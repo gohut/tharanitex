@@ -4,6 +4,7 @@ import { Suspense, useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
+  ArrowRight,
   ArrowUp,
   ArrowDown,
   Trash2,
@@ -99,22 +100,46 @@ function AddProductContent() {
 
         setVariants(
           Array.isArray(product.variants)
-            ? product.variants.map((variant) => ({
-                id: variant.id,
-                name: variant.name || "",
-                sku: variant.sku || "",
-                price: variant.price ?? "",
-                stock: variant.stock ?? 0,
-                imageUrl: variant.image_url || variant.imageUrl || "",
-                imageFile: null,
-                imagePreview: variant.image_url || variant.imageUrl || "",
-                isActive:
-                  variant.is_active !== undefined
-                    ? Boolean(variant.is_active)
-                    : variant.isActive !== undefined
-                    ? Boolean(variant.isActive)
-                    : true,
-              }))
+            ? product.variants.map((variant) => {
+                let variantImages = [];
+                if (Array.isArray(variant.images) && variant.images.length > 0) {
+                  variantImages = variant.images.map((img, idx) => ({
+                    id: img.id || undefined,
+                    file: null,
+                    preview: img.imageUrl || img.image_url || (typeof img === "string" ? img : ""),
+                    url: img.imageUrl || img.image_url || (typeof img === "string" ? img : ""),
+                    isPrimary: Boolean(img.isPrimary ?? (idx === 0)),
+                    sortOrder: img.sortOrder ?? idx,
+                  }));
+                } else if (variant.image_url || variant.imageUrl) {
+                  const singleUrl = variant.image_url || variant.imageUrl;
+                  variantImages = [
+                    {
+                      id: undefined,
+                      file: null,
+                      preview: singleUrl,
+                      url: singleUrl,
+                      isPrimary: true,
+                      sortOrder: 0,
+                    },
+                  ];
+                }
+
+                return {
+                  id: variant.id,
+                  name: variant.name || "",
+                  sku: variant.sku || "",
+                  price: variant.price ?? "",
+                  stock: variant.stock ?? 0,
+                  images: variantImages,
+                  isActive:
+                    variant.is_active !== undefined
+                      ? Boolean(variant.is_active)
+                      : variant.isActive !== undefined
+                      ? Boolean(variant.isActive)
+                      : true,
+                };
+              })
             : []
         );
 
@@ -201,45 +226,144 @@ function AddProductContent() {
     });
   };
 
-  const handleVariantImageChange = (event, variantIndex) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleVariantImagesChange = (event, variantIndex) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
 
-    if (!file.type.startsWith("image/")) {
-      alert("Please select an image file.");
+    const validFiles = files.filter((file) => file.type.startsWith("image/"));
+    if (validFiles.length === 0) {
+      alert("Please select valid image files (PNG, JPG, WEBP, etc.).");
       return;
     }
 
-    const preview = URL.createObjectURL(file);
-    setVariants((prev) =>
-      prev.map((variant, index) =>
-        index === variantIndex
-          ? {
-              ...variant,
-              imageFile: file,
-              imagePreview: preview,
-            }
-          : variant
-      )
-    );
-    event.target.value = "";
-  };
-
-  const removeVariantImage = (variantIndex) => {
     setVariants((prev) =>
       prev.map((variant, index) => {
         if (index !== variantIndex) return variant;
-        if (variant.imagePreview?.startsWith("blob:")) {
-          URL.revokeObjectURL(variant.imagePreview);
+        const currentImages = Array.isArray(variant.images) ? variant.images : [];
+        const startIndex = currentImages.length;
+        const newImages = validFiles.map((file, i) => {
+          const preview = URL.createObjectURL(file);
+          return {
+            file,
+            preview,
+            url: "",
+            isPrimary: startIndex === 0 && i === 0,
+            sortOrder: startIndex + i,
+          };
+        });
+
+        const merged = [...currentImages, ...newImages];
+        const hasPrimary = merged.some((img) => img.isPrimary);
+        if (!hasPrimary && merged.length > 0) {
+          merged[0].isPrimary = true;
         }
+
         return {
           ...variant,
-          imageFile: null,
-          imagePreview: "",
-          imageUrl: "",
+          images: merged,
         };
       })
     );
+
+    event.target.value = "";
+  };
+
+  const removeVariantImage = (variantIndex, imageIndex) => {
+    setVariants((prev) =>
+      prev.map((variant, vIdx) => {
+        if (vIdx !== variantIndex) return variant;
+        const currentImages = Array.isArray(variant.images) ? variant.images : [];
+        const imageToRemove = currentImages[imageIndex];
+
+        if (imageToRemove?.preview?.startsWith("blob:")) {
+          URL.revokeObjectURL(imageToRemove.preview);
+        }
+
+        const filtered = currentImages.filter((_, i) => i !== imageIndex);
+        const wasPrimary = imageToRemove?.isPrimary;
+        const reindexed = filtered.map((img, idx) => ({
+          ...img,
+          sortOrder: idx,
+          isPrimary: wasPrimary && idx === 0 ? true : img.isPrimary,
+        }));
+
+        if (reindexed.length > 0 && !reindexed.some((img) => img.isPrimary)) {
+          reindexed[0].isPrimary = true;
+        }
+
+        return {
+          ...variant,
+          images: reindexed,
+        };
+      })
+    );
+  };
+
+  const moveVariantImage = (variantIndex, imageIndex, direction) => {
+    setVariants((prev) =>
+      prev.map((variant, vIdx) => {
+        if (vIdx !== variantIndex) return variant;
+        const currentImages = Array.isArray(variant.images) ? [...variant.images] : [];
+        const targetIndex = imageIndex + direction;
+        if (targetIndex < 0 || targetIndex >= currentImages.length) return variant;
+
+        const [moved] = currentImages.splice(imageIndex, 1);
+        currentImages.splice(targetIndex, 0, moved);
+
+        const reindexed = currentImages.map((img, idx) => ({
+          ...img,
+          sortOrder: idx,
+        }));
+
+        return {
+          ...variant,
+          images: reindexed,
+        };
+      })
+    );
+  };
+
+  const makeVariantImagePrimary = (variantIndex, imageIndex) => {
+    setVariants((prev) =>
+      prev.map((variant, vIdx) => {
+        if (vIdx !== variantIndex) return variant;
+        const currentImages = Array.isArray(variant.images) ? [...variant.images] : [];
+        if (imageIndex < 0 || imageIndex >= currentImages.length) return variant;
+
+        const updated = currentImages.map((img) => ({
+          ...img,
+          isPrimary: false,
+        }));
+
+        const [primaryItem] = updated.splice(imageIndex, 1);
+        primaryItem.isPrimary = true;
+        updated.unshift(primaryItem);
+
+        const reindexed = updated.map((img, idx) => ({
+          ...img,
+          sortOrder: idx,
+        }));
+
+        return {
+          ...variant,
+          images: reindexed,
+        };
+      })
+    );
+  };
+
+  const removeVariant = (index) => {
+    setVariants((prev) => {
+      const variantToRemove = prev[index];
+      if (variantToRemove && Array.isArray(variantToRemove.images)) {
+        variantToRemove.images.forEach((img) => {
+          if (img.preview?.startsWith("blob:")) {
+            URL.revokeObjectURL(img.preview);
+          }
+        });
+      }
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const handleDelete = async () => {
@@ -319,7 +443,16 @@ function AddProductContent() {
       }
 
       const newProductImages = imageFiles.length;
-      const newVariantImages = variants.filter((variant) => variant.imageFile).length;
+      let newVariantImages = 0;
+      for (const variant of variants) {
+        if (Array.isArray(variant.images)) {
+          for (const img of variant.images) {
+            if (img.file) {
+              newVariantImages++;
+            }
+          }
+        }
+      }
       const totalUploads = newProductImages + newVariantImages;
 
       setIsUploading(true);
@@ -352,23 +485,42 @@ function AddProductContent() {
       const finalVariants = [];
       for (let i = 0; i < variants.length; i++) {
         const variant = variants[i];
-        let finalImageUrl = variant.imageUrl || "";
+        const rawImages = Array.isArray(variant.images) ? variant.images : [];
+        const variantFinalImages = [];
 
-        if (variant.imageFile) {
-          finalImageUrl = await uploadFile(variant.imageFile, "products/variants");
-          setUploadProgress((prev) => ({
-            ...prev,
-            completed: prev.completed + 1,
-          }));
+        for (let j = 0; j < rawImages.length; j++) {
+          const imgItem = rawImages[j];
+          let finalUrl = imgItem.url || imgItem.preview;
+
+          if (imgItem.file) {
+            finalUrl = await uploadFile(imgItem.file, "variants");
+            setUploadProgress((prev) => ({
+              ...prev,
+              completed: prev.completed + 1,
+            }));
+          }
+
+          if (finalUrl && !finalUrl.startsWith("blob:")) {
+            variantFinalImages.push({
+              id: imgItem.id,
+              imageUrl: finalUrl,
+              sortOrder: j,
+              isPrimary: Boolean(imgItem.isPrimary ?? (j === 0)),
+            });
+          }
         }
+
+        const primaryImg =
+          variantFinalImages.find((img) => img.isPrimary) || variantFinalImages[0];
 
         finalVariants.push({
           id: variant.id,
           name: variant.name.trim() || `Variant ${i + 1}`,
-          sku: variant.sku.trim() || null,
+          sku: variant.sku ? variant.sku.trim() : null,
           price: Number(variant.price) || Number(sellingPrice),
           stock: Number(variant.stock) || 0,
-          imageUrl: finalImageUrl || null,
+          imageUrl: primaryImg?.imageUrl || null,
+          images: variantFinalImages,
           isActive: Boolean(variant.isActive),
         });
       }
@@ -598,9 +750,7 @@ function AddProductContent() {
                       sku: "",
                       price: sellingPrice || "",
                       stock: 0,
-                      imageUrl: "",
-                      imageFile: null,
-                      imagePreview: "",
+                      images: [],
                       isActive: true,
                     },
                   ])
@@ -632,11 +782,7 @@ function AddProductContent() {
                       </span>
                       <button
                         type="button"
-                        onClick={() =>
-                          setVariants((prev) =>
-                            prev.filter((_, i) => i !== index)
-                          )
-                        }
+                        onClick={() => removeVariant(index)}
                         className="text-xs font-bold text-red-600 hover:text-red-700"
                       >
                         Remove
@@ -705,39 +851,90 @@ function AddProductContent() {
                       />
                     </div>
 
-                    {/* Variant Image */}
-                    <div>
-                      <label className="text-xs font-semibold text-[#2F2B27]">
-                        Variant Photo
-                      </label>
-                      <div className="mt-2">
-                        {variant.imagePreview ? (
-                          <div className="relative w-32 h-32 rounded-xl border border-[#E8DCC8] overflow-hidden bg-white shadow-sm">
+                    {/* Variant Photos */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-semibold text-[#2F2B27]">
+                          Variant Photos ({variant.images?.length || 0})
+                        </label>
+                        <span className="text-[11px] text-[#7C7267]">
+                          Multiple photos supported
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                        {(variant.images || []).map((img, imgIdx) => (
+                          <div
+                            key={imgIdx}
+                            className="group relative aspect-square overflow-hidden rounded-xl border border-[#E8DCC8] bg-white shadow-sm"
+                          >
                             <img
-                              src={variant.imagePreview}
-                              alt="Variant"
+                              src={img.preview || img.url}
+                              alt={`Variant ${index + 1} Photo ${imgIdx + 1}`}
                               className="h-full w-full object-cover"
                             />
-                            <button
-                              type="button"
-                              onClick={() => removeVariantImage(index)}
-                              className="absolute top-1.5 right-1.5 p-1 bg-red-600 text-white rounded-full shadow hover:bg-red-700 transition"
-                            >
-                              <X size={13} />
-                            </button>
+
+                            {img.isPrimary && (
+                              <span className="absolute left-1.5 top-1.5 rounded-md bg-[#D4AF37] px-1.5 py-0.5 text-[9px] font-bold text-[#2F2B27] shadow-sm">
+                                Primary
+                              </span>
+                            )}
+
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/60 p-1 opacity-0 transition-opacity group-hover:opacity-100">
+                              {!img.isPrimary && (
+                                <button
+                                  type="button"
+                                  onClick={() => makeVariantImagePrimary(index, imgIdx)}
+                                  className="rounded bg-[#D4AF37] px-2 py-0.5 text-[10px] font-bold text-[#2F2B27] hover:bg-[#c49f2e]"
+                                >
+                                  Make Primary
+                                </button>
+                              )}
+
+                              <div className="flex gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => moveVariantImage(index, imgIdx, -1)}
+                                  disabled={imgIdx === 0}
+                                  title="Move left"
+                                  className="rounded bg-white p-1 text-[#2F2B27] hover:bg-[#FAF6F0] disabled:opacity-30"
+                                >
+                                  <ArrowLeft size={12} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => moveVariantImage(index, imgIdx, 1)}
+                                  disabled={imgIdx === (variant.images?.length || 1) - 1}
+                                  title="Move right"
+                                  className="rounded bg-white p-1 text-[#2F2B27] hover:bg-[#FAF6F0] disabled:opacity-30"
+                                >
+                                  <ArrowRight size={12} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => removeVariantImage(index, imgIdx)}
+                                  title="Remove photo"
+                                  className="rounded bg-red-600 p-1 text-white hover:bg-red-700"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </div>
                           </div>
-                        ) : (
-                          <label className="flex h-24 w-32 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#E8DCC8] bg-white text-[#7C7267] hover:border-[#D4AF37] hover:text-[#8C6D1F] transition">
-                            <Upload size={20} />
-                            <span className="mt-1 text-[11px] font-bold">Upload Photo</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => handleVariantImageChange(e, index)}
-                            />
-                          </label>
-                        )}
+                        ))}
+
+                        <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#E8DCC8] bg-white p-2 text-center text-[#7C7267] transition hover:border-[#D4AF37] hover:bg-[#FAF3E0] hover:text-[#8C6D1F]">
+                          <Upload size={18} className="mb-0.5 text-[#8C6D1F]" />
+                          <span className="text-[11px] font-bold">Add Photos</span>
+                          <span className="text-[9px] text-[#A89F91]">PNG, JPG, WEBP</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => handleVariantImagesChange(e, index)}
+                          />
+                        </label>
                       </div>
                     </div>
 

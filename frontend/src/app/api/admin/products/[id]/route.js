@@ -132,6 +132,12 @@ export async function PATCH(request, { params }) {
           continue;
         }
 
+        const variantImages = Array.isArray(variant.images)
+          ? variant.images
+          : variant.imageUrl
+          ? [variant.imageUrl]
+          : [];
+
         if (variant.id) {
           await updateProductVariant(env.DB, {
             id: Number(variant.id),
@@ -140,6 +146,7 @@ export async function PATCH(request, { params }) {
             price: Number(variant.price) || 0,
             stock: Number(variant.stock) || 0,
             imageUrl: variant.imageUrl || null,
+            images: variantImages,
             isActive: variant.isActive !== false,
           });
         } else {
@@ -150,6 +157,7 @@ export async function PATCH(request, { params }) {
             price: Number(variant.price) || 0,
             stock: Number(variant.stock) || 0,
             imageUrl: variant.imageUrl || null,
+            images: variantImages,
           });
         }
       }
@@ -198,6 +206,22 @@ export async function DELETE(request, { params }) {
       .bind(Number(id))
       .all();
 
+    let variantImages = [];
+    try {
+      const { results: vImgs } = await env.DB
+        .prepare(`
+          SELECT pvi.image_url
+          FROM product_variant_images pvi
+          JOIN product_variants pv ON pv.id = pvi.variant_id
+          WHERE pv.product_id = ?
+        `)
+        .bind(Number(id))
+        .all();
+      variantImages = vImgs || [];
+    } catch {
+      // table might not exist in unmigrated environments
+    }
+
     /*
      * deleteProduct() decides whether this is:
      *
@@ -214,12 +238,19 @@ export async function DELETE(request, { params }) {
      */
     if (result.deleted) {
       const prefix = "/api/images/";
+      const allUrls = [
+        ...(images || []).map((img) => img.image_url),
+        ...(variantImages || []).map((img) => img.image_url),
+      ];
 
-      for (const image of images) {
-        if (image.image_url?.startsWith(prefix)) {
-          const key = image.image_url.slice(prefix.length);
-
-          await env.tharani_product_images.delete(key);
+      for (const url of allUrls) {
+        if (url?.startsWith(prefix)) {
+          const key = url.slice(prefix.length).split("?")[0];
+          try {
+            await env.tharani_product_images.delete(decodeURIComponent(key));
+          } catch (delErr) {
+            console.warn("Failed to delete R2 image key:", key, delErr);
+          }
         }
       }
     }

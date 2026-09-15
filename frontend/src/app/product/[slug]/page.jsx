@@ -83,52 +83,45 @@ export default async function ProductPage({
       product.id
     );
 
-  const normalizedVariants =
-    (
-      Array.isArray(
-        variants
-      )
-        ? variants
-        : []
-    ).map((variant) => ({
-      id: Number(
-        variant.id
-      ),
+  const normalizedVariants = (Array.isArray(variants) ? variants : []).map((variant) => {
+    let images = [];
+    if (Array.isArray(variant.images) && variant.images.length > 0) {
+      images = variant.images
+        .map((img, idx) => ({
+          id: img.id || null,
+          imageUrl: img.imageUrl || img.image_url || (typeof img === "string" ? img : ""),
+          sortOrder: img.sortOrder !== undefined ? img.sortOrder : idx,
+          isPrimary: Boolean(img.isPrimary ?? (idx === 0)),
+        }))
+        .filter((img) => Boolean(img.imageUrl));
+    } else if (variant.imageUrl || variant.image_url) {
+      const url = variant.imageUrl || variant.image_url;
+      images = [{ id: null, imageUrl: url, sortOrder: 0, isPrimary: true }];
+    }
 
-      name:
-        variant.name || "",
+    const primaryImage =
+      images.find((img) => img.isPrimary)?.imageUrl ||
+      images[0]?.imageUrl ||
+      variant.imageUrl ||
+      variant.image_url ||
+      "";
 
-      sku:
-        variant.sku || "",
-
-      price:
-        Number(
-          variant.price
-        ) || 0,
-
-      stock:
-        Number(
-          variant.stock
-        ) || 0,
-
-      imageUrl:
-        variant.imageUrl ||
-        variant.image_url ||
-        "",
-
+    return {
+      id: Number(variant.id),
+      name: variant.name || "",
+      sku: variant.sku || "",
+      price: Number(variant.price) || 0,
+      stock: Number(variant.stock) || 0,
+      imageUrl: primaryImage,
+      images,
       isActive:
-        variant.isActive !==
-        undefined
-          ? Boolean(
-              variant.isActive
-            )
-          : variant.is_active !==
-              undefined
-          ? Boolean(
-              variant.is_active
-            )
+        variant.isActive !== undefined
+          ? Boolean(variant.isActive)
+          : variant.is_active !== undefined
+          ? Boolean(variant.is_active)
           : true,
-    }));
+    };
+  });
 
   const reviews =
     await getApprovedReviews(

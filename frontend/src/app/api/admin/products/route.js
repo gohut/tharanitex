@@ -86,18 +86,29 @@ export async function POST(request) {
     }
 
     // Remember R2 images for cleanup
-    if (Array.isArray(body.images)) {
-      for (const imageUrl of body.images) {
-        if (
-          typeof imageUrl === "string" &&
-          imageUrl.startsWith("/api/images/")
-        ) {
-          const key = imageUrl
-            .replace("/api/images/", "")
-            .split("?")[0];
+    const collectR2Key = (url) => {
+      if (typeof url === "string" && url.startsWith("/api/images/")) {
+        const key = url.replace("/api/images/", "").split("?")[0];
+        if (key) {
+          uploadedImages.push(decodeURIComponent(key));
+        }
+      }
+    };
 
-          if (key) {
-            uploadedImages.push(decodeURIComponent(key));
+    if (Array.isArray(body.images)) {
+      for (const img of body.images) {
+        const url = typeof img === "string" ? img : img?.imageUrl;
+        collectR2Key(url);
+      }
+    }
+
+    if (Array.isArray(body.variants)) {
+      for (const v of body.variants) {
+        if (v?.imageUrl) collectR2Key(v.imageUrl);
+        if (Array.isArray(v?.images)) {
+          for (const img of v.images) {
+            const url = typeof img === "string" ? img : img?.imageUrl;
+            collectR2Key(url);
           }
         }
       }
@@ -120,12 +131,21 @@ export async function POST(request) {
     // Add product images
     if (Array.isArray(body.images) && body.images.length > 0) {
       for (let i = 0; i < body.images.length; i++) {
-        await addProductImage(
-          env.DB,
-          result.id,
-          body.images[i],
-          i
-        );
+        const item = body.images[i];
+        const imageUrl = typeof item === "string" ? item : item?.imageUrl;
+        const sortOrder =
+          typeof item === "object" && item?.sortOrder !== undefined
+            ? item.sortOrder
+            : i;
+
+        if (imageUrl) {
+          await addProductImage(
+            env.DB,
+            result.id,
+            imageUrl,
+            sortOrder
+          );
+        }
       }
     }
 
@@ -143,6 +163,11 @@ export async function POST(request) {
           price: Number(variant.price) || 0,
           stock: Number(variant.stock) || 0,
           imageUrl: variant.imageUrl || null,
+          images: Array.isArray(variant.images)
+            ? variant.images
+            : variant.imageUrl
+            ? [variant.imageUrl]
+            : [],
         });
       }
     }

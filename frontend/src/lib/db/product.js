@@ -155,26 +155,8 @@ export async function getProductBySlug(db, slug) {
 
   product.images = images.map((image) => image.image_url);
 
-  // Load active product variants
-  const { results: variants } = await db
-    .prepare(`
-      SELECT
-        id,
-        product_id,
-        name,
-        sku,
-        price,
-        stock,
-        image_url AS imageUrl,
-        is_active AS isActive
-      FROM product_variants
-      WHERE product_id = ?
-        AND is_active = 1
-      ORDER BY id ASC
-    `)
-    .bind(product.id)
-    .all();
-
+  // Load active product variants with all images
+  const variants = await getProductVariants(db, product.id);
   product.variants = variants || [];
 
   return product;
@@ -396,6 +378,21 @@ export async function deleteProduct(db, id) {
     .bind(productId)
     .run();
 
+  // Remove variant images.
+  try {
+    await db
+      .prepare(`
+        DELETE FROM product_variant_images
+        WHERE variant_id IN (
+          SELECT id FROM product_variants WHERE product_id = ?
+        )
+      `)
+      .bind(productId)
+      .run();
+  } catch (err) {
+    console.warn("Could not delete product_variant_images:", err);
+  }
+
   // Remove product variants.
   await db
     .prepare(`
@@ -511,6 +508,86 @@ export async function getProductsByCategorySlug(db, slug, { activeOnly = true } 
   return results;
 }
 
+export async function attachImagesToVariants(db, variants) {
+  if (!Array.isArray(variants) || variants.length === 0) return [];
+
+  const variantIds = variants
+    .map((v) => Number(v.id))
+    .filter((id) => Number.isInteger(id) && id > 0);
+
+  if (variantIds.length === 0) {
+    return variants.map((v) => ({
+      ...v,
+      imageUrl: v.image_url || v.imageUrl || null,
+      images: (v.image_url || v.imageUrl)
+        ? [{ id: null, imageUrl: v.image_url || v.imageUrl, sortOrder: 0, isPrimary: true }]
+        : [],
+    }));
+  }
+
+  let variantImages = [];
+  try {
+    const placeholders = variantIds.map(() => "?").join(", ");
+    const { results } = await db
+      .prepare(`
+        SELECT
+          id,
+          variant_id,
+          image_url,
+          sort_order,
+          is_primary
+        FROM product_variant_images
+        WHERE variant_id IN (${placeholders})
+        ORDER BY is_primary DESC, sort_order ASC, id ASC
+      `)
+      .bind(...variantIds)
+      .all();
+    variantImages = results || [];
+  } catch (err) {
+    console.warn("Could not fetch product_variant_images:", err);
+  }
+
+  const imagesByVariantId = new Map();
+  for (const img of variantImages) {
+    const vId = Number(img.variant_id);
+    if (!imagesByVariantId.has(vId)) {
+      imagesByVariantId.set(vId, []);
+    }
+    imagesByVariantId.get(vId).push({
+      id: img.id,
+      imageUrl: img.image_url,
+      sortOrder: img.sort_order ?? 0,
+      isPrimary: Boolean(img.is_primary),
+    });
+  }
+
+  return variants.map((variant) => {
+    const vId = Number(variant.id);
+    let images = imagesByVariantId.get(vId) || [];
+
+    const legacyUrl = variant.image_url || variant.imageUrl || null;
+    if (images.length === 0 && legacyUrl && typeof legacyUrl === "string" && legacyUrl.trim()) {
+      images = [
+        {
+          id: null,
+          imageUrl: legacyUrl.trim(),
+          sortOrder: 0,
+          isPrimary: true,
+        },
+      ];
+    }
+
+    const primaryImg = images.find((img) => img.isPrimary) || images[0];
+    const canonicalImageUrl = primaryImg?.imageUrl || legacyUrl || null;
+
+    return {
+      ...variant,
+      imageUrl: canonicalImageUrl,
+      images,
+    };
+  });
+}
+
 export async function getProductVariants(db, productId) {
   const { results } = await db
     .prepare(`
@@ -530,10 +607,10 @@ export async function getProductVariants(db, productId) {
         AND is_active = 1
       ORDER BY id ASC
     `)
-    .bind(productId)
+    .bind(Number(productId))
     .all();
 
-  return results || [];
+  return await attachImagesToVariants(db, results || []);
 }
 
 export async function getAllProductVariants(db, productId) {
@@ -554,10 +631,10 @@ export async function getAllProductVariants(db, productId) {
       WHERE product_id = ?
       ORDER BY id ASC
     `)
-    .bind(productId)
+    .bind(Number(productId))
     .all();
 
-  return results || [];
+  return await attachImagesToVariants(db, results || []);
 }
 
 export async function createProductVariant(db, {
@@ -567,7 +644,32 @@ export async function createProductVariant(db, {
   price,
   stock,
   imageUrl,
+  images = [],
 }) {
+  const normalizedImages = Array.isArray(images)
+    ? images
+        .map((img, idx) => {
+          if (typeof img === "string" && img.trim()) {
+            return { imageUrl: img.trim(), sortOrder: idx, isPrimary: idx === 0 };
+          }
+          if (img && typeof img.imageUrl === "string" && img.imageUrl.trim()) {
+            return {
+              imageUrl: img.imageUrl.trim(),
+              sortOrder: img.sortOrder !== undefined ? Number(img.sortOrder) : idx,
+              isPrimary: Boolean(img.isPrimary !== undefined ? img.isPrimary : idx === 0),
+            };
+          }
+          return null;
+        })
+        .filter(Boolean)
+    : [];
+
+  const primaryImage =
+    normalizedImages.find((img) => img.isPrimary)?.imageUrl ||
+    normalizedImages[0]?.imageUrl ||
+    imageUrl ||
+    null;
+
   const result = await db
     .prepare(`
       INSERT INTO product_variants (
@@ -581,16 +683,45 @@ export async function createProductVariant(db, {
       VALUES (?, ?, ?, ?, ?, ?)
     `)
     .bind(
-      productId,
+      Number(productId),
       name,
       sku || null,
       Number(price) || 0,
       Number(stock) || 0,
-      imageUrl || null
+      primaryImage
     )
     .run();
 
-  return result.meta?.last_row_id;
+  const variantId = result.meta?.last_row_id;
+
+  if (variantId && normalizedImages.length > 0) {
+    for (let idx = 0; idx < normalizedImages.length; idx++) {
+      const img = normalizedImages[idx];
+      try {
+        await db
+          .prepare(`
+            INSERT INTO product_variant_images (
+              variant_id,
+              image_url,
+              sort_order,
+              is_primary
+            )
+            VALUES (?, ?, ?, ?)
+          `)
+          .bind(
+            Number(variantId),
+            img.imageUrl,
+            img.sortOrder !== undefined ? img.sortOrder : idx,
+            img.isPrimary ? 1 : 0
+          )
+          .run();
+      } catch (err) {
+        console.warn("Could not insert product_variant_images row:", err);
+      }
+    }
+  }
+
+  return variantId;
 }
 
 export async function updateProductVariant(db, {
@@ -600,8 +731,36 @@ export async function updateProductVariant(db, {
   price,
   stock,
   imageUrl,
+  images,
   isActive,
 }) {
+  const variantId = Number(id);
+
+  let normalizedImages = null;
+  if (Array.isArray(images)) {
+    normalizedImages = images
+      .map((img, idx) => {
+        if (typeof img === "string" && img.trim()) {
+          return { imageUrl: img.trim(), sortOrder: idx, isPrimary: idx === 0 };
+        }
+        if (img && typeof img.imageUrl === "string" && img.imageUrl.trim()) {
+          return {
+            imageUrl: img.imageUrl.trim(),
+            sortOrder: img.sortOrder !== undefined ? Number(img.sortOrder) : idx,
+            isPrimary: Boolean(img.isPrimary !== undefined ? img.isPrimary : idx === 0),
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+  }
+
+  const primaryImage =
+    normalizedImages?.find((img) => img.isPrimary)?.imageUrl ||
+    normalizedImages?.[0]?.imageUrl ||
+    imageUrl ||
+    null;
+
   await db
     .prepare(`
       UPDATE product_variants
@@ -620,20 +779,59 @@ export async function updateProductVariant(db, {
       sku || null,
       Number(price) || 0,
       Number(stock) || 0,
-      imageUrl || null,
-      isActive ? 1 : 0,
-      id
+      primaryImage,
+      isActive !== false ? 1 : 0,
+      variantId
     )
     .run();
+
+  if (normalizedImages !== null) {
+    try {
+      await db
+        .prepare(`DELETE FROM product_variant_images WHERE variant_id = ?`)
+        .bind(variantId)
+        .run();
+
+      for (let idx = 0; idx < normalizedImages.length; idx++) {
+        const img = normalizedImages[idx];
+        await db
+          .prepare(`
+            INSERT INTO product_variant_images (
+              variant_id,
+              image_url,
+              sort_order,
+              is_primary
+            )
+            VALUES (?, ?, ?, ?)
+          `)
+          .bind(
+            variantId,
+            img.imageUrl,
+            img.sortOrder !== undefined ? img.sortOrder : idx,
+            img.isPrimary ? 1 : 0
+          )
+          .run();
+      }
+    } catch (err) {
+      console.warn("Could not sync product_variant_images:", err);
+    }
+  }
 }
 
 export async function deleteProductVariant(db, id) {
+  const variantId = Number(id);
+  try {
+    await db
+      .prepare(`DELETE FROM product_variant_images WHERE variant_id = ?`)
+      .bind(variantId)
+      .run();
+  } catch (err) {
+    console.warn("Could not delete from product_variant_images:", err);
+  }
+
   await db
-    .prepare(`
-      DELETE FROM product_variants
-      WHERE id = ?
-    `)
-    .bind(id)
+    .prepare(`DELETE FROM product_variants WHERE id = ?`)
+    .bind(variantId)
     .run();
 }
 
