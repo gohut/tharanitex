@@ -1,12 +1,12 @@
 import { ApiResponse } from "@/utils/ApiResponse";
 import { authenticateAdmin } from "@/middleware/auth";
-
-export const runtime = "edge";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export async function POST(request) {
   try {
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
     // Only admins can upload product images
-    if (!await authenticateAdmin(request)) {
+    if (!await authenticateAdmin(request, env)) {
       return ApiResponse.forbidden("Admin access required");
     }
 
@@ -16,13 +16,13 @@ export async function POST(request) {
       return ApiResponse.badRequest("No file uploaded or invalid file format");
     }
 
-    const bucket = process.env.BUCKET;
+    const bucket = env?.PRODUCT_IMAGES || env?.tharani_product_images || (typeof process !== "undefined" && process.env?.BUCKET);
     if (!bucket) {
-      return ApiResponse.error("R2 storage bucket binding (BUCKET) not found in process.env");
+      return ApiResponse.error("R2 storage bucket binding not found");
     }
 
     // Generate unique key for storage
-    const extension = file.name.split(".").pop() || "jpg";
+    const extension = file.name?.split(".").pop() || "jpg";
     const key = `products/${crypto.randomUUID()}.${extension}`;
     const bytes = await file.arrayBuffer();
 
@@ -31,7 +31,7 @@ export async function POST(request) {
       httpMetadata: { contentType: file.type || "image/jpeg" },
     });
 
-    return ApiResponse.success({ image_key: key }, "Image uploaded successfully to R2", 201);
+    return ApiResponse.success({ image_key: key, url: `/api/images/${key}` }, "Image uploaded successfully to R2", 201);
   } catch (error) {
     return ApiResponse.error(error.message);
   }

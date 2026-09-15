@@ -5,9 +5,15 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
  */
 export function getDB(envOrDb) {
   if (envOrDb?.prepare) {
+    if (typeof globalThis !== "undefined") {
+      globalThis.__CF_ENV__ = { ...(globalThis.__CF_ENV__ || {}), DB: envOrDb };
+    }
     return envOrDb;
   }
   if (envOrDb?.DB?.prepare) {
+    if (typeof globalThis !== "undefined") {
+      globalThis.__CF_ENV__ = { ...(globalThis.__CF_ENV__ || {}), ...envOrDb };
+    }
     return envOrDb.DB;
   }
 
@@ -19,6 +25,9 @@ export function getDB(envOrDb) {
   try {
     const ctx = getCloudflareContext();
     if (ctx?.env?.DB?.prepare) {
+      if (typeof globalThis !== "undefined") {
+        globalThis.__CF_ENV__ = { ...(globalThis.__CF_ENV__ || {}), ...ctx.env };
+      }
       return ctx.env.DB;
     }
   } catch {

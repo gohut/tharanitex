@@ -611,7 +611,14 @@ export async function createCodOrder(db, checkout) {
 }
 
 export async function prepareOnlineCheckout(db, checkout, razorpayOrder, publicKey) {
-  const items = await trustedItems(db, checkout.checkoutType, checkout.productId, checkout.quantity, checkout.cartUserId || checkout.userId);
+  const items = await trustedItems(
+    db,
+    checkout.checkoutType,
+    checkout.productId,
+    checkout.quantity,
+    checkout.cartUserId || checkout.userId,
+    checkout.variantId
+  );
   const addressId = await findOrCreateAddress(db, checkout);
   const amountPaise = Math.round(total(items) * 100);
   const sessionId = crypto.randomUUID();
@@ -855,7 +862,30 @@ export async function getOrderById(db, orderId, userId) {
     }
   }
   if (!order) return null;
-  const { results } = await db.prepare(`SELECT oi.id, oi.product_id, oi.quantity, oi.price, p.name, p.slug, (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) AS image FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ? ORDER BY oi.id`).bind(orderId).all();
+  const { results } = await db.prepare(`
+    SELECT
+      oi.id,
+      oi.product_id,
+      oi.variant_id,
+      oi.quantity,
+      oi.price,
+      p.name,
+      p.slug,
+      v.name AS variant_name,
+      v.sku AS variant_sku,
+      (
+        SELECT image_url
+        FROM product_images pi
+        WHERE pi.product_id = p.id
+        ORDER BY sort_order
+        LIMIT 1
+      ) AS image
+    FROM order_items oi
+    JOIN products p ON p.id = oi.product_id
+    LEFT JOIN product_variants v ON v.id = oi.variant_id
+    WHERE oi.order_id = ?
+    ORDER BY oi.id
+  `).bind(orderId).all();
   order.items = results;
   return order;
 }

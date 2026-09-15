@@ -26,48 +26,28 @@ function isCustomerPath(pathname) {
 }
 
 export default function AuthGuard() {
-  const [isAuthenticated, setIsAuthenticated] =
-    useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("Please sign in to continue.");
 
-  const [showModal, setShowModal] =
-    useState(false);
+  const checkAuthentication = useCallback(async () => {
+    try {
+      const response = await fetch("/api/auth/profile", {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
 
-  const [modalMessage, setModalMessage] =
-    useState("Please sign in to continue.");
-
-  const checkAuthentication =
-    useCallback(async () => {
-      try {
-        const response = await fetch(
-          "/api/auth/profile",
-          {
-            method: "GET",
-            credentials: "include",
-            cache: "no-store",
-          }
-        );
-
-        const authenticated =
-          response.ok;
-
-        setIsAuthenticated(authenticated);
-
-        return authenticated;
-      } catch (error) {
-        console.error(
-          "Authentication check failed:",
-          error
-        );
-
-        setIsAuthenticated(false);
-
-        return false;
-      }
-    }, []);
+      const authenticated = response.ok;
+      setIsAuthenticated(authenticated);
+      return authenticated;
+    } catch {
+      setIsAuthenticated(false);
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
-    checkAuthentication();
-
     const handleAuthChange = () => {
       checkAuthentication();
     };
@@ -79,32 +59,17 @@ export default function AuthGuard() {
       setShowModal(true);
     };
 
-    window.addEventListener(
-      "auth-change",
-      handleAuthChange
-    );
-
-    window.addEventListener(
-      "tharani-auth-required",
-      handleAuthRequired
-    );
+    window.addEventListener("auth-change", handleAuthChange);
+    window.addEventListener("tharani-auth-required", handleAuthRequired);
 
     return () => {
-      window.removeEventListener(
-        "auth-change",
-        handleAuthChange
-      );
-      window.removeEventListener(
-        "tharani-auth-required",
-        handleAuthRequired
-      );
+      window.removeEventListener("auth-change", handleAuthChange);
+      window.removeEventListener("tharani-auth-required", handleAuthRequired);
     };
   }, [checkAuthentication]);
 
   useEffect(() => {
-    const handleDocumentClick = async (
-      event
-    ) => {
+    const handleDocumentClick = async (event) => {
       const target = event.target;
 
       if (!(target instanceof Element)) {
@@ -112,135 +77,69 @@ export default function AuthGuard() {
       }
 
       /*
-       * --------------------------------------------------------
-       * Explicitly protected elements
-       *
-       * Used for Add To Cart, Buy Now, Wishlist buttons, etc.
-       * --------------------------------------------------------
+       * Explicitly protected elements (e.g. Add to Cart, Buy Now, Wishlist buttons)
        */
-      const protectedElement =
-        target.closest(
-          "[data-requires-auth='true']"
-        );
+      const protectedElement = target.closest("[data-requires-auth='true']");
 
       /*
-       * --------------------------------------------------------
-       * Customer-only navigation links
-       *
-       * This automatically protects Navbar/footer/etc.
-       * links to:
-       *
-       * /cart
-       * /orders
-       * /wishlist
-       * /profile
-       * /checkout
-       * /payment
-       * /orders/123
-       * --------------------------------------------------------
+       * Customer-only navigation links (e.g. /cart, /orders, /wishlist, /profile)
        */
-      const anchor =
-        target.closest("a[href]");
-
+      const anchor = target.closest("a[href]");
       let customerNavigation = false;
 
       if (anchor) {
-        const href =
-          anchor.getAttribute("href");
-
+        const href = anchor.getAttribute("href");
         if (href) {
           try {
-            const url = new URL(
-              href,
-              window.location.origin
-            );
-
+            const url = new URL(href, window.location.origin);
             customerNavigation =
-              url.origin ===
-                window.location.origin &&
-              isCustomerPath(
-                url.pathname
-              );
+              url.origin === window.location.origin &&
+              isCustomerPath(url.pathname);
           } catch {
             customerNavigation = false;
           }
         }
       }
 
-      if (
-        !protectedElement &&
-        !customerNavigation
-      ) {
+      if (!protectedElement && !customerNavigation) {
         return;
       }
 
       /*
-       * Already authenticated.
+       * Already confirmed authenticated
        */
       if (isAuthenticated === true) {
         return;
       }
 
       /*
-       * Stop navigation/action immediately.
+       * Stop navigation/action immediately while checking
        */
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation?.();
 
-      /*
-       * Authentication status hasn't been loaded yet.
-       * Check it now before showing the modal.
-       */
-      const authenticated =
-        await checkAuthentication();
+      const authenticated = await checkAuthentication();
 
       if (authenticated) {
-        /*
-         * User became authenticated while
-         * the click was being processed.
-         *
-         * Replay the navigation for links.
-         */
         if (anchor) {
-          const href =
-            anchor.getAttribute("href");
-
+          const href = anchor.getAttribute("href");
           if (href) {
             window.location.assign(href);
           }
         }
-
         return;
       }
 
       setShowModal(true);
     };
 
-    /*
-     * Capture phase is intentional.
-     *
-     * This prevents the original button/link
-     * handler from executing before our auth
-     * check.
-     */
-    document.addEventListener(
-      "click",
-      handleDocumentClick,
-      true
-    );
+    document.addEventListener("click", handleDocumentClick, true);
 
     return () => {
-      document.removeEventListener(
-        "click",
-        handleDocumentClick,
-        true
-      );
+      document.removeEventListener("click", handleDocumentClick, true);
     };
-  }, [
-    isAuthenticated,
-    checkAuthentication,
-  ]);
+  }, [isAuthenticated, checkAuthentication]);
 
   return (
     <AuthRequiredModal

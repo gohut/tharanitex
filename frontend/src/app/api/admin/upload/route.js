@@ -50,7 +50,15 @@ export async function POST(request) {
     const key =
       `${folder}/${crypto.randomUUID()}.${extension}`;
 
-    await env.tharani_product_images.put(
+    const bucket = env?.tharani_product_images || env?.PRODUCT_IMAGES;
+    if (!bucket) {
+      return Response.json(
+        { success: false, error: "Storage bucket binding not found." },
+        { status: 500 }
+      );
+    }
+
+    await bucket.put(
       key,
       await file.arrayBuffer(),
       {

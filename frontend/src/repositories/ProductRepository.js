@@ -5,8 +5,9 @@ export class ProductRepository {
     const db = getDB();
     return await db.prepare(
       `SELECT p.*, c.name as category_name,
-       (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) as image
-       FROM Products p JOIN Categories c ON p.category_id = c.id WHERE p.id = ?`
+       (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) as image,
+       (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) as image_url
+       FROM products p JOIN categories c ON p.category_id = c.id WHERE p.id = ?`
     )
     .bind(id)
     .first();
@@ -16,17 +17,19 @@ export class ProductRepository {
     const db = getDB();
     const { results } = await db.prepare(
       `SELECT p.*, c.name as category_name,
-       (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) as image
-       FROM Products p JOIN Categories c ON p.category_id = c.id ORDER BY p.created_at DESC`
+       (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) as image,
+       (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) as image_url
+       FROM products p JOIN categories c ON p.category_id = c.id ORDER BY p.created_at DESC`
     ).all();
-    return results;
+    return results || [];
   }
 
-  static async query({ search, category_id, min_price, max_price, fabric, color, sort, limit = 20, offset = 0 }) {
+  static async query({ search, category_id, min_price, max_price, material, fabric, color, sort, limit = 20, offset = 0 }) {
     const db = getDB();
     let query = `SELECT p.*, c.name as category_name,
-                 (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) as image
-                 FROM Products p JOIN Categories c ON p.category_id = c.id WHERE 1=1`;
+                 (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) as image,
+                 (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) as image_url
+                 FROM products p JOIN categories c ON p.category_id = c.id WHERE 1=1`;
     const params = [];
 
     if (search) {
@@ -45,9 +48,10 @@ export class ProductRepository {
       query += " AND p.price <= ?";
       params.push(Number(max_price));
     }
-    if (fabric) {
-      query += " AND p.fabric = ?";
-      params.push(fabric);
+    const mat = material || fabric;
+    if (mat) {
+      query += " AND p.material = ?";
+      params.push(mat);
     }
     if (color) {
       query += " AND p.color = ?";
@@ -67,49 +71,62 @@ export class ProductRepository {
 
     const statement = db.prepare(query);
     const { results } = await statement.bind(...params).all();
-    return results;
+    return results || [];
   }
 
-  static async create({ id, category_id, name, description, price, stock, fabric, color, image_url }) {
+  static async create({ category_id, name, slug, description, price, stock, material, fabric, color, occasion, is_active }) {
     const db = getDB();
     const now = new Date().toISOString();
-    await db.prepare(
-      "INSERT INTO Products (id, category_id, name, description, price, stock, fabric, color, image_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    const productSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    const result = await db.prepare(
+      "INSERT INTO products (category_id, name, slug, description, price, stock, material, color, occasion, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     )
     .bind(
-      id,
       category_id,
       name,
+      productSlug,
       description || null,
       price,
-      stock,
-      fabric || null,
+      stock || 0,
+      material || fabric || null,
       color || null,
-      image_url || null,
-      now,
+      occasion || null,
+      is_active !== undefined ? is_active : 1,
       now
     )
     .run();
 
-    return this.findById(id);
+    return this.findById(result.meta?.last_row_id);
   }
 
-  static async update(id, { category_id, name, description, price, stock, fabric, color, image_url }) {
+  static async update(id, { category_id, name, slug, description, price, stock, material, fabric, color, occasion, is_active }) {
     const db = getDB();
-    const now = new Date().toISOString();
+    const productSlug = slug || (name ? name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") : undefined);
     await db.prepare(
-      "UPDATE Products SET category_id = ?, name = ?, description = ?, price = ?, stock = ?, fabric = ?, color = ?, image_url = ?, updated_at = ? WHERE id = ?"
+      `UPDATE products
+       SET category_id = COALESCE(?, category_id),
+           name = COALESCE(?, name),
+           slug = COALESCE(?, slug),
+           description = COALESCE(?, description),
+           price = COALESCE(?, price),
+           stock = COALESCE(?, stock),
+           material = COALESCE(?, material),
+           color = COALESCE(?, color),
+           occasion = COALESCE(?, occasion),
+           is_active = COALESCE(?, is_active)
+       WHERE id = ?`
     )
     .bind(
-      category_id,
-      name,
+      category_id || null,
+      name || null,
+      productSlug || null,
       description || null,
-      price,
-      stock,
-      fabric || null,
+      price !== undefined ? price : null,
+      stock !== undefined ? stock : null,
+      material || fabric || null,
       color || null,
-      image_url || null,
-      now,
+      occasion || null,
+      is_active !== undefined ? is_active : null,
       id
     )
     .run();
@@ -119,11 +136,10 @@ export class ProductRepository {
 
   static async updateStock(id, newStock) {
     const db = getDB();
-    const now = new Date().toISOString();
     await db.prepare(
-      "UPDATE Products SET stock = ?, updated_at = ? WHERE id = ?"
+      "UPDATE products SET stock = ? WHERE id = ?"
     )
-    .bind(newStock, now, id)
+    .bind(newStock, id)
     .run();
 
     return true;
@@ -131,23 +147,25 @@ export class ProductRepository {
 
   static async delete(id) {
     const db = getDB();
-    await db.prepare("DELETE FROM Products WHERE id = ?").bind(id).run();
+    await db.prepare("DELETE FROM products WHERE id = ?").bind(id).run();
     return true;
   }
 
   static async findLowStock(threshold = 5) {
     const db = getDB();
     const { results } = await db.prepare(
-      "SELECT p.*, c.name as category_name FROM Products p JOIN Categories c ON p.category_id = c.id WHERE p.stock <= ? ORDER BY p.stock ASC"
+      `SELECT p.*, c.name as category_name,
+       (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY sort_order LIMIT 1) as image
+       FROM products p JOIN categories c ON p.category_id = c.id WHERE p.stock <= ? ORDER BY p.stock ASC`
     )
     .bind(threshold)
     .all();
-    return results;
+    return results || [];
   }
 
   static async countAll() {
     const db = getDB();
-    const result = await db.prepare("SELECT COUNT(*) as count FROM Products").first();
+    const result = await db.prepare("SELECT COUNT(*) as count FROM products").first();
     return result ? result.count : 0;
   }
 }

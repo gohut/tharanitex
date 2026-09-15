@@ -35,27 +35,24 @@ export default function Hero({ slides = [] }) {
           clickable: true,
         }}
       >
-        {slides.map((slide, index) => {
-          const mobileImage = slide.mobileImage || slide.image;
-
+        {slides.map((slide) => {
           return (
             <SwiperSlide key={slide.id}>
-              <div className="hero-image-wrapper relative">
-                {/* Desktop Image */}
-                <img
-                  src={slide.image}
-                  alt={slide.title || `Hero Banner ${slide.id}`}
-                  className="hero-image hero-image-desktop"
-                  draggable={false}
-                />
-
-                {/* Mobile Image */}
-                <img
-                  src={mobileImage}
-                  alt={slide.title || `Hero Banner ${slide.id}`}
-                  className="hero-image hero-image-mobile"
-                  draggable={false}
-                />
+              <div className="hero-image-wrapper relative w-full">
+                <picture className="block w-full">
+                  {slide.mobileImage && (
+                    <source
+                      media="(max-width: 767px)"
+                      srcSet={slide.mobileImage}
+                    />
+                  )}
+                  <img
+                    src={slide.image}
+                    alt={slide.title || `Hero Banner ${slide.id}`}
+                    className="hero-image"
+                    draggable={false}
+                  />
+                </picture>
 
                 {(slide.title ||
                   slide.subtitle ||

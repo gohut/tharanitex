@@ -1,14 +1,19 @@
-﻿.hero-section {
+.hero-section {
   width: 100%;
-  overflow: hidden;
   position: relative;
   background: #FBF5EA;
+  overflow: hidden;
+}
+
+.hero-swiper {
+  width: 100%;
+  position: relative;
 }
 
 .hero-image-wrapper {
   width: 100%;
   position: relative;
-  overflow: hidden;
+  line-height: 0;
 }
 
 .hero-image {
@@ -17,59 +22,6 @@
   display: block;
   user-select: none;
   pointer-events: none;
-
-  transition: opacity 0.45s ease-in-out;
-}
-
-/* Desktop image visible */
-.hero-image-desktop {
-  opacity: 1;
-  position: relative;
-}
-
-/* Mobile image hidden */
-.hero-image-mobile {
-  opacity: 0;
-  position: absolute;
-  inset: 0;
-}
-
-/* =========================
-   MOBILE
-   ========================= */
-
-@media (max-width: 639px) {
-  .hero-image-desktop {
-    opacity: 0;
-    position: absolute;
-    inset: 0;
-  }
-
-  .hero-image-mobile {
-    opacity: 1;
-    position: relative;
-  }
-
-  .hero-image-wrapper {
-    aspect-ratio: 4 / 3;
-  }
-}
-
-/* =========================
-   TABLET / DESKTOP
-   ========================= */
-
-@media (min-width: 640px) {
-  .hero-image-desktop {
-    opacity: 1;
-    position: relative;
-  }
-
-  .hero-image-mobile {
-    opacity: 0;
-    position: absolute;
-    inset: 0;
-  }
 }
 
 /* =========================

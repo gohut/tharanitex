@@ -510,17 +510,6 @@ export default function ProductsPage() {
           <FormInput label="Price (₹)" id="price" type="number" value={form.price || ""} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0" required />
           <FormInput label="Stock Quantity" id="stock" type="number" value={form.stock || ""} onChange={(e) => setForm({ ...form, stock: e.target.value })} placeholder="0" required />
           <FormInput label="Status" id="status" type="select" value={form.status || "Active"} onChange={(e) => setForm({ ...form, status: e.target.value })} options={["Active", "Low Stock", "Out of Stock"]} />
-          <div className="sm:col-span-2">
-            <FormInput
-              label="Subtitle"
-              id="catsubtitle"
-              value={catForm.subtitle || ""}
-              onChange={(e) =>
-                setCatForm({ ...catForm, subtitle: e.target.value })
-              }
-              placeholder="e.g. SILKS"
-            />
-          </div>
         </div>
         <div className="flex justify-end gap-3 mt-5">
           <Button variant="secondary" onClick={() => setModal(null)}>Cancel</Button>

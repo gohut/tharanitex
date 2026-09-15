@@ -1,18 +1,21 @@
 import { ApiResponse } from "@/utils/ApiResponse";
-
-export const runtime = "edge";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export async function GET(request, { params }) {
   try {
     const resolvedParams = await params;
-    if (!resolvedParams.key || !Array.isArray(resolvedParams.key)) {
+    if (!resolvedParams.key) {
       return ApiResponse.badRequest("Invalid file key");
     }
 
-    const key = resolvedParams.key.join("/");
-    const bucket = process.env.BUCKET;
+    const key = Array.isArray(resolvedParams.key)
+      ? resolvedParams.key.join("/")
+      : resolvedParams.key;
+
+    const { env } = await getCloudflareContext({ async: true }).catch(() => ({ env: undefined }));
+    const bucket = env?.PRODUCT_IMAGES || env?.tharani_product_images || (typeof process !== "undefined" && process.env?.BUCKET);
     if (!bucket) {
-      return ApiResponse.error("R2 storage bucket binding (BUCKET) not found in process.env");
+      return ApiResponse.error("R2 storage bucket binding not found");
     }
 
     const object = await bucket.get(key);
@@ -21,8 +24,19 @@ export async function GET(request, { params }) {
     }
 
     const headers = new Headers();
-    object.writeHttpMetadata(headers);
-    headers.set("etag", object.httpEtag);
+    if (object.httpMetadata?.contentType) {
+      headers.set("content-type", object.httpMetadata.contentType);
+    } else if (key.endsWith(".png")) {
+      headers.set("content-type", "image/png");
+    } else if (key.endsWith(".jpg") || key.endsWith(".jpeg")) {
+      headers.set("content-type", "image/jpeg");
+    } else if (key.endsWith(".webp")) {
+      headers.set("content-type", "image/webp");
+    }
+
+    if (object.httpEtag) {
+      headers.set("etag", object.httpEtag);
+    }
     headers.set("Content-Length", String(object.size));
     // Enable browser caching for 1 year since product images are static
     headers.set("Cache-Control", "public, max-age=31536000, immutable");
